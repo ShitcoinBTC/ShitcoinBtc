@@ -167,6 +167,26 @@ static RPCHelpMan getnevmblobdata()
         oNEVM.pushKVEnd("height", pblockindex->nHeight);
         if(llmq::chainLocksHandler)
             oNEVM.pushKV("chainlock", llmq::chainLocksHandler->HasChainLock(pblockindex->nHeight, pblockindex->GetBlockHash()));
+    } else {
+        {
+            LOCK(cs_main);
+            const Coin& coin = AccessByTxid(node.chainman->ActiveChainstate().CoinsTip(), meta.txid);
+            if (!coin.IsSpent()) {
+                pblockindex = node.chainman->ActiveChain()[coin.nHeight];
+            }
+            if (pblockindex == nullptr) {
+                uint32_t nBlockHeight;
+                if(pblockindexdb != nullptr && pblockindexdb->ReadBlockHeight(meta.txid, nBlockHeight)) {
+                    pblockindex = node.chainman->ActiveChain()[nBlockHeight];
+                }
+            }
+        }
+        if(pblockindex != nullptr) {
+            oNEVM.pushKVEnd("blockhash", pblockindex->GetBlockHash().GetHex());
+            oNEVM.pushKVEnd("height", pblockindex->nHeight);
+            if(llmq::chainLocksHandler)
+                oNEVM.pushKV("chainlock", llmq::chainLocksHandler->HasChainLock(pblockindex->nHeight, pblockindex->GetBlockHash()));
+        }
     }
     if(bGetData) {
         std::vector<uint8_t> vchData;
@@ -293,7 +313,7 @@ static RPCHelpMan listnevmblobdata()
                 {
                     {RPCResult::Type::STR_HEX, "versionhash", "The version hash of the NEVM blob"},
                     {RPCResult::Type::NUM, "datasize", "Size of data blob in bytes"},
-                    {RPCResult::Type::NUM, "txid", "Transaction ID of the blob tx"},
+                    {RPCResult::Type::STR_HEX, "txid", "Transaction ID of the blob tx"},
                     {RPCResult::Type::NUM, "mtp", "Median timestamp of the blob"},
                 }},
                 {RPCResult::Type::OBJ, "(if stats=true)", "",

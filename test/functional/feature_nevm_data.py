@@ -226,6 +226,12 @@ class NEVMDataTest(DashTestFramework):
         assert_equal(self.nodes[4].getnevmblobdata(txid, True)['data'], txidData)
         assert_equal(self.nodes[4].getnevmblobdata(vh, True)['data'], vhData)
         assert_equal(self.nodes[4].getnevmblobdata(txid1, True)['data'], txid1Data)
+        # After node 4 is back online and synced, wait for next chainlock across all nodes,
+        # then ensure getnevmblobdata(vh) reports chainlock
+        cl = self.nodes[0].getbestblockhash()
+        self.generate_helper(self.nodes[0], 5)
+        self.wait_for_chainlocked_block_all_nodes(cl)
+        self.wait_until(lambda: ('chainlock' in self.nodes[0].getnevmblobdata(vh)) and self.nodes[0].getnevmblobdata(vh)['chainlock'])
         print('Test blob expiry...')
         expiry_timestamp = (mtp + NEVM_DATA_EXPIRE_TIME)
         bump_to_expiry = expiry_timestamp - self.mocktime

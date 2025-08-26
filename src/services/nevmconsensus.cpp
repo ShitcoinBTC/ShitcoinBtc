@@ -152,7 +152,6 @@ bool CNEVMDataDB::PruneToBatch(
         } else {
             ++it;
         }
-        ++nCount;
     }
     
     std::unique_ptr<CDBIterator> pcursor(NewIterator());

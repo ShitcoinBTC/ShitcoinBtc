@@ -1,4 +1,4 @@
-Syscoin Core integration/staging tree
+Owlee Core integration/staging tree
 =====================================
 
 [![Build Status](https://travis-ci.org/syscoin/syscoin.svg?branch=master)](https://travis-ci.org/syscoin/syscoin)
@@ -8,7 +8,7 @@ https://syscoincore.org/en/download/.
 
 Further information about Syscoin Core is available in the [doc folder](/doc).
 
-What is Syscoin Core?
+What is Owlee Core?
 ----------------
 
 Syscoin Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. Syscoin uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Syscoin Core is the name of open source software which enables the use of this currency.
@@ -53,7 +53,7 @@ For more information read the Syscoin whitepaper.
 License
 -------
 
-Syscoin Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
+Owlee Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
 information or see https://opensource.org/licenses/MIT.
 
 Development Process

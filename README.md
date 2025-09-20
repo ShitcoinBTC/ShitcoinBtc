@@ -6,12 +6,12 @@ Owlee Core integration/staging tree
 For an immediately usable, binary version of the Syscoin Core software, see
 https://syscoincore.org/en/download/.
 
-Further information about Syscoin Core is available in the [doc folder](/doc).
+Further information about Owlee Core is available in the [doc folder](/doc).
 
 What is Owlee Core?
 ----------------
 
-Syscoin Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. Syscoin uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Syscoin Core is the name of open source software which enables the use of this currency.
+Owlee Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. Syscoin uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Syscoin Core is the name of open source software which enables the use of this currency.
 
 For more information, as well as an immediately useable, binary version of the Syscoin Core software, see https://syscoin.org/, or read the [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
 
@@ -31,7 +31,7 @@ Syscoin is a merge-minable SHA256 coin which provides an array of useful service
 
 - Block time: 150 seconds target
 - Halving interval: 210240 (~1 year)
-- Rewards: 96.25 Syscoins per block deflated 5 percent per year
+- Rewards: 96.25 Owleecoins per block deflated 5 percent per year
   - 10 percent to governance proposals
   - 90 percent split with miner/masternode of which:
     - 25 percent to miner
@@ -104,7 +104,7 @@ Translations
 ------------
 
 Changes to translations as well as new translations can be submitted to
-[Syscoin Core's Transifex page](https://www.transifex.com/syscoin/syscoin/).
+[Owlee Core's Transifex page](https://www.transifex.com/syscoin/syscoin/).
 
 Translations are periodically pulled from Transifex and merged into the git repository. See the
 [translation process](doc/translation_process.md) for details on how this works.

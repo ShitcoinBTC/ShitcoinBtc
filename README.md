@@ -3,7 +3,7 @@ Owlee Core integration/staging tree
 
 [![Build Status](https://travis-ci.org/syscoin/syscoin.svg?branch=master)](https://travis-ci.org/syscoin/syscoin)
 
-For an immediately usable, binary version of the Syscoin Core software, see
+For an immediately usable, binary version of the Owleecoin Core software, see
 https://syscoincore.org/en/download/.
 
 Further information about Owlee Core is available in the [doc folder](/doc).
@@ -48,7 +48,7 @@ Syscoin is a merge-minable SHA256 coin which provides an array of useful service
 - Governance funding gets 5% deflation per round (superblock). See formula below
 - Codebase based off of latest Bitcoin Core (https://github.com/bitcoin/bitcoin)
 
-For more information read the Syscoin whitepaper.
+For more information read the Owlee whitepaper.
 
 License
 -------

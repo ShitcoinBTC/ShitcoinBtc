@@ -24,7 +24,7 @@ Governance formula: We have implemented a % decline schedule — starting th
 Interoptibility between UTXO assets and ERC20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge. Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
 
 For more information, as well as an immediately useable, binary version of
-the Syscoin Core software, see https://syscoin.org/, or read the
+the owlee Core software, see https://syscoin.org/, or read the
 [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
 
 Syscoin is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology. It enables turing complete smart contracts running in an [NEVM (Network-enhanced Virtual Machine)](https://github.com/syscoin/go-ethereum) to leverage bitcoin security through merged-mining. Scaling the technology will happen on layer 2 (zkRollups for NEVM and Lightning Networks for UTXO assets).
@@ -37,11 +37,11 @@ Syscoin is a merge-minable SHA256 coin which provides an array of useful service
     - 25 percent to miner
     - 75 percent to masternode
 - 50 percent of the transaction fees paid to masternode
-- Masternode minimum subsidy(before seniority): 5.275 Syscoins (can not go below this amount even accounting for deflation)
+- Masternode minimum subsidy(before seniority): 5.275 owlee core (can not go below this amount even accounting for deflation)
 - NEVM subsidy (EIP1559): 10.55 Syscoins (static, not deflating)
 - SHA256 Proof of Work
 - Mineable either exclusively or via merge-mining any SHA256 PoW coin
-- Masternode collateral requirement: 100000 Syscoins
+- Masternode collateral requirement: 100000 
 - Masternode seniority: 35 percent increase after 210240 blocks (~1 year), 100 percent increase after 525600 blocks (~2.5 years)
 - Governance proposals payout schedule: every 17520 blocks (~1 month)
 - Governance funding per round (Approx. 2m Syscoins per month to start)

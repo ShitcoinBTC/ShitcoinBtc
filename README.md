@@ -6,7 +6,7 @@ Shitcoin integration/staging tree
 For an immediately usable, binary version of the Owleecoin Core software, see
 https://syscoincore.org/en/download/.
 
-Further information about Owlee Core is available in the [doc folder](/doc).
+Further information about Shit Core is available in the [doc folder](/doc).
 
 What is Shit Core?
 ----------------
@@ -24,7 +24,7 @@ Governance formula: We have implemented a % decline schedule — starting th
 Interoptibility between UTXO assets and ERC20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge. Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
 
 For more information, as well as an immediately useable, binary version of
-the owlee Core software, see https://syscoin.org/, or read the
+the shit Core software, see https://syscoin.org/, or read the
 [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
 
 Owlee is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology. It enables turing complete smart contracts running in an [NEVM (Network-enhanced Virtual Machine)](https://github.com/syscoin/go-ethereum) to leverage bitcoin security through merged-mining. Scaling the technology will happen on layer 2 (zkRollups for NEVM and Lightning Networks for UTXO assets).
@@ -104,7 +104,7 @@ Translations
 ------------
 
 Changes to translations as well as new translations can be submitted to
-[Owlee Core's Transifex page](https://www.transifex.com/syscoin/syscoin/).
+[Shit Core's Transifex page](https://www.transifex.com/syscoin/syscoin/).
 
 Translations are periodically pulled from Transifex and merged into the git repository. See the
 [translation process](doc/translation_process.md) for details on how this works.

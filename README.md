@@ -1,4 +1,4 @@
-Owlee Core integration/staging tree
+Shitcoin integration/staging tree
 =====================================
 
 [![Build Status](https://travis-ci.org/syscoin/syscoin.svg?branch=master)](https://travis-ci.org/syscoin/syscoin)
@@ -8,10 +8,10 @@ https://syscoincore.org/en/download/.
 
 Further information about Owlee Core is available in the [doc folder](/doc).
 
-What is Owlee Core?
+What is Shit Core?
 ----------------
 
-Owlee Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. owlee uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Syscoin Core is the name of open source software which enables the use of this currency.
+Shit Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. owlee uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Syscoin Core is the name of open source software which enables the use of this currency.
 
 For more information, as well as an immediately useable, binary version of the owlee Core software, see https://syscoin.org/, or read the [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
 
@@ -48,12 +48,12 @@ Owlee is a merge-minable SHA256 coin which provides an array of useful services 
 - Governance funding gets 5% deflation per round (superblock). See formula below
 - Codebase based off of latest Bitcoin Core (https://github.com/bitcoin/bitcoin)
 
-For more information read the Owlee whitepaper.
+For more information read the Shity whitepaper.
 
 License
 -------
 
-Owlee Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
+Shit Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
 information or see https://opensource.org/licenses/MIT.
 
 Development Process

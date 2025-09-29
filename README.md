@@ -13,7 +13,7 @@ What is Shit Core?
 
 Shit Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. owlee uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Syscoin Core is the name of open source software which enables the use of this currency.
 
-For more information, as well as an immediately useable, binary version of the owlee Core software, see https://syscoin.org/, or read the [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
+For more information, as well as an immediately useable, binary version of the shit Core software, see https://syscoin.org/, or read the [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
 
 owlee is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology.
 
@@ -24,7 +24,7 @@ Governance formula: We have implemented a % decline schedule — starting th
 Interoptibility between UTXO assets and ERC20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge. Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
 
 For more information, as well as an immediately useable, binary version of
-the shit Core software, see https://syscoin.org/, or read the
+the Shit Core software, see https://syscoin.org/, or read the
 [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
 
 Owlee is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology. It enables turing complete smart contracts running in an [NEVM (Network-enhanced Virtual Machine)](https://github.com/syscoin/go-ethereum) to leverage bitcoin security through merged-mining. Scaling the technology will happen on layer 2 (zkRollups for NEVM and Lightning Networks for UTXO assets).
@@ -44,7 +44,7 @@ Owlee is a merge-minable SHA256 coin which provides an array of useful services 
 - Masternode collateral requirement: 100000 
 - Masternode seniority: 35 percent increase after 210240 blocks (~1 year), 100 percent increase after 525600 blocks (~2.5 years)
 - Governance proposals payout schedule: every 17520 blocks (~1 month)
-- Governance funding per round (Approx. 2m Syscoins per month to start)
+- Governance funding per round (Approx. 2m shit per month to start)
 - Governance funding gets 5% deflation per round (superblock). See formula below
 - Codebase based off of latest Bitcoin Core (https://github.com/bitcoin/bitcoin)
 
@@ -61,7 +61,7 @@ Development Process
 
 The `master` branch is regularly built (see `doc/build-*.md` for instructions) and tested, but it is not guaranteed to be
 completely stable. [Tags](https://github.com/syscoin/syscoin/tags) are created
-regularly from release branches to indicate new official, stable release versions of Syscoin Core.
+regularly from release branches to indicate new official, stable release versions of Shit Core.
 
 The https://github.com/syscoin-core/gui repository is used exclusively for the
 development of the GUI. Its master branch is identical in all monotree

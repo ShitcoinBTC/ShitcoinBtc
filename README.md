@@ -3,7 +3,7 @@ Shitcoin integration/staging tree
 
 [![Build Status](https://travis-ci.org/syscoin/syscoin.svg?branch=master)](https://travis-ci.org/syscoin/syscoin)
 
-For an immediately usable, binary version of the Owleecoin Core software, see
+For an immediately usable, binary version of the Shit Core software, see
 https://syscoincore.org/en/download/.
 
 Further information about Shit Core is available in the [doc folder](/doc).

@@ -11,7 +11,7 @@ Further information about Shit Core is available in the [doc folder](/doc).
 What is Shit Core?
 ----------------
 
-Shit Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. owlee uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Syscoin Core is the name of open source software which enables the use of this currency.
+Shit Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. owlee uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Shit Core is the name of open source software which enables the use of this currency.
 
 For more information, as well as an immediately useable, binary version of the shit Core software, see https://syscoin.org/, or read the [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
 

@@ -1888,7 +1888,10 @@ bool CheckProofOfWork(const CBlockHeader& block, const Consensus::Params& params
     }
 
 
-    /* If there is no auxpow, just check the block hash.  */
+    /* If there is no auxpow, just check the block hash.  This path is only
+       reachable for the genesis block and on regtest — AcceptBlockHeader
+       rejects non-auxpow blocks everywhere else, so standalone mining is
+       impossible on mainnet.  */
     if (!block.auxpow)
     {
         if (block.IsAuxpow())
@@ -4799,6 +4802,19 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
         LogPrintf("ERROR: %s: legacy block after auxpow start\n", __func__);
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "late-legacy-block");
      }
+    /* Shitcoin is merge-mined only: once the auxpow era starts, every block
+       must carry a valid AuxPoW proof anchored in a Bitcoin block.  Mining
+       SHIT standalone (native proof of work, no Bitcoin parent) is not
+       allowed — you mine Bitcoin, you get SHIT for free, no extra effort.
+       Regtest (nAuxpowStartHeight == 0) is exempt so blocks can be generated
+       locally for tests.  */
+    if (consensusParams.nAuxpowStartHeight > 0
+        && nHeight >= consensusParams.nAuxpowStartHeight
+        && !block.auxpow) {
+        LogPrintf("ERROR: %s: block without auxpow after auxpow start (height %d)\n",
+                  __func__, nHeight);
+        return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "no-auxpow");
+    }
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
         return state.Invalid(BlockValidationResult::BLOCK_INVALID_HEADER, "bad-diffbits", "incorrect proof of work");
 

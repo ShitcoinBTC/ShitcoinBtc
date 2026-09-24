@@ -31,6 +31,12 @@ bool CheckSyscoinMintInternal(
     if (!pnevmtxrootsdb || !pnevmtxrootsdb->ReadTxRoots(mintSyscoin.nBlockHash, txRootDB)) {
         return FormatSyscoinErrorMessage(state, "mint-txroot-missing", fJustCheck);
     }
+    // posReceipt is attacker-controlled: without this bound the bytesConstRef
+    // below underflows (size_t wraparound) and the RLP parser dereferences a
+    // wild pointer, crashing the node during validation.
+    if (mintSyscoin.posReceipt > mintSyscoin.vchReceiptParentNodes.size()) {
+        return FormatSyscoinErrorMessage(state, "mint-receipt-offset-oob", fJustCheck);
+    }
     const dev::RLP rlpReceiptParentNodes(&mintSyscoin.vchReceiptParentNodes);
     const dev::RLP rlpReceiptValue(
         dev::bytesConstRef(
@@ -55,10 +61,15 @@ bool CheckSyscoinMintInternal(
     const std::vector<unsigned char>& vchManagerAddress = Params().GetConsensus().vchSyscoinVaultManager;
     const std::vector<unsigned char>& vchFreezeTopic = Params().GetConsensus().vchTokenFreezeMethod;
 
+    // One NEVM tx backs at most one mint: the double-mint guard keys on the
+    // NEVM tx hash, so a second freeze log in the same receipt would lock funds
+    // on NEVM that no mint could ever release. Reject loudly instead of
+    // silently stranding the second freeze.
+    size_t nFreezeLogsSeen = 0;
+    nAssetFromLog = 0;
+    outputAmount = 0;
+    witnessAddress.clear();
     for (size_t i = 0; i < itemCount; ++i) {
-        nAssetFromLog = 0;
-        outputAmount = 0;
-        witnessAddress.clear();
         const dev::RLP& rlpLog = rlpLogs[i];
         if (!rlpLog.isList() || rlpLog.itemCount() < 3) {
             continue;
@@ -77,10 +88,24 @@ bool CheckSyscoinMintInternal(
         if (rlpLogTopics.itemCount() < 3) {
             return FormatSyscoinErrorMessage(state, "mint-log-invalid-topics-count", fJustCheck);
         }
+        if (++nFreezeLogsSeen > 1) {
+            return FormatSyscoinErrorMessage(state, "mint-multiple-freeze-logs", fJustCheck);
+        }
 
         // Parse indexed asset guid from topics:
         dev::bytes vchAssetGuid = rlpLogTopics[1].toBytes(dev::RLP::VeryStrict);
-        // Take the last 8 bytes (assuming assetGuid fits in 64 bits), 24 because all topics are 32 bytes
+        // Topics are always 32 bytes; require it explicitly (a short topic
+        // would make the ReadBE64 below read out of bounds) and require the
+        // high 24 bytes to be zero so the guid genuinely fits in 64 bits.
+        if (vchAssetGuid.size() != 32) {
+            return FormatSyscoinErrorMessage(state, "mint-log-invalid-guid-size", fJustCheck);
+        }
+        for (size_t b = 0; b < 24; ++b) {
+            if (vchAssetGuid[b] != 0) {
+                return FormatSyscoinErrorMessage(state, "mint-log-guid-overflow", fJustCheck);
+            }
+        }
+        // Take the last 8 bytes of the 32-byte topic
         nAssetFromLog = ReadBE64(vchAssetGuid.data() + 24);
 
         // Now parse non-indexed parameters from data:
@@ -106,8 +131,9 @@ bool CheckSyscoinMintInternal(
         std::reverse(vchOffset.begin(), vchOffset.end());
         const uint64_t offsetToString = UintToArith256(uint256(vchOffset)).GetLow64();
 
-        // string length (big-endian)
-        if (offsetToString + 32 > dataValue.size()) {
+        // string length (big-endian). NB: offsetToString is attacker-controlled;
+        // the checks below are written to be safe under uint64 wraparound.
+        if (offsetToString > dataValue.size() || dataValue.size() - offsetToString < 32) {
             return FormatSyscoinErrorMessage(state, "mint-log-invalid-string-offset", fJustCheck);
         }
         std::vector<unsigned char> vchLenString(
@@ -117,8 +143,9 @@ bool CheckSyscoinMintInternal(
         std::reverse(vchLenString.begin(), vchLenString.end());
         const uint64_t lenString = UintToArith256(uint256(vchLenString)).GetLow64();
 
-        // Parse the string
-        if (offsetToString + 32 + lenString > dataValue.size()) {
+        // Parse the string (offsetToString <= size-32 established above, so
+        // this subtraction cannot underflow).
+        if (lenString > dataValue.size() - offsetToString - 32) {
             return FormatSyscoinErrorMessage(state, "mint-log-invalid-string-length", fJustCheck);
         }
 
@@ -132,7 +159,6 @@ bool CheckSyscoinMintInternal(
             reinterpret_cast<const char*>(dataValue.data() + offsetToString + 32), 
             lenString
         );
-        break;
     }
 
     if (nAssetFromLog == 0 || outputAmount == 0 || witnessAddress.empty()) {
@@ -153,6 +179,11 @@ bool CheckSyscoinMintInternal(
     
     
     const dev::RLP rlpTxParentNodes(&mintSyscoin.vchTxParentNodes);
+    // posTx is attacker-controlled: same out-of-bounds hazard as posReceipt
+    // above (the sha3 below would read wild memory).
+    if (mintSyscoin.posTx > mintSyscoin.vchTxParentNodes.size()) {
+        return FormatSyscoinErrorMessage(state, "mint-tx-offset-oob", fJustCheck);
+    }
     const dev::bytesConstRef vchTxValueRef(
         mintSyscoin.vchTxParentNodes.data() + mintSyscoin.posTx,
         mintSyscoin.vchTxParentNodes.size() - mintSyscoin.posTx
@@ -394,25 +425,39 @@ bool CheckAssetAllocationInputs(const CTransaction &tx, const uint256& txHash, T
         }
         break;
         case SYSCOIN_TX_VERSION_ALLOCATION_BURN_TO_NEVM:
+        {
+            // The burn destination must be a valid 20-byte NEVM address carried
+            // in the OP_RETURN as CBurnSyscoin. Without it the paired Geth node
+            // cannot credit the burned assets on NEVM, so they would be
+            // destroyed with no recourse. Fail loudly in consensus instead of
+            // letting users burn funds into the void.
+            const CBurnSyscoin burnSyscoin(tx);
+            if (burnSyscoin.IsNull() || burnSyscoin.vchNEVMAddress.size() != 20) {
+                return FormatSyscoinErrorMessage(state, "assetallocation-invalid-burn-nevm-address", fJustCheck);
+            }
+            const CAmount &nBurnAmount = tx.vout[nOut].assetInfo.nValue;
+            if (nBurnAmount <= 0) {
+                return FormatSyscoinErrorMessage(state, "assetallocation-invalid-burn-amount", fJustCheck);
+            }
+        }
+        break;
         case SYSCOIN_TX_VERSION_ALLOCATION_BURN_TO_SYSCOIN:
         {
             const CAmount &nBurnAmount = tx.vout[nOut].assetInfo.nValue;
             if (nBurnAmount <= 0) {
                 return FormatSyscoinErrorMessage(state, "assetallocation-invalid-burn-amount", fJustCheck);
             }
-            if(tx.nVersion == SYSCOIN_TX_VERSION_ALLOCATION_BURN_TO_SYSCOIN) {
-                if(nOut == 0) {
-                    return FormatSyscoinErrorMessage(state, "assetallocation-invalid-burn-index", fJustCheck);
-                }
-                // the burn of asset in opreturn should match the output value of index 0 (sys)
-                if(nBurnAmount != tx.vout[0].nValue) {
-                    return FormatSyscoinErrorMessage(state, "assetallocation-mismatch-burn-amount", fJustCheck);
-                }  
-                if(tx.vout[nOut].assetInfo.nAsset != Params().GetConsensus().nSYSXAsset) {
-                    return FormatSyscoinErrorMessage(state, "assetallocation-invalid-sysx-asset", fJustCheck);
-                }  
+            if(nOut == 0) {
+                return FormatSyscoinErrorMessage(state, "assetallocation-invalid-burn-index", fJustCheck);
             }
-        } 
+            // the burn of asset in opreturn should match the output value of index 0 (sys)
+            if(nBurnAmount != tx.vout[0].nValue) {
+                return FormatSyscoinErrorMessage(state, "assetallocation-mismatch-burn-amount", fJustCheck);
+            }
+            if(tx.vout[nOut].assetInfo.nAsset != Params().GetConsensus().nSYSXAsset) {
+                return FormatSyscoinErrorMessage(state, "assetallocation-invalid-sysx-asset", fJustCheck);
+            }
+        }
         break;
         default:
             return FormatSyscoinErrorMessage(state, "assetallocation-invalid-op", fJustCheck);

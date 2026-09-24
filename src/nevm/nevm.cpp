@@ -67,6 +67,9 @@ bool VerifyProof(dev::bytesConstRef path, const dev::RLP& value, const dev::RLP&
         pathPtr += nibbles;
         if(pathPtr == (int)pathString.size()) { //leaf node
           dev::bytes nodeVec(currentNode[1].toBytes());
+          if(nodeVec.empty()) {
+            return false;
+          }
           // https://eips.ethereum.org/EIPS/eip-2718 first byte less than 0x7f is the transaction type and not part of RLP
           if(nodeVec[0] < 0x7f) {
             nodeVec = dev::bytes(nodeVec.begin()+1, nodeVec.end());

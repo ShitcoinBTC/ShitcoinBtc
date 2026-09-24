@@ -570,7 +570,7 @@ public:
         consensus.nCoinSupportAllocation = 0;
         consensus.nPresaleAllocation = 0;
         // Regtest: a small test vault reserve so yield claims are exercisable.
-        // Mainnet uses the full 5.25B SHIT reserve; regtest just needs non-zero
+        // Mainnet uses the full 4.2B SHIT reserve; regtest just needs non-zero
         // caps so CheckVaultYield computes real entitlements.
         consensus.nVaultReserveTotal = 100000000 * COIN;
         consensus.nVaultYearlyYieldCap = 1000000 * COIN;

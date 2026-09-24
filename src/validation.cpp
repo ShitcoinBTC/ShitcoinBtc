@@ -1940,7 +1940,7 @@ CAmount GetBlockSubsidy(unsigned int nHeight, const Consensus::Params& consensus
     {
         // Shitcoin launch allocations (21B supply schedule):
         //   18% presale + 15% team + 2% coin support.
-        // The 25% vault yield reserve (5.25B SHIT) is NOT paid out here: it is a
+        // The 20% vault yield reserve (4.2B SHIT) is NOT paid out here: it is a
         // protocol-level reserve with no address and no custodian, minted over
         // time as vault yield (see CheckVaultYield) and hard-capped by
         // nVaultReserveTotal / nVaultYearlyYieldCap.
@@ -1950,17 +1950,17 @@ CAmount GetBlockSubsidy(unsigned int nHeight, const Consensus::Params& consensus
                consensusParams.nCoinSupportAllocation;
     }
 
-    // Mining allocation: 40% of the 21B supply (8.4B SHIT).
-    // nMiningSubsidyBase is tuned so the 5%-per-year decay over the 50-year
+    // Mining allocation: 45% of the 21B supply (9.45B SHIT).
+    // nMiningSubsidyBase is tuned so the 2%-per-year decay over the 100-year
     // tail sums to exactly the mining allocation.
     CAmount nSubsidy = consensusParams.nMiningSubsidyBase;
     const int reductions = nHeight / consensusParams.nSubsidyHalvingInterval;
-    if (reductions >= 50) {
+    if (reductions >= 100) {
         return 0;
     }
-    // Subsidy reduced every year by 5%
+    // Subsidy reduced every year by 2%
     for (int i = 0; i < reductions; i++) {
-        nSubsidy -= nSubsidy / 20;
+        nSubsidy -= nSubsidy / 50;
     }
     // Reduce the block reward of miners (allowing budget/superblocks)
     const CAmount nSuperblockPart = (nSubsidy*0.1);

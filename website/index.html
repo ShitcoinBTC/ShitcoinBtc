@@ -390,6 +390,199 @@
     .spec h3 { margin-top: 34px; font-size: 2.45rem; }
     .spec p { margin: 12px 0 0; color: var(--muted); max-width: 560px; }
 
+    .presale-section {
+      background: var(--hero);
+      color: var(--hero-ink);
+    }
+    .presale-section .section-head { border-color: rgba(255, 255, 255, .16); }
+    .presale-section .section-intro { color: var(--hero-muted); }
+    .presale-layout {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 18px;
+      margin-top: 42px;
+    }
+    .presale-price {
+      min-height: 320px;
+      padding: 34px;
+      border-radius: var(--radius-md);
+      background: var(--gold);
+      color: #191207;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .presale-label,
+    .calculator-label,
+    .payment-title,
+    .steps-title {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .74rem;
+      letter-spacing: .03em;
+    }
+    .presale-value {
+      margin-top: 24px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(3.3rem, 6vw, 5.5rem);
+      font-weight: 800;
+      letter-spacing: -.045em;
+      line-height: .9;
+    }
+    .presale-value small {
+      display: block;
+      margin-top: 14px;
+      font: 500 .78rem/1.3 "IBM Plex Mono", monospace;
+      letter-spacing: 0;
+    }
+    .presale-price p { margin: 26px 0 0; max-width: 430px; }
+    .calculator {
+      padding: 34px;
+      border: 1px solid #3b3c34;
+      border-radius: var(--radius-md);
+      background: #191a16;
+    }
+    .calculator h3 { margin-top: 12px; font-size: 2.7rem; }
+    .calculator p { color: var(--hero-muted); }
+    .usd-field {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      margin-top: 25px;
+      border: 1px solid #55564b;
+      border-radius: 10px;
+      background: #11120f;
+    }
+    .usd-prefix {
+      padding: 0 0 0 18px;
+      color: var(--gold);
+      font: 600 1.2rem "IBM Plex Mono", monospace;
+    }
+    .usd-field input {
+      min-width: 0;
+      width: 100%;
+      height: 60px;
+      padding: 0 18px 0 10px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--hero-ink);
+      font: 500 1.2rem "IBM Plex Mono", monospace;
+    }
+    .usd-field:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(242, 169, 0, .17); }
+    .calc-results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .calc-result {
+      padding: 17px;
+      border-radius: 10px;
+      background: #22231e;
+    }
+    .calc-result span { display: block; color: var(--hero-muted); font-size: .76rem; }
+    .calc-result strong { display: block; margin-top: 8px; font: 600 1.15rem "IBM Plex Mono", monospace; color: var(--gold); }
+    .vesting-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      margin-top: 18px;
+      background: #3b3c34;
+      border: 1px solid #3b3c34;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .vesting-term { padding: 22px; background: #191a16; }
+    .vesting-term b { display: block; font-size: .94rem; }
+    .vesting-term span { display: block; margin-top: 5px; color: var(--hero-muted); font-size: .82rem; }
+    .payment-block { margin-top: 46px; }
+    .payment-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+    .payment-heading h3 { margin-top: 10px; font-size: 2.7rem; }
+    .payment-heading p { max-width: 560px; margin: 0; color: var(--hero-muted); font-size: .9rem; }
+    .address-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .address-card {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid #3b3c34;
+      border-radius: 12px;
+      background: #191a16;
+    }
+    .address-meta { display: flex; justify-content: space-between; gap: 14px; align-items: baseline; }
+    .address-meta b { font-size: .92rem; }
+    .address-meta span { color: var(--gold); font: 500 .68rem "IBM Plex Mono", monospace; text-transform: uppercase; }
+    .address-route {
+      margin: 10px 0 0;
+      color: var(--hero-muted);
+      font-size: .78rem;
+    }
+    .address-box {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      margin-top: 13px;
+      padding: 10px 10px 10px 13px;
+      border: 1px solid #55564b;
+      border-radius: 7px;
+      background: #11120f;
+    }
+    .address-box code {
+      display: block;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      color: var(--hero-ink);
+      font: 400 .76rem/1.45 "IBM Plex Mono", monospace;
+    }
+    .copy-address {
+      min-height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--gold);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--gold);
+      font: 600 .72rem "IBM Plex Mono", monospace;
+      cursor: pointer;
+    }
+    .copy-address:hover, .copy-address:focus-visible { background: var(--gold); color: #191207; outline: none; }
+    .copy-feedback {
+      display: block;
+      min-height: 1.3em;
+      margin-top: 6px;
+      color: var(--gold);
+      font: 400 .68rem "IBM Plex Mono", monospace;
+    }
+    .steps-block { margin-top: 46px; }
+    .steps-block h3 { margin-top: 10px; font-size: 2.7rem; }
+    .presale-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .presale-step { padding: 24px; border-top: 3px solid var(--gold); background: #191a16; }
+    .step-no { font: 500 .72rem "IBM Plex Mono", monospace; color: var(--gold); }
+    .presale-step p { margin: 20px 0 0; color: var(--hero-muted); }
+    .presale-step a { color: var(--hero-ink); text-underline-offset: 3px; }
+    .presale-truth {
+      margin: 20px 0 0;
+      padding: 24px;
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      color: var(--hero-ink);
+      font-size: 1rem;
+    }
+    .presale-truth strong { color: var(--gold); }
+
     .community-section { padding-top: 28px; }
     .community-card {
       display: grid;
@@ -450,7 +643,7 @@
     footer a { text-underline-offset: 4px; }
 
     @media (max-width: 880px) {
-      nav a:not(.nav-x) { display: none; }
+      nav a:not(.nav-x):not(.nav-presale) { display: none; }
       .hero-grid { grid-template-columns: 1fr; }
       .hero-copy { padding-right: clamp(36px, 5.5vw, 74px); }
       .coin-stage { min-height: 360px; margin-top: -30px; }
@@ -460,12 +653,15 @@
       .section-head { grid-template-columns: 1fr; gap: 18px; }
       .section-intro { justify-self: start; }
       .wallet-board { grid-template-columns: 1fr; }
+      .presale-layout { grid-template-columns: 1fr; }
+      .payment-heading { align-items: flex-start; flex-direction: column; }
+      .presale-steps { grid-template-columns: 1fr; }
       .community-card { grid-template-columns: 1fr 340px; }
     }
     @media (max-width: 680px) {
       .wrap { width: min(100% - 24px, 1180px); }
       .topbar-inner { min-height: 58px; }
-      .network-mark span:last-child { display: none; }
+      .network-mark span { display: none; }
       nav a { padding: 7px 9px; font-size: .78rem; }
       .hero { padding: 12px 0 58px; }
       .hero-shell { min-height: auto; border-radius: 22px; }
@@ -493,6 +689,11 @@
       .platform em { grid-column: 2; text-align: left; margin-top: -12px; }
       .spec-grid { display: block; }
       .spec { margin-bottom: 14px; min-height: 190px; }
+      .presale-price, .calculator { padding: 26px 22px; }
+      .calc-results, .vesting-strip, .address-grid { grid-template-columns: 1fr; }
+      .vesting-strip { gap: 0; }
+      .vesting-term + .vesting-term { border-top: 1px solid #3b3c34; }
+      .payment-heading h3, .steps-block h3, .calculator h3 { font-size: 2.35rem; }
       .community-card { grid-template-columns: 1fr; border-radius: 22px; }
       .community-copy { padding: 38px 24px; }
       .community-art { min-height: 330px; }
@@ -514,6 +715,7 @@
         <a href="#bridge">Shitbridge</a>
         <a href="#wallets">Wallets</a>
         <a href="#network">Network</a>
+        <a class="nav-presale" href="#presale">Presale</a>
         <a class="nav-x" href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">Follow on X ↗</a>
       </nav>
     </div>
@@ -628,10 +830,98 @@
       </div>
     </section>
 
+    <section class="presale-section" id="presale">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="section-index">04 / PRESALE</div><h2>Presale — get in<br>before launch</h2></div>
+          <p class="section-intro">Early supporters fund the launch. Presale coins are locked in a vesting contract and unlock over time, rather than becoming transferable today.</p>
+        </div>
+
+        <div class="presale-layout">
+          <article class="presale-price">
+            <div>
+              <div class="presale-label">PRESALE PRICE</div>
+              <div class="presale-value">~$0.000095<small>PER SHIT · BASED ON A $2M VALUATION</small></div>
+            </div>
+            <p>This price is the working presale rate. Final allocations are recorded against confirmed contribution transaction hashes.</p>
+          </article>
+
+          <div class="calculator">
+            <div class="calculator-label">ALLOCATION CALCULATOR</div>
+            <h3>See your 24-month schedule.</h3>
+            <p>Enter a USD contribution amount. The estimate uses the presale price above.</p>
+            <label for="usd-amount" class="calculator-label">USD AMOUNT</label>
+            <div class="usd-field">
+              <span class="usd-prefix" aria-hidden="true">$</span>
+              <input id="usd-amount" type="number" min="0" step="any" inputmode="decimal" placeholder="1,000" aria-describedby="calc-note" />
+            </div>
+            <div class="calc-results" aria-live="polite">
+              <div class="calc-result"><span>Estimated allocation</span><strong id="shit-total">—</strong></div>
+              <div class="calc-result"><span>Unlocked each month</span><strong id="shit-monthly">—</strong></div>
+            </div>
+            <p id="calc-note">Estimates only. Monthly amount is the total allocation divided by 24.</p>
+          </div>
+        </div>
+
+        <div class="vesting-strip" aria-label="Presale lock-up terms">
+          <div class="vesting-term"><b>24 equal unlocks</b><span>One release every month, with no cliff.</span></div>
+          <div class="vesting-term"><b>Starts after launch</b><span>First unlock is 1 month after chain launch.</span></div>
+          <div class="vesting-term"><b>Enforced on NEVM</b><span>The ShitVesting contract controls the schedule on-chain.</span></div>
+        </div>
+
+        <div class="payment-block">
+          <div class="payment-heading">
+            <div><div class="payment-title">ACCEPTED PAYMENT</div><h3>BTC, ETH, SOL or USDT.</h3></div>
+            <p>USDT is accepted on Ethereum as ERC-20 and on Solana as SPL. Check the network carefully before sending; the two USDT options use different networks.</p>
+          </div>
+          <div class="address-grid" aria-label="Presale payment addresses">
+            <div class="address-card">
+              <div class="address-meta"><b>Bitcoin</b><span>BTC network</span></div>
+              <div class="address-box"><code>bc1q8h7ct6w3zqudxg99xmt0fjzcq9e0gcrhkakwge</code><button class="copy-address" type="button" data-address="bc1q8h7ct6w3zqudxg99xmt0fjzcq9e0gcrhkakwge">Copy</button></div>
+              <span class="copy-feedback" aria-live="polite"></span>
+            </div>
+            <div class="address-card">
+              <div class="address-meta"><b>Ethereum</b><span>ETH network</span></div>
+              <div class="address-box"><code>0xE6b8FE7C2AA2c16b019C667fC454892eb829cC8E</code><button class="copy-address" type="button" data-address="0xE6b8FE7C2AA2c16b019C667fC454892eb829cC8E">Copy</button></div>
+              <span class="copy-feedback" aria-live="polite"></span>
+            </div>
+            <div class="address-card">
+              <div class="address-meta"><b>Solana</b><span>SOL network</span></div>
+              <div class="address-box"><code>8nErebou299PhKAUPR5TficLMTQUAx33xhW7qMPTPNna</code><button class="copy-address" type="button" data-address="8nErebou299PhKAUPR5TficLMTQUAx33xhW7qMPTPNna">Copy</button></div>
+              <span class="copy-feedback" aria-live="polite"></span>
+            </div>
+            <div class="address-card">
+              <div class="address-meta"><b>USDT · Ethereum</b><span>ERC-20</span></div>
+              <p class="address-route">ERC-20 USDT → send to the ETH address</p>
+              <div class="address-box"><code>0xE6b8FE7C2AA2c16b019C667fC454892eb829cC8E</code><button class="copy-address" type="button" data-address="0xE6b8FE7C2AA2c16b019C667fC454892eb829cC8E">Copy</button></div>
+              <span class="copy-feedback" aria-live="polite"></span>
+            </div>
+            <div class="address-card">
+              <div class="address-meta"><b>USDT · Solana</b><span>SPL</span></div>
+              <p class="address-route">SPL USDT → send to the SOL address</p>
+              <div class="address-box"><code>8nErebou299PhKAUPR5TficLMTQUAx33xhW7qMPTPNna</code><button class="copy-address" type="button" data-address="8nErebou299PhKAUPR5TficLMTQUAx33xhW7qMPTPNna">Copy</button></div>
+              <span class="copy-feedback" aria-live="polite"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="steps-block">
+          <div class="steps-title">HOW IT WORKS</div>
+          <h3>Contribute. Verify. Unlock.</h3>
+          <div class="presale-steps">
+            <article class="presale-step"><div class="step-no">01 / SEND</div><p>Send your contribution to the published address for your coin.</p></article>
+            <article class="presale-step"><div class="step-no">02 / MESSAGE</div><p>Message us on <a href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a> with your transaction hash and your NEVM wallet address.</p></article>
+            <article class="presale-step"><div class="step-no">03 / CLAIM</div><p>At chain launch, your schedule is registered in the vesting contract and you claim monthly.</p></article>
+          </div>
+          <p class="presale-truth"><strong>The chain has not launched yet.</strong> Presale coins are delivered at chain launch. Until then, your contribution is an IOU recorded against your transaction hash.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="community-section" id="community">
       <div class="wrap community-card">
         <div class="community-copy">
-          <div class="section-index" style="color:#5e4100">04 / FOLLOW THE BUILD</div>
+          <div class="section-index" style="color:#5e4100">05 / FOLLOW THE BUILD</div>
           <h2>Laugh loudly.<br>Verify everything.</h2>
           <p>Track launch progress, wallet builds and Shitbridge updates. The code is public; the timeline is public; the joke is obvious.</p>
           <div class="community-actions">
@@ -656,5 +946,58 @@
       </footer>
     </div>
   </main>
+  <script>
+    (function () {
+      var presalePrice = 0.000095;
+      var amountInput = document.getElementById('usd-amount');
+      var totalOutput = document.getElementById('shit-total');
+      var monthlyOutput = document.getElementById('shit-monthly');
+      var tokenFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+
+      function updateEstimate() {
+        var usdAmount = Number(amountInput.value);
+        if (!Number.isFinite(usdAmount) || usdAmount <= 0) {
+          totalOutput.textContent = '—';
+          monthlyOutput.textContent = '—';
+          return;
+        }
+        var total = usdAmount / presalePrice;
+        totalOutput.textContent = tokenFormatter.format(total) + ' SHIT';
+        monthlyOutput.textContent = tokenFormatter.format(total / 24) + ' SHIT';
+      }
+
+      amountInput.addEventListener('input', updateEstimate);
+
+      document.querySelectorAll('.copy-address').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var address = button.getAttribute('data-address');
+          var feedback = button.closest('.address-card').querySelector('.copy-feedback');
+
+          function showResult(copied) {
+            feedback.textContent = copied ? 'Address copied.' : 'Copy failed — select the address manually.';
+            if (copied) {
+              button.textContent = 'Copied';
+              window.setTimeout(function () { button.textContent = 'Copy'; }, 1600);
+            }
+          }
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(address).then(function () { showResult(true); }).catch(function () { showResult(false); });
+          } else {
+            var field = document.createElement('textarea');
+            field.value = address;
+            field.setAttribute('readonly', '');
+            field.style.position = 'fixed';
+            field.style.opacity = '0';
+            document.body.appendChild(field);
+            field.select();
+            var copied = document.execCommand('copy');
+            document.body.removeChild(field);
+            showResult(copied);
+          }
+        });
+      });
+    }());
+  </script>
 </body>
 </html>

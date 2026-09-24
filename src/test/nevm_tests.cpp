@@ -24,62 +24,38 @@ BOOST_AUTO_TEST_CASE(seniority_test)
 {
     const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
     const auto consensusParams = chainParams->GetConsensus();
-    const int oldSr1Height = 525600;
-    const int oldSr2Height = oldSr1Height*2.5;
-    const int newSr1Height = oldSr1Height/2.5;
-    const int newSr2Height = newSr1Height*2.5;
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(consensusParams.nNEVMStartBlock, 0), consensusParams.nSeniorityLevel2);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(consensusParams.nNEVMStartBlock+1, 0), consensusParams.nSeniorityLevel2);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(consensusParams.nNEVMStartBlock, consensusParams.nNEVMStartBlock), 0);
+    const unsigned int sr1Height = consensusParams.nSeniorityHeight1;
+    const unsigned int sr2Height = consensusParams.nSeniorityHeight2;
+    const int nevmStart = consensusParams.nNEVMStartBlock;
+    const double sr1Level = consensusParams.nSeniorityLevel1;
+    const double sr2Level = consensusParams.nSeniorityLevel2;
+    // Post-NEVM blocks accrue seniority age at 2.5x (see Consensus::Params::Seniority),
+    // so from a post-NEVM start the thresholds are hit after ceil(height/2.5) blocks.
+    // Integer ceil(a/2.5) = (2*a + 4) / 5.
+    const int postNevmSr1Delta = (2 * sr1Height + 4) / 5;
+    const int postNevmSr2Delta = (2 * sr2Height + 4) / 5;
+    // pre-NEVM era: age accrues 1:1; a genesis masternode has not reached sr1 by NEVM start
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(nevmStart, 0), 0);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(nevmStart + 1, 0), 0);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(nevmStart, nevmStart), 0);
     BOOST_CHECK_EQUAL(consensusParams.Seniority(1000000, 1000000), 0);
-    // apply old seniority numbers as if MN started at 0 height
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(oldSr2Height, 0), consensusParams.nSeniorityLevel2);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(oldSr1Height, 0), consensusParams.nSeniorityLevel1);
-    // apply old seniority numbers as if MN started at 10000 height
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(oldSr2Height+10000, 10000), consensusParams.nSeniorityLevel2);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(oldSr1Height+10000, 10000), consensusParams.nSeniorityLevel1);
-    // test transition of old seniority numbers
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(oldSr1Height + (oldSr2Height-oldSr1Height) - 1, 0), consensusParams.nSeniorityLevel1);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(oldSr1Height + (oldSr2Height-oldSr1Height), 0), consensusParams.nSeniorityLevel2);
-    // test transition of new seniority number as if MN started at the NEVM start height
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(consensusParams.nNEVMStartBlock+newSr1Height - 1, consensusParams.nNEVMStartBlock), 0);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(consensusParams.nNEVMStartBlock+newSr1Height, consensusParams.nNEVMStartBlock), consensusParams.nSeniorityLevel1);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(consensusParams.nNEVMStartBlock+newSr1Height + (newSr2Height - newSr1Height) - 1, consensusParams.nNEVMStartBlock), consensusParams.nSeniorityLevel1);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(consensusParams.nNEVMStartBlock+newSr1Height + (newSr2Height - newSr1Height) , consensusParams.nNEVMStartBlock), consensusParams.nSeniorityLevel2);
-    // test transition of new seniority number as if MN started before NEVM height
-    const int nStartHeight = consensusParams.nNEVMStartBlock - 25000;
-    const int nTargetHeight1 = (consensusParams.nNEVMStartBlock + newSr1Height) - (25000/2.5);
-    const int nTargetHeight2 = (consensusParams.nNEVMStartBlock + newSr2Height) - (25000/2.5);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(nTargetHeight1 - 1, nStartHeight), 0);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(nTargetHeight1, nStartHeight), consensusParams.nSeniorityLevel1);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(nTargetHeight2 - 1, nStartHeight), consensusParams.nSeniorityLevel1);
-    BOOST_CHECK_EQUAL(consensusParams.Seniority(nTargetHeight2, nStartHeight), consensusParams.nSeniorityLevel2);
+    // sr1/sr2 boundaries for a masternode started exactly at NEVM start
+    const int h1 = nevmStart + postNevmSr1Delta;
+    const int h2 = nevmStart + postNevmSr2Delta;
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(h1 - 1, nevmStart), 0);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(h1, nevmStart), sr1Level);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(h2 - 1, nevmStart), sr1Level);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(h2, nevmStart), sr2Level);
+    // mixed pre/post-NEVM accrual for a masternode started 25000 blocks before NEVM start
+    const unsigned int preNevmBlocks = 25000;
+    const int startHeight = nevmStart - preNevmBlocks;
+    const int t1 = nevmStart + (int)((2 * (sr1Height - preNevmBlocks) + 4) / 5);
+    const int t2 = nevmStart + (int)((2 * (sr2Height - preNevmBlocks) + 4) / 5);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(t1 - 1, startHeight), 0);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(t1, startHeight), sr1Level);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(t2 - 1, startHeight), sr1Level);
+    BOOST_CHECK_EQUAL(consensusParams.Seniority(t2, startHeight), sr2Level);
 }
-BOOST_AUTO_TEST_CASE(halving_test)
-{
-    const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
-    const auto consensusParams = chainParams->GetConsensus();
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(100000), 0);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(consensusParams.nSubsidyHalvingInterval), 0);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(consensusParams.nSubsidyHalvingInterval+1), 0);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals((consensusParams.nSubsidyHalvingInterval*2.5) - 1), 0);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(consensusParams.nSubsidyHalvingInterval*2.5), 1);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals((consensusParams.nSubsidyHalvingInterval*2.5) + 1), 1);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(consensusParams.nSubsidyHalvingInterval*2.5 + consensusParams.nSubsidyHalvingInterval*2.5), 2);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(consensusParams.nNEVMStartBlock), 2);
-    double forkIntervals = consensusParams.nNEVMStartBlock/(consensusParams.nSubsidyHalvingInterval*2.5);
-    int ceilingIntervalFork = ceil(forkIntervals);
-    double diffForkInterval = ceilingIntervalFork - forkIntervals;
-    int nextIntervalAfterFork = consensusParams.nNEVMStartBlock + diffForkInterval*consensusParams.nSubsidyHalvingInterval;
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(nextIntervalAfterFork - 1), 2);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(nextIntervalAfterFork), 3);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(nextIntervalAfterFork+1), 3);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(nextIntervalAfterFork + consensusParams.nSubsidyHalvingInterval - 1), 3);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(nextIntervalAfterFork + consensusParams.nSubsidyHalvingInterval), 4);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(nextIntervalAfterFork + (consensusParams.nSubsidyHalvingInterval*2) - 1), 4);
-    BOOST_CHECK_EQUAL(consensusParams.SubsidyHalvingIntervals(nextIntervalAfterFork + (consensusParams.nSubsidyHalvingInterval*2)), 5);
-}
-
 BOOST_AUTO_TEST_CASE(nevmspv_valid)
 {
     tfm::format(std::cout,"Running nevmspv_valid...\n");

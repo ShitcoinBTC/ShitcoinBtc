@@ -284,21 +284,6 @@ struct Params {
             return nSeniorityLevel1;
         return 0;
     }
-    int SubsidyHalvingIntervals(int nHeight) const { 
-        if(bTestnet) {
-            if (nHeight >= nNEVMStartBlock) {
-                return nHeight/nSubsidyHalvingInterval;
-            } else {
-                return nHeight/(nSubsidyHalvingInterval*2.5);
-            }
-        }
-        if (nHeight >= nNEVMStartBlock) {
-            static double forkIntervals = nNEVMStartBlock/(nSubsidyHalvingInterval*2.5);
-            return floor(forkIntervals + (((double)(nHeight-nNEVMStartBlock))/((double)nSubsidyHalvingInterval)));
-        } else {
-            return nHeight/(nSubsidyHalvingInterval*2.5);
-        }
-    }
     int64_t PowTargetSpacing(int nHeight) const {
         if(nHeight >= nNEVMStartBlock) {
             return nPowTargetSpacing; 

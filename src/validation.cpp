@@ -1939,20 +1939,21 @@ CAmount GetBlockSubsidy(unsigned int nHeight, const Consensus::Params& consensus
     if (nHeight == 1)
     {
         // Shitcoin launch allocations (21B supply schedule):
-        //   18% presale + 15% team + 2% coin support.
-        // The 20% vault yield reserve (4.2B SHIT) is NOT paid out here: it is a
+        //   18% presale + 14% team + 2% coin support + 6% wrapping reserve.
+        // The 17% vault yield reserve (3.57B SHIT) is NOT paid out here: it is a
         // protocol-level reserve with no address and no custodian, minted over
         // time as vault yield (see CheckVaultYield) and hard-capped by
         // nVaultReserveTotal / nVaultYearlyYieldCap.
         // The exact output amounts are enforced in CheckAllocationBlock().
         return consensusParams.nPresaleAllocation +
                consensusParams.nTeamAllocation +
-               consensusParams.nCoinSupportAllocation;
+               consensusParams.nCoinSupportAllocation +
+               consensusParams.nWrappingReserveAllocation;
     }
 
-    // Mining allocation: 45% of the 21B supply (9.45B SHIT).
+    // Mining allocation: 43% of the 21B supply (9.03B SHIT).
     // nMiningSubsidyBase is tuned so the 2%-per-year decay over the 100-year
-    // tail sums to exactly the mining allocation.
+    // tail sums to the mining allocation.
     CAmount nSubsidy = consensusParams.nMiningSubsidyBase;
     const int reductions = nHeight / consensusParams.nSubsidyHalvingInterval;
     if (reductions >= 100) {
@@ -4946,16 +4947,17 @@ static bool CheckAllocationBlock(const CBlock& block, BlockValidationState& stat
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-alloc-txcount",
                              "allocation block must contain only the coinbase");
     }
-    if (coinbase.vout.size() != 3) {
+    if (coinbase.vout.size() != 4) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-alloc-vout-count",
-                             "allocation block coinbase must have exactly 3 outputs (presale + team + coin support)");
+                             "allocation block coinbase must have exactly 4 outputs (presale + team + coin support + wrapping reserve)");
     }
-    CAmount expected[3] = {consensusParams.nPresaleAllocation,
+    CAmount expected[4] = {consensusParams.nPresaleAllocation,
                            consensusParams.nTeamAllocation,
-                           consensusParams.nCoinSupportAllocation};
-    CAmount actual[3] = {coinbase.vout[0].nValue, coinbase.vout[1].nValue,
-                         coinbase.vout[2].nValue};
-    for (int i = 0; i < 3; i++) {
+                           consensusParams.nCoinSupportAllocation,
+                           consensusParams.nWrappingReserveAllocation};
+    CAmount actual[4] = {coinbase.vout[0].nValue, coinbase.vout[1].nValue,
+                         coinbase.vout[2].nValue, coinbase.vout[3].nValue};
+    for (int i = 0; i < 4; i++) {
         if (!MoneyRange(actual[i])) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-alloc-range",
                                  "allocation output value out of range");

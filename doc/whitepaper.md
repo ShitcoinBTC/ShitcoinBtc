@@ -9,18 +9,18 @@
 
 ## Abstract
 
-Shitcoin (SHIT) is a fun-first cryptocurrency built on serious technology. It is a
-merge-mined, dual-layer blockchain that lets Bitcoin miners earn SHIT for free on
-the side, moves value between a UTXO payment layer and an EVM-compatible smart
-contract layer through a trustless bridge, and ships with native DeFi primitives:
-an automated market maker DEX (ShitSwap) and an on-chain lottery (ShitLottery)
-where every round burns 10% of the pot.
+Here's the pitch: Shitcoin (SHIT) is a fun-first cryptocurrency built on serious
+technology. It's a merge-mined, dual-layer blockchain. Bitcoin miners earn SHIT
+on the side, basically for free. Value moves between a UTXO payment layer and
+an EVM-compatible smart contract layer through a trustless bridge. And it ships
+with native DeFi toys: an automated market maker DEX (ShitSwap) and an on-chain
+lottery (ShitLottery) where every round burns 10% of the pot.
 
-Shitcoin does not ask you to take it seriously. It asks you to take its
-engineering seriously while laughing. The codebase is a fork of battle-tested
-Bitcoin Core / Syscoin Core software: SHA-256 AuxPoW merged mining, LLMQ
-chainlocks, DIP-3 deterministic masternodes, and a full EVM. The meme is the
-marketing; the tech is the product.
+We're not asking you to take Shitcoin seriously. We're asking you to take the
+engineering seriously — while laughing. Under the hood it's a fork of
+battle-tested Bitcoin Core / Syscoin Core software: SHA-256 AuxPoW merged
+mining, LLMQ chainlocks, DIP-3 deterministic masternodes, and a full EVM. The
+meme is the marketing; the tech is the product.
 
 **Ticker:** SHIT · **Block time:** 30 seconds · **Consensus:** PoW (merge-mined
 with Bitcoin) + masternode quorum services · **Smart contracts:** NEVM
@@ -33,19 +33,18 @@ with Bitcoin) + masternode quorum services · **Smart contracts:** NEVM
 Every cycle, the market re-learns the same lesson: the coins people love are the
 coins with personality, and the coins that survive are the coins with real
 infrastructure. Dogecoin proved the first half. Bitcoin proved the second.
-Shitcoin is an attempt to have both at once — a coin you can laugh about that
-runs on infrastructure you don't have to laugh about.
+Shitcoin is our attempt to have both at once — a coin you can laugh about,
+running on infrastructure you don't have to laugh about.
 
-Shitcoin's design goals, in order:
+What we're going for, in order:
 
 1. **Be genuinely fun.** The brand, the lottery, the community energy.
 2. **Be merge-mined with Bitcoin.** Security should be inherited, not purchased.
-3. **Be useful.** EVM smart contracts, a bridge, a DEX, and DeFi toys that
-   actually work.
-4. **Be deflationary where it counts.** Every lottery round permanently burns
-   10% of the pot.
+3. **Be useful.** EVM smart contracts, a bridge, a DEX, DeFi toys that actually
+   work.
+4. **Burn stuff.** Every lottery round permanently destroys 10% of the pot.
 
-Nothing in this paper is financial advice. SHIT is a meme coin with real tech,
+Nothing in this paper is financial advice. SHIT is a meme coin with real tech —
 not real tech with a meme excuse.
 
 ---
@@ -54,41 +53,41 @@ not real tech with a meme excuse.
 
 ### 2.1 The idea
 
-Bitcoin miners perform an astronomical amount of SHA-256 hashing. Merged mining
-(AuxPoW, as pioneered by Namecoin and refined by Syscoin/Dogecoin) lets those
-same hashes simultaneously secure Shitcoin blocks at essentially zero marginal
-cost. A miner builds a Shitcoin block, embeds its hash in their Bitcoin block's
-coinbase, and if the Bitcoin block meets Shitcoin's (much lower) difficulty
-target, the Shitcoin block is valid.
+Bitcoin miners do an astronomical amount of SHA-256 hashing. Merged mining
+(AuxPoW — pioneered by Namecoin, refined by Syscoin and Dogecoin) lets those
+same hashes secure Shitcoin blocks at the same time, for essentially zero
+extra cost. A miner builds a Shitcoin block, sticks its hash in their Bitcoin
+block's coinbase, and if that Bitcoin block clears Shitcoin's (much lower)
+difficulty target, the Shitcoin block counts.
 
-Concretely, in this codebase:
+In the code, that looks like this:
 
 - `CAuxPow::check()` (`src/auxpow.cpp`) validates the parent Bitcoin block, the
-  chain merkle branch, and the merged-mining header placement in the coinbase —
+  chain merkle branch, and the merged-mining header sitting in the coinbase —
   the standard, audited AuxPoW construction.
 - Shitcoin's AuxPoW chain ID is **16** (testnet: 8), registered so parent
   coinbases can commit to it without colliding with other merge-mined chains.
 - Strict chain-ID enforcement (`fStrictChainId`) rejects parent blocks that
-  claim our own chain ID, closing a class of spoofing attacks.
+  claim our own chain ID, which closes off a whole class of spoofing attacks.
 
 ### 2.2 Why it matters
 
-A new standalone PoW chain is born weak: low hashrate means cheap 51% attacks.
-A merge-mined chain is born strong, renting Bitcoin's ~500 EH/s of security for
-the price of an extra merkle branch. Attacking Shitcoin costs as much as
-attacking Bitcoin itself, because the work *is* Bitcoin's work.
+A brand-new standalone PoW chain is born weak: low hashrate means a 51% attack
+is cheap. A merge-mined chain is born strong, renting Bitcoin's ~500 EH/s of
+security for the price of an extra merkle branch. Attacking Shitcoin costs as
+much as attacking Bitcoin, because the work *is* Bitcoin's work.
 
-For miners, the pitch is simple: point your existing SHA-256 rigs at a
-Shitcoin-aware pool and collect SHIT block rewards on top of your BTC rewards.
-No new hardware, no new electricity, no new heat. Free money for work you were
-already doing — the purest form of shitposting.
+For miners the pitch is simple: point your existing SHA-256 rigs at a
+Shitcoin-aware pool and collect SHIT block rewards on top of your BTC. No new
+hardware, no new electricity, no new heat. Free money for work you were already
+doing — the purest form of shitposting.
 
 ---
 
 ## 3. Dual-Layer Architecture: UTXO + NEVM
 
 Shitcoin runs two execution environments in one client, because payments and
-programmability have different needs:
+programmability want different things:
 
 **Layer 1 — UTXO (the Bitcoin layer).** Fast, simple, auditable payments.
 30-second blocks, native assets, aliases, and instant probabilistic
@@ -99,147 +98,146 @@ confirmations (ZDAG-style). This is where SHIT lives as money.
 Ethereum wallet, any EVM tooling — it all just works, except gas is paid in
 SHIT instead of ETH.
 
-The two layers share one validator set (the masternode quorum network) and one
-security budget (Bitcoin-merged mining). Users move SHIT between layers through
-the bridge (Section 4) without trusting any custodian.
+Both layers share one validator set (the masternode quorum network) and one
+security budget (Bitcoin-merged mining). Moving SHIT between layers goes
+through the bridge (Section 4), and you don't have to trust any custodian to
+use it.
 
 ---
 
 ## 4. Bridge Tech: The Trustless Two-Way Peg
 
-"Bridge tech, if possible" — good news: it's already in the codebase, and this
-section specifies how Shitcoin uses it.
+Turns out the trustless bridge isn't a roadmap item — it's already in the
+codebase. Here's how Shitcoin uses it.
 
 ### 4.1 UTXO ↔ NEVM bridge (native)
 
-Moving SHIT between the payment layer and the contract layer works like this:
+Moving SHIT between the payment layer and the contract layer:
 
-- **UTXO → NEVM (mint):** the user burns SHIT in a special UTXO transaction.
+- **UTXO → NEVM (mint):** you burn SHIT in a special UTXO transaction.
   Relayers submit an SPV proof of that burn to the **Vault Manager** contract
-  (`0x7904299b3D3dC1b03d1DdEb45E9fDF3576aCBd5f` on mainnet parameters). Once the
-  proof is verified against enough PoW, the contract mints the same amount of
-  SHIT on NEVM. No custodian ever holds the funds; the burn *is* the deposit.
-- **NEVM → UTXO (burn/withdraw):** the user destroys NEVM SHIT in the Vault
-  Manager. The masternode quorum observes the event, co-signs a UTXO release,
-  and the funds reappear on the payment layer.
+  (`0x7904299b3D3dC1b03d1DdEb45E9fDF3576aCBd5f` on mainnet parameters). Once
+  the proof checks out against enough PoW, the contract mints the same amount
+  of SHIT on NEVM. No custodian ever touches the funds — the burn *is* the
+  deposit.
+- **NEVM → UTXO (withdraw):** you destroy NEVM SHIT in the Vault Manager. The
+  masternode quorum sees the event, co-signs a UTXO release, and the funds show
+  up on the payment layer.
 
-Trust model: SPV proofs + a deterministic masternode quorum (DIP-3), not a
-multisig committee pinky-swearing. The bridge is as decentralized as the
-masternode set, and every step is verifiable on-chain.
+The trust model is SPV proofs plus a deterministic masternode quorum (DIP-3) —
+not a multisig committee pinky-swearing it'll behave. The bridge is as
+decentralized as the masternode set, and every step is verifiable on-chain.
 
 ### 4.2 Bridging outward
 
 The same construction generalizes: any chain that can verify SPV proofs (or
 run a light client of Shitcoin) can peg SHIT in and out. The reference design
-follows the sysethereum pattern — a relay contract on the foreign chain plus
-the masternode quorum as decentralized relayers. New bridges are governance
-proposals (Section 8), not hard forks.
+follows the sysethereum pattern — a relay contract on the foreign chain, with
+the masternode quorum acting as decentralized relayers. New bridges go through
+governance proposals (Section 8), not hard forks.
 
 ---
 
 ## 5. EVM Compatibility and Codebase Updates
 
-The NEVM is a fork of go-ethereum maintained alongside this repository. The
-standing policy for "updating the EVM codebase":
+The NEVM is a fork of go-ethereum maintained alongside this repo. The plan for
+keeping it fresh:
 
-1. **Track upstream geth.** Rebase the fork onto each stable go-ethereum
-   release; the only carried patches are the Shitcoin precompiles (bridge
-   proof verification, quorum randomness hooks) and the SHIT-as-gas changes.
+1. **Track upstream geth.** Rebase onto every stable go-ethereum release. The
+   only patches we carry are the Shitcoin precompiles (bridge proof
+   verification, quorum randomness hooks) and the SHIT-as-gas changes.
 2. **Keep the precompile surface minimal.** Every custom precompile is
-   consensus-critical; additions require an audit note in `doc/`.
-3. **Solidity-first development.** All Shitcoin DeFi (ShitSwap, ShitLottery)
-   ships as ordinary Solidity targeting the NEVM — no custom tooling, so
-   Ethereum developers are productive on day one.
+   consensus-critical, so any addition needs an audit note in `doc/`.
+3. **Solidity first.** All Shitcoin DeFi (ShitSwap, ShitLottery) ships as
+   ordinary Solidity targeting the NEVM. No custom tooling — an Ethereum dev is
+   productive here on day one.
 
-Because the EVM is equivalent (not merely "compatible"), contracts deployed on
-Ethereum can be redeployed on Shitcoin's NEVM unchanged — bringing the entire
-Ethereum DeFi toolbox to a merge-mined chain with 30-second finality vibes
-and joke-tier branding.
+Because the EVM is equivalent (not just "compatible"), contracts deployed on
+Ethereum redeploy on Shitcoin's NEVM unchanged. The whole Ethereum DeFi
+toolbox, on a merge-mined chain with 30-second finality vibes and joke-tier
+branding.
 
 ---
 
 ## 6. ShitSwap: The Native DEX
 
-A fun coin needs a casino floor. ShitSwap is Shitcoin's reference automated
-market maker, deployed on NEVM and fully compatible with this codebase's EVM.
+A fun coin needs a casino floor. ShitSwap is the reference automated market
+maker, deployed on NEVM.
 
 ### 6.1 Design
 
-- **Constant-product AMM** (`x * y = k`), the battle-tested Uniswap V2 design:
-  permissionless pair creation, LP tokens, 0.3% swap fee accruing to liquidity
+- **Constant-product AMM** (`x * y = k`) — the battle-tested Uniswap V2 design.
+  Permissionless pair creation, LP tokens, 0.3% swap fees going to liquidity
   providers.
-- **Factory + pair architecture** (`contracts/ShitSwap.sol`): one factory
-  deploys minimal pairs; each pair is its own ERC-20 LP token.
+- **Factory + pair architecture** (`contracts/ShitSwap.sol`): one factory spins
+  up minimal pairs, and each pair is its own ERC-20 LP token.
 - **SHIT as the hub asset.** Every serious pair routes through SHIT, so all
-  liquidity ultimately deepens the SHIT market. WSHIT (wrapped/bridged SHIT)
-  pairs let UTXO-native assets trade against EVM tokens once bridged.
-- **No admin keys in the core.** Fees and pair creation are governed by the
-  masternode proposal system, not a dev multisig.
+  liquidity ultimately deepens the SHIT market. WSHIT pairs let UTXO-native
+  assets trade against EVM tokens once bridged.
+- **No admin keys in the core.** Fees and pair creation answer to the masternode
+  proposal system, not a dev multisig.
 
 ### 6.2 Why an AMM fits Shitcoin
 
 Order books need market makers; meme coins have gamblers. An AMM turns every
 holder into a passive market maker and every trade into exit liquidity with
-better vibes. Combined with the bridge, ShitSwap lets someone swap a UTXO
-asset for an NEVM meme token in two transactions — the kind of UX that makes a
-fun chain actually get used.
+better vibes. And combined with the bridge, ShitSwap lets you swap a UTXO asset
+for an NEVM meme token in two transactions — the kind of UX that gets a fun
+chain actually used.
 
 ---
 
 ## 7. ShitLottery: Provably-Fair Degeneracy
 
-The centerpiece toy: an on-chain lottery where **players pay SHIT for
-tickets, one ticket wins the whole pot at random, and 10% of every pot is
-burned forever.**
+The centerpiece toy: an on-chain lottery. **You pay SHIT for tickets, one
+ticket wins the whole pot at random, and 10% of every pot gets burned
+forever.**
 
 ### 7.1 Rules
 
-1. **Rounds.** The lottery runs in consecutive rounds. Each round has a fixed
-   ticket price (e.g. 100 SHIT) and a ticket-buying window measured in blocks.
-2. **Tickets.** Anyone calls `buyTickets(n)` and sends `n × price`. Each
-   ticket is one entry; buying more tickets means more chances. All funds sit
-   in the contract — no custody, no operator.
-3. **The draw.** After the window closes, anyone may call `drawWinner()`. The
-   winner index is derived from the block hash of the closing block mixed with
-   the round ID: `winner = uint(keccak256(blockhash(closeBlock), roundId)) %
-   ticketCount`. The draw is permissionless — if nobody calls it, the pot just
-   waits.
-4. **The split.** Winner receives **90%** of the pot. The remaining **10%**
-   is sent to the burn address (`0x000000000000000000000000000000000000dEaD`),
-   permanently removing it from supply. Every round is a small deflationary
-   event.
-5. **Next round.** A new round opens automatically; unclaimed edge cases
-   (a round with zero tickets) simply roll over.
+1. **Rounds.** The lottery runs back-to-back rounds, each with a fixed ticket
+   price (say, 100 SHIT) and a ticket window measured in blocks.
+2. **Tickets.** Call `buyTickets(n)`, send `n × price`. Every ticket is one
+   entry — more tickets, more chances. All funds sit in the contract. No
+   custody, no operator.
+3. **The draw.** Once the window closes, anyone can call `drawWinner()`. The
+   winner is `uint(keccak256(blockhash(closeBlock), roundId)) % ticketCount`.
+   The draw is permissionless — if nobody calls it, the pot just waits.
+4. **The split.** The winner takes **90%**. The other **10%** goes to the burn
+   address (`0x000000000000000000000000000000000000dEaD`) and leaves supply
+   forever. Every round is a small deflationary event.
+5. **Next round.** A fresh round opens automatically. Edge cases (a round with
+   zero tickets) just roll over.
 
 Reference implementation: `contracts/ShitLottery.sol`.
 
 ### 7.2 On randomness, honestly
 
-Block-hash randomness is manipulable by whoever produces the closing block —
-they can discard a block that makes them lose (at the cost of the block
-reward). For a fun, low-stakes lottery this is an acceptable and fully
-disclosed trade-off, and the permissionless draw means no operator can stall
-or rig the timing. The whitepaper-recommended production upgrade path is a
-masternode-quorum randomness beacon (the LLMQ network already produces
-threshold signatures — the natural decentralized randomness source on this
-chain) or an external VRF oracle. Ship the fun version first; harden the
-randomness as the pots grow.
+Block-hash randomness has a known weakness: whoever makes the closing block
+can throw it away if it makes them lose (costing them the block reward). For a
+fun, low-stakes lottery that's an acceptable trade-off — and we're saying it
+out loud instead of burying it. The permissionless draw also means no operator
+can stall or rig the timing. When the pots get serious, the upgrade path is a
+masternode-quorum randomness beacon (the LLMQ network already does threshold
+signatures — it's the natural decentralized randomness source on this chain)
+or an external VRF oracle. Ship the fun version first; harden it as the money
+grows.
 
 ### 7.3 Why burn 10%?
 
-Two reasons. Economically, every lottery round is a buy-and-burn engine that
-counteracts tail emission — the more fun people have, the scarcer SHIT gets.
-Psychologically, watching the burn counter climb is half the entertainment.
-The whitepaper's position: a meme coin should have at least one mechanism
-that is unironically good tokenomics, and this is it.
+Two reasons. First, every round becomes a tiny buy-and-burn engine pushing
+against tail emission — the more fun people have, the scarcer SHIT gets.
+Second, watching the burn counter climb is half the entertainment. Our
+position: a meme coin should have at least one mechanism that's unironically
+good tokenomics, and this is it.
 
 ---
 
 ### 7.4 Native Vault: lock it and forget it
 
-Not everyone wants to gamble. The native vault lets holders lock SHIT for
-**1 to 5 years** and earn yield while they wait — enforced by consensus, not
-by any custodian:
+Not everyone wants to gamble. The native vault lets you lock SHIT for **1 to 5
+years** and earn yield while you wait — enforced by consensus, not by anyone's
+promise:
 
 | Lock duration | APY |
 |---------------|-----|
@@ -249,40 +247,41 @@ by any custodian:
 | 4 years | 12% |
 | 5 years | 15% |
 
-How it works: `vaultlock` creates a P2WSH output whose witness script is
-`<locktime> CHECKLOCKTIMEVERIFY DROP <your-pubkey> CHECKSIG` — a strict
-timelock only your key can ever spend, and only after maturity. There is **no
-early exit**: lock it and forget it, literally. When you `vaultclaim` after
-maturity, the network itself mints your yield —
-`principal × (tierMultiplier − 1)`, compounded per the table above — and pays
-it alongside your principal. No human approves, funds, or can interrupt
-anything; it works like a block reward.
+Here's the deal: `vaultlock` creates a P2WSH output with the witness script
+`<locktime> CHECKLOCKTIMEVERIFY DROP <your-pubkey> CHECKSIG`. Translation: a
+timelock only your key can ever spend, and only after it matures. There is **no
+early exit** — lock it and forget it, literally. When you `vaultclaim` after
+maturity, the network itself mints your yield — `principal × (tierMultiplier −
+1)`, compounded per the table — and pays it out next to your principal. Nobody
+approves it, nobody funds it, nobody can stop it. It works like a block reward.
 
-**Trustless funding.** Vault yield is paid from the 30% vault yield reserve
-(6,300,000,000 SHIT). This reserve is **not coins held by anyone** — it was
-never sent to an address. It is a protocol-level number every node tracks,
-like the block subsidy schedule, and new SHIT for yield is minted directly
-from it. There is no private key because there is no address; not even the
-team can touch it. Two consensus caps bound it: at most **84M SHIT of yield
-per year**, and 6.3B SHIT total — so the reserve is mathematically guaranteed
-to last the full **75-year** schedule. If it is ever exhausted, locks still
-return principal in full; they simply earn no further yield.
+**Where the yield comes from.** Vault yield is paid out of the 30% vault yield
+reserve (6,300,000,000 SHIT) — and here's the important part: **those coins
+don't exist yet, and nobody holds them.** The reserve was never sent to an
+address. It's a protocol-level number every node tracks, like the block
+subsidy schedule, and fresh SHIT for yield is minted straight from it. No
+address means no private key means not even the team can touch it. Two
+consensus caps keep it honest: at most **84M SHIT of yield per year**, 6.3B
+total — so the math guarantees the reserve lasts the full **75-year** schedule.
+If it's ever exhausted, locks still pay back principal in full; they just stop
+earning.
 
-**Bitcoin holders welcome.** To lock or claim, the official wallet requires
-you to hold **any amount of bitcoin** (even a single satoshi) in a BTC
-address you prove you own by signing a challenge message. This is enforced by
-the wallet software as a matter of policy — the Shitcoin chain cannot observe
-the Bitcoin chain — and it keeps the vault aligned with the Bitcoin community
-the coin is merge-mined alongside.
+**One more thing: bitcoin holders only.** To lock or claim, the official wallet
+asks you to hold **any amount of bitcoin** — literally a single satoshi counts
+— in a BTC address you prove you own by signing a challenge message. Fair
+warning on how this works: the Shitcoin chain can't see the Bitcoin chain, so
+this is enforced by the wallet software as policy, not by consensus. It's our
+way of keeping the vault aligned with the Bitcoin community we're merge-mined
+alongside.
 
-The EVM `ShitVault` contract (`contracts/ShitVault.sol`) remains as a DeFi
-companion with its own 10%-burn early-exit mechanic, but the canonical,
+The EVM `ShitVault` contract (`contracts/ShitVault.sol`) still exists as a DeFi
+companion with its own 10%-burn early-exit mechanic — but the canonical,
 trustless reserve described above lives at consensus level.
 
 ## 8. Tokenomics
 
 **Max supply: 21,000,000,000 SHIT (21 billion).** No tail emission — the last
-new SHIT is minted roughly 50 years after genesis. Allocation:
+new SHIT gets minted roughly 50 years after genesis. Where it all goes:
 
 | Bucket | Share | Amount | Notes |
 |--------|-------|--------|-------|
@@ -292,39 +291,42 @@ new SHIT is minted roughly 50 years after genesis. Allocation:
 | Mining | 50% | 10,500,000,000 | Block rewards (see below) |
 
 The team and coin-support allocations are paid in **block 1** — the coinbase
-must contain exactly two outputs matching those amounts, enforced in
-consensus (`CheckAllocationBlock()` in `src/validation.cpp`), so the schedule
-cannot be altered after launch. The 30% vault reserve is *not* paid in block
-1: it exists only as a consensus-tracked reserve that can solely be minted as
-vault yield (`CheckVaultYield()`), capped per year and in total. The genesis
-block's 50 SHIT is unspendable, as is tradition.
+has to contain exactly two outputs with exactly those amounts, enforced in
+consensus (`CheckAllocationBlock()` in `src/validation.cpp`). The schedule
+can't be changed after launch, by anyone. The 30% vault reserve is *not* paid
+in block 1: it only exists as a consensus-tracked reserve, and the only thing
+that can ever mint from it is vault yield (`CheckVaultYield()`), capped per
+year and in total. The genesis block's 50 SHIT is unspendable, as is tradition.
 
-- **Emission.** Mining starts at block 2 at ~2,705.31 SHIT/block, declining
-  5% per year over a 50-year tail. The base subsidy is tuned so lifetime
-  mining sums to exactly the 10.5B allocation.
-- **Reward split (per block):** 10% to the governance superblock →
-  of the remaining 90%: 25% to miners (merge-mined, Section 2), 75% to
-  masternodes. 50% of transaction fees also go to masternodes.
-- **Masternodes.** 100,000 SHIT collateral, DIP-3 deterministic registration,
-  providing quorum services: ChainLocks (instant finality), bridge relaying,
-  and governance voting.
-- **Governance.** Monthly superblocks fund proposals voted on by masternodes —
-  bridge deployments, EVM updates, lottery parameter tweaks, and marketing.
-  Vault yield needs no governance: it is minted automatically by consensus
-  within the 75-year / 84M-per-year caps.
+- **Emission.** Mining starts at block 2 at ~541.06 SHIT per block, declining
+  5% per year over a 50-year tail. The base subsidy is tuned so lifetime mining
+  lands exactly on the 10.5B allocation.
+- **Reward split (per block):** 10% goes to the governance superblock. Of the
+  remaining 90%: 25% to miners (merge-mined, Section 2), 75% to masternodes.
+  Half of all transaction fees go to masternodes too.
+- **Masternodes.** 100,000 SHIT collateral, DIP-3 deterministic registration.
+  They run the quorum services: ChainLocks (instant finality), bridge relaying,
+  governance voting.
+- **Governance.** Monthly superblocks fund whatever masternodes vote for —
+  bridge deployments, EVM updates, lottery tweaks, marketing. Vault yield
+  doesn't need governance: consensus mints it automatically inside the 75-year
+  / 84M-per-year caps.
 - **Burns.** The lottery's 10%-per-round burn and the EVM vault's 10%
-  early-exit penalty are the protocol's deflationary sinks; both only reduce
-  circulating supply below the 21B cap.
+  early-exit penalty are the deflationary sinks. Both only ever push circulating
+  supply further *below* the 21B cap.
 
 ---
 
 ## 9. Network & Consensus
 
+The spec sheet:
+
 - **30-second blocks**, SHA-256 PoW, AuxPoW merged mining with Bitcoin.
-- **LLMQ ChainLocks** (`llmq400_60`): masternode quorums sign each block,
-  giving near-instant finality and 51%-attack immunity on top of merged mining.
+- **LLMQ ChainLocks** (`llmq400_60`): masternode quorums sign every block —
+  near-instant finality and 51%-attack immunity, stacked on top of merged
+  mining.
 - **DIP-3 deterministic masternodes**, **DIP-19** data handling, full
-  **Taproot/Segwit** support inherited from the Bitcoin Core base.
+  **Taproot/Segwit** support from the Bitcoin Core base.
 - **Network identity:** mainnet P2P magic `ce e2 ca ff`, default port 8369,
   bech32 HRP `sys`-family (chain params in `src/kernel/chainparams.cpp`).
 
@@ -332,13 +334,13 @@ block's 50 SHIT is unspendable, as is tradition.
 
 ## 10. Roadmap (subject to vibes)
 
-- **Phase 1 — Launch the joke properly.** Rebrand binaries, public testnet,
-  mining pools add SHIT AuxPoW, first ShitLottery round on NEVM testnet.
-- **Phase 2 — DeFi toys.** ShitSwap mainnet deployment, lottery randomness
-  beacon via LLMQ threshold signatures, bridge UI.
-- **Phase 3 — Expansion.** Outward bridges (per Section 4.2), CEX listings
-  driven by community governance proposals, merch (you know you want the
-  shirt).
+- **Phase 1 — Launch the joke properly.** Rebrand the binaries, public
+  testnet, mining pools pick up SHIT AuxPoW, first ShitLottery round on NEVM
+  testnet.
+- **Phase 2 — DeFi toys.** ShitSwap on mainnet, lottery randomness beacon via
+  LLMQ threshold signatures, a bridge UI humans can use.
+- **Phase 3 — Expansion.** Outward bridges (Section 4.2), CEX listings through
+  community governance proposals, merch (you know you want the shirt).
 - **Phase 4 — World domination.** Unlikely. But funny to write down.
 
 ---
@@ -347,12 +349,12 @@ block's 50 SHIT is unspendable, as is tradition.
 
 - SHIT is a **meme coin**. Buy it for fun, not as an investment strategy.
   Nothing in this paper is financial advice.
-- Smart contracts (ShitSwap, ShitLottery, bridge contracts) carry bug risk;
-  the reference implementations are starting points, not audits.
-- Bridge and lottery trust assumptions are documented above — read them before
-  bridging life savings (don't bridge life savings).
-- Regulatory treatment of meme coins, lotteries, and DeFi varies by
-  jurisdiction; the lottery's legality where *you* live is *your* homework.
+- The smart contracts (ShitSwap, ShitLottery, bridge contracts) can have bugs.
+  The reference implementations are starting points, not audits.
+- The bridge and lottery trust assumptions are documented above — read them
+  before bridging your life savings (don't bridge your life savings).
+- Meme coins, lotteries, and DeFi live under different rules in different
+  places. Whether the lottery is legal where *you* live is *your* homework.
 
 ---
 

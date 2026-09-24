@@ -1,0 +1,25 @@
+# Systemd unit for the ShitcoinBtc block explorer (BTC RPC Explorer).
+# Installed by install-explorer.sh, which replaces __NODE_USER__ with the
+# OS user that runs syscoind (cookie auth requires the same user).
+[Unit]
+Description=ShitcoinBtc block explorer (BTC RPC Explorer)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=__NODE_USER__
+Group=__NODE_USER__
+WorkingDirectory=/opt/shitcoin-explorer
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/shitcoin-explorer/bin/www
+Restart=on-failure
+RestartSec=10
+# Basic hardening (the app only needs loopback + outbound-nothing).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/shitcoin-explorer
+
+[Install]
+WantedBy=multi-user.target

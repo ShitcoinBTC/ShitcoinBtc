@@ -1,0 +1,35 @@
+# --- ShitcoinBtc explorer requirements ---
+# Append to the daemon config:  ~/.syscoin/syscoin.conf
+# (SYSCOIN_CONF_FILENAME in src/common/args.cpp).
+#
+# IMPORTANT: set txindex=1 BEFORE the first sync. Enabling it later forces a
+# lengthy index rebuild. Restart syscoind after editing.
+
+# Enable the JSON-RPC server (the explorer talks to it).
+server=1
+
+# Full transaction index — required for transaction lookup by txid.
+txindex=1
+
+# Pruning must stay disabled (default) or old blocks/transactions 404.
+#prune=0
+
+# Bind RPC to localhost only; the explorer runs on the same box.
+# Port 8370 is the mainnet default (src/chainparamsbase.cpp); the line
+# below just makes it explicit.
+rpcport=8370
+rpcbind=127.0.0.1
+rpcallowip=127.0.0.1
+
+# With no rpcuser/rpcpassword set, syscoind uses cookie auth and writes
+# ~/.syscoin/.cookie on startup. The explorer reads that file, so it must
+# run as the same OS user as syscoind (see systemd/btc-rpc-explorer.service).
+# If you prefer password auth instead, set:
+#   rpcuser=<pick-a-username>
+#   rpcpassword=<pick-a-strong-password>
+# and mirror them in the explorer's .env as BTCEXP_BITCOIND_USER/PASS
+# (commenting out BTCEXP_BITCOIND_COOKIE).
+
+# Optional: raise if the explorer logs RPC work-queue-full errors.
+# (Explorer defaults to 10 concurrent RPCs; daemon default queue is 16.)
+#rpcworkqueue=32

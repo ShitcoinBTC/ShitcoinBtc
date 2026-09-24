@@ -1,0 +1,408 @@
+// Copyright (c) 2014-2020 The Dash Core developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <governance/governance.h>
+#include <init.h>
+#include <validation.h>
+#include <masternode/masternodesync.h>
+#include <netfulfilledman.h>
+#include <netmessagemaker.h>
+#include <node/interface_ui.h>
+#include <evo/deterministicmns.h>
+#include <shutdown.h>
+#include <util/translation.h>
+#include <timedata.h>
+#include <net.h>
+#include <node/mempool_persist_args.h>
+#include <common/args.h>
+using node::ShouldSyncMempool;
+class CMasternodeSync;
+CMasternodeSync masternodeSync;
+
+CMasternodeSync::CMasternodeSync() :
+    nTimeAssetSyncStarted(GetTime()),
+    nTimeLastBumped(GetTime())
+{
+}
+
+void CMasternodeSync::Reset(bool fForce, bool fNotifyReset)
+{
+    // Avoid resetting the sync process if we just "recently" received a new block
+    if (!fForce) {
+        if (GetTime() - nTimeLastUpdateBlockTip < MASTERNODE_SYNC_RESET_SECONDS) {
+            return;
+        }
+    }
+    nCurrentAsset = MASTERNODE_SYNC_BLOCKCHAIN;
+    nTriedPeerCount = 0;
+    nTimeAssetSyncStarted = GetTime();
+    nTimeLastBumped = GetTime();
+    nTimeLastUpdateBlockTip = 0;
+    fReachedBestHeader = false;
+    if (fNotifyReset) {
+        uiInterface.NotifyAdditionalDataSyncProgressChanged(-1);
+    }
+}
+
+void CMasternodeSync::BumpAssetLastTime(const std::string& strFuncName)
+{
+    if(IsSynced()) return;
+    nTimeLastBumped = GetTime();
+    LogPrint(BCLog::MNSYNC, "CMasternodeSync::BumpAssetLastTime -- %s\n", strFuncName);
+}
+
+std::string CMasternodeSync::GetAssetName() const
+{
+    switch(GetAssetID())
+    {
+        case(MASTERNODE_SYNC_BLOCKCHAIN):   return "MASTERNODE_SYNC_BLOCKCHAIN";
+        case(MASTERNODE_SYNC_GOVERNANCE):   return "MASTERNODE_SYNC_GOVERNANCE";
+        case MASTERNODE_SYNC_FINISHED:      return "MASTERNODE_SYNC_FINISHED";
+        default:                            return "UNKNOWN";
+    }
+}
+
+void CMasternodeSync::SwitchToNextAsset(CConnman& connman)
+{
+    switch(GetAssetID())
+    {
+        case(MASTERNODE_SYNC_BLOCKCHAIN):
+            LogPrintf("CMasternodeSync::SwitchToNextAsset -- Completed %s in %llds\n", GetAssetName(), GetTime() - GetAssetStartTime());
+            SetSyncMode(MASTERNODE_SYNC_GOVERNANCE);
+            LogPrintf("CMasternodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
+            break;
+        case(MASTERNODE_SYNC_GOVERNANCE):
+            LogPrintf("CMasternodeSync::SwitchToNextAsset -- Completed %s in %llds\n", GetAssetName(), GetTime() - GetAssetStartTime());
+            SetSyncMode(MASTERNODE_SYNC_FINISHED);
+            uiInterface.NotifyAdditionalDataSyncProgressChanged(1);
+
+            connman.ForEachNode(AllNodes, [](CNode* pnode) {
+                netfulfilledman->AddFulfilledRequest(pnode->addr, "full-sync");
+            });
+            LogPrintf("CMasternodeSync::SwitchToNextAsset -- Sync has finished\n");
+
+            break;
+    }
+    nTriedPeerCount = 0;
+    nTimeAssetSyncStarted = GetTime();
+    BumpAssetLastTime("CMasternodeSync::SwitchToNextAsset");
+}
+
+bilingual_str CMasternodeSync::GetSyncStatus()
+{
+    switch (GetAssetID()) {
+        case MASTERNODE_SYNC_BLOCKCHAIN:    return _("Synchronizing blockchain...");
+        case MASTERNODE_SYNC_GOVERNANCE:    return _("Synchronizing governance objects...");
+        case MASTERNODE_SYNC_FINISHED:      return _("Synchronization finished");
+        default:                            return _("Unknown State");
+    }
+}
+
+void CMasternodeSync::ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv) const
+{
+    if (strCommand == NetMsgType::SYNCSTATUSCOUNT) { //Sync status count
+
+        //do not care about stats if sync process finished or failed
+        if(IsSynced()) return;
+
+        int nItemID;
+        int nCount;
+        vRecv >> nItemID >> nCount;
+
+        LogPrint(BCLog::MNSYNC, "SYNCSTATUSCOUNT -- got inventory count: nItemID=%d  nCount=%d  peer=%d\n", nItemID, nCount, pfrom->GetId());
+    }
+}
+
+void CMasternodeSync::ProcessTick(CConnman& connman, const PeerManager& peerman)
+{
+    static int nTick = 0;
+    nTick++;
+
+    const static int64_t nSyncStart = TicksSinceEpoch<std::chrono::milliseconds>(SystemClock::now());
+    const static std::string strAllow = strprintf("allow-sync-%lld", nSyncStart);
+    const int nMode = GetAssetID();
+    // reset the sync process if the last call to this function was more than 60 minutes ago (client was in sleep mode)
+    static int64_t nTimeLastProcess = GetTime();
+    if(GetTime() - nTimeLastProcess > 60*60 && !fMasternodeMode) {
+        LogPrint(BCLog::MNSYNC, "CMasternodeSync::ProcessTick -- WARNING: no actions for too long, restarting sync...\n");
+        Reset(true);
+        nTimeLastProcess = GetTime();
+        return;
+    }
+
+    if(GetTime() - nTimeLastProcess < MASTERNODE_SYNC_TICK_SECONDS) {
+        // too early, nothing to do here
+        return;
+    }
+
+    nTimeLastProcess = GetTime();
+    const CConnman::NodesSnapshot snap{connman, /* filter = */ FullyConnectedOnly};
+
+    // gradually request the rest of the votes after sync finished
+    if(IsSynced()) {
+        governance->RequestGovernanceObjectVotes(snap.Nodes(), connman, peerman);
+        return;
+    }
+
+
+    // Calculate "progress" for LOG reporting / GUI notification
+    double nSyncProgress = double(nTriedPeerCount + (nMode - 1) * 8) / (8*4);
+    LogPrint(BCLog::MNSYNC, "CMasternodeSync::ProcessTick -- nTick %d nCurrentAsset %d nTriedPeerCount %d nSyncProgress %f\n", nTick, nMode, nTriedPeerCount, nSyncProgress);
+    uiInterface.NotifyAdditionalDataSyncProgressChanged(nSyncProgress);
+    for (auto& pnode : snap.Nodes())
+    {
+        CNetMsgMaker msgMaker(pnode->GetCommonVersion());
+
+        // Don't try to sync any data from outbound non-relay "masternode" connections.
+        // Inbound connection this early is most likely a "masternode" connection
+        // initiated from another node, so skip it too.
+        if (!pnode->CanRelay() || (fMasternodeMode && pnode->IsInboundConn())) continue;
+
+        // QUICK MODE (REGTEST ONLY!)
+        if(fRegTest)
+        {
+            if (nMode == MASTERNODE_SYNC_BLOCKCHAIN) {
+                connman.PushMessage(pnode, msgMaker.Make(NetMsgType::GETSPORKS)); //get current network sporks
+                SwitchToNextAsset(connman);
+                // Now that the blockchain is synced request the mempool from the connected outbound nodes if possible
+                for (auto pNodeTmp : snap.Nodes()) {
+                    bool fRequestedEarlier = netfulfilledman->HasFulfilledRequest(pNodeTmp->addr, "mempool-sync");
+                    if (pNodeTmp->nVersion >= PROTOCOL_VERSION && !pNodeTmp->IsInboundConn() && !fRequestedEarlier) {
+                        netfulfilledman->AddFulfilledRequest(pNodeTmp->addr, "mempool-sync");
+                        connman.PushMessage(pNodeTmp, msgMaker.Make(NetMsgType::GETCLSIG));
+                        LogPrint(BCLog::MNSYNC, "CMasternodeSync::ProcessTick -- nTick %d nMode %d -- syncing mempool from peer=%d\n", nTick, nMode, pNodeTmp->GetId());
+                    }
+                }
+                return;
+            } else if (nMode == MASTERNODE_SYNC_GOVERNANCE) {
+                if (!governance->IsValid()) {
+                    SwitchToNextAsset(connman);
+                    return;
+                }
+                // check for timeout first
+                if(GetTime() - GetTimeLastBumped() > MASTERNODE_SYNC_TIMEOUT_SECONDS) {
+                    SwitchToNextAsset(connman);
+                    return;
+                }
+
+                // only request obj sync once from each peer
+                if(netfulfilledman->HasFulfilledRequest(pnode->addr, "governance-sync")) {
+                    // will request votes on per-obj basis from each node in a separate loop below
+                    // to avoid deadlocks here
+                    continue;
+                }
+                netfulfilledman->AddFulfilledRequest(pnode->addr, "governance-sync");
+
+                nTriedPeerCount++;
+                SendGovernanceSyncRequest(pnode, connman);
+                continue; //this will cause each peer to get one request each six seconds for the various assets we need
+            }
+        }
+
+        // NORMAL NETWORK MODE - TESTNET/MAINNET
+        {
+            if ((pnode->HasPermission(NetPermissionFlags::NoBan) || pnode->IsManualConn()) && !netfulfilledman->HasFulfilledRequest(pnode->addr, strAllow)) {
+                netfulfilledman->RemoveAllFulfilledRequests(pnode->addr);
+                netfulfilledman->AddFulfilledRequest(pnode->addr, strAllow);
+                LogPrintf("CMasternodeSync::ProcessTick -- skipping mnsync restrictions for peer=%d\n", pnode->GetId());
+            }
+
+            if(netfulfilledman->HasFulfilledRequest(pnode->addr, "full-sync")) {
+                // We already fully synced from this node recently,
+                // disconnect to free this connection slot for another peer.
+                pnode->fDisconnect = true;
+                LogPrintf("CMasternodeSync::ProcessTick -- disconnecting from recently synced peer=%d\n", pnode->GetId());
+                continue;
+            }
+
+            // SPORK : ALWAYS ASK FOR SPORKS AS WE SYNC
+
+            if(!netfulfilledman->HasFulfilledRequest(pnode->addr, "spork-sync")) {
+                // always get sporks first, only request once from each peer
+                netfulfilledman->AddFulfilledRequest(pnode->addr, "spork-sync");
+                // get current network sporks
+                connman.PushMessage(pnode, msgMaker.Make(NetMsgType::GETSPORKS));
+                LogPrint(BCLog::MNSYNC, "CMasternodeSync::ProcessTick -- nTick %d nMode %d -- requesting sporks from peer=%d\n", nTick, nMode, pnode->GetId());
+            }
+
+            if (nMode == MASTERNODE_SYNC_BLOCKCHAIN) {
+                int64_t nTimeSyncTimeout = snap.Nodes().size() > 3 ? MASTERNODE_SYNC_TICK_SECONDS : MASTERNODE_SYNC_TIMEOUT_SECONDS;
+                if (ReachedBestHeader() && (GetTime() - GetTimeLastBumped() > nTimeSyncTimeout)) {
+                    // At this point we know that:
+                    // a) there are peers (because we are looping on at least one of them);
+                    // b) we waited for at least MASTERNODE_SYNC_TICK_SECONDS/MASTERNODE_SYNC_TIMEOUT_SECONDS
+                    //    (depending on the number of connected peers) since we reached the headers tip the last
+                    //    time (i.e. since fReachedBestHeader has been set to true);
+                    // c) there were no blocks (UpdatedBlockTip, NotifyHeaderTip)
+                    //    for at least MASTERNODE_SYNC_TICK_SECONDS/MASTERNODE_SYNC_TIMEOUT_SECONDS (depending on
+                    //    the number of connected peers).
+                    // We must be at the tip already, let's move to the next asset.
+                    SwitchToNextAsset(connman);
+                    uiInterface.NotifyAdditionalDataSyncProgressChanged(nSyncProgress);
+                    bool bShouldSyncMempool = ShouldSyncMempool(gArgs);
+                    // Now that the blockchain is synced request the mempool from the connected outbound nodes if possible
+                    for (auto pNodeTmp : snap.Nodes()) {
+                        bool fRequestedEarlier = netfulfilledman->HasFulfilledRequest(pNodeTmp->addr, "mempool-sync");
+                        if (pNodeTmp->nVersion >= PROTOCOL_VERSION && !pNodeTmp->IsInboundConn() && !fRequestedEarlier) {
+                            netfulfilledman->AddFulfilledRequest(pNodeTmp->addr, "mempool-sync");
+                            if(bShouldSyncMempool) {
+                                connman.PushMessage(pNodeTmp, msgMaker.Make(NetMsgType::MEMPOOL));
+                            }
+                            connman.PushMessage(pNodeTmp, msgMaker.Make(NetMsgType::GETCLSIG));
+                            LogPrint(BCLog::MNSYNC, "CMasternodeSync::ProcessTick -- nTick %d nMode %d -- syncing mempool from peer=%d\n", nTick, nMode, pNodeTmp->GetId());
+                        }
+                    }
+                }
+            }
+
+            // GOVOBJ : SYNC GOVERNANCE ITEMS FROM OUR PEERS
+
+            if(nMode == MASTERNODE_SYNC_GOVERNANCE) {
+                if (!governance->IsValid()) {
+                    SwitchToNextAsset(connman);
+                    return;
+                }
+                LogPrint(BCLog::GOBJECT, "CMasternodeSync::ProcessTick -- nTick %d nMode %d nTimeLastBumped %lld GetTime() %lld diff %lld\n", nTick, nMode, GetTimeLastBumped(), GetTime(), GetTime() - GetTimeLastBumped());
+
+                // check for timeout first
+                if(GetTime() - GetTimeLastBumped() > MASTERNODE_SYNC_TIMEOUT_SECONDS) {
+                    LogPrintf("CMasternodeSync::ProcessTick -- nTick %d nMode %d -- timeout\n", nTick, nMode);
+                    if(nTriedPeerCount == 0) {
+                        LogPrintf("CMasternodeSync::ProcessTick -- WARNING: failed to sync %s\n", GetAssetName());
+                        // it's kind of ok to skip this for now, hopefully we'll catch up later?
+                    }
+                    SwitchToNextAsset(connman);
+                    return;
+                }
+
+                // only request obj sync once from each peer
+                if(netfulfilledman->HasFulfilledRequest(pnode->addr, "governance-sync")) {
+                    // will request votes on per-obj basis from each node in a separate loop below
+                    // to avoid deadlocks here
+                    continue;
+                }
+                netfulfilledman->AddFulfilledRequest(pnode->addr, "governance-sync");
+
+                nTriedPeerCount++;
+
+                SendGovernanceSyncRequest(pnode, connman);
+
+                break; //this will cause each peer to get one request each six seconds for the various assets we need
+            }
+        }
+    }
+
+
+    if (nCurrentAsset != MASTERNODE_SYNC_GOVERNANCE) {
+        return;
+    }
+
+    // request votes on per-obj basis from each node
+    for (auto& pnode : snap.Nodes()) {
+        if(!netfulfilledman->HasFulfilledRequest(pnode->addr, "governance-sync")) {
+            continue; // to early for this node
+        }
+        int nObjsLeftToAsk = governance->RequestGovernanceObjectVotes(pnode, connman, peerman);
+        // check for data
+        if(nObjsLeftToAsk == 0) {
+            static int64_t nTimeNoObjectsLeft = 0;
+            static int nLastTick = 0;
+            static int nLastVotes = 0;
+            if(nTimeNoObjectsLeft == 0) {
+                // asked all objects for votes for the first time
+                nTimeNoObjectsLeft = GetTime();
+            }
+            // make sure the condition below is checked only once per tick
+            if(nLastTick == nTick) continue;
+            if(GetTime() - nTimeNoObjectsLeft > MASTERNODE_SYNC_TIMEOUT_SECONDS &&
+                governance->GetVoteCount() - nLastVotes < std::max(int(0.0001 * nLastVotes), MASTERNODE_SYNC_TICK_SECONDS)
+            ) {
+                // We already asked for all objects, waited for MASTERNODE_SYNC_TIMEOUT_SECONDS
+                // after that and less then 0.01% or MASTERNODE_SYNC_TICK_SECONDS
+                // (i.e. 1 per second) votes were received during the last tick.
+                // We can be pretty sure that we are done syncing.
+                LogPrintf("CMasternodeSync::ProcessTick -- nTick %d nCurrentAsset %d -- asked for all objects, nothing to do\n", nTick, MASTERNODE_SYNC_GOVERNANCE);
+                // reset nTimeNoObjectsLeft to be able to use the same condition on resync
+                nTimeNoObjectsLeft = 0;
+                SwitchToNextAsset(connman);
+                return;
+            }
+            nLastTick = nTick;
+            nLastVotes = governance->GetVoteCount();
+        }
+    }
+}
+
+void CMasternodeSync::SendGovernanceSyncRequest(CNode* pnode, CConnman& connman)
+{
+    CNetMsgMaker msgMaker(pnode->GetCommonVersion());
+
+    CBloomFilter filter;
+
+    connman.PushMessage(pnode, msgMaker.Make(NetMsgType::MNGOVERNANCESYNC, uint256(), filter));
+    
+}
+
+void CMasternodeSync::NotifyHeaderTip(const CBlockIndex *pindexNew)
+{
+    if (pindexNew == nullptr) {
+        return;
+    }
+    LogPrint(BCLog::MNSYNC, "CMasternodeSync::NotifyHeaderTip -- pindexNew->nHeight: %d\n", pindexNew->nHeight);
+
+    if (IsSynced())
+        return;
+
+    if (!IsBlockchainSynced()) {
+        // Postpone timeout each time new block arrives while we are still syncing blockchain
+        BumpAssetLastTime("CMasternodeSync::NotifyHeaderTip");
+    }
+}
+
+void CMasternodeSync::UpdatedBlockTip(const CBlockIndex *pindexNew, ChainstateManager& chainman, bool fInitialDownload)
+{
+    LogPrint(BCLog::MNSYNC, "CMasternodeSync::UpdatedBlockTip -- pindexNew->nHeight: %d fInitialDownload=%d\n", pindexNew->nHeight, fInitialDownload);
+
+
+    nTimeLastUpdateBlockTip = GetTime<std::chrono::seconds>().count();
+    CBlockIndex* pindexTip = WITH_LOCK(cs_main, return chainman.m_best_header);
+
+    if (IsSynced() || !pindexTip || !pindexNew)
+        return;
+
+    if (!IsBlockchainSynced()) {
+        // Postpone timeout each time new block arrives while we are still syncing blockchain
+        BumpAssetLastTime("CMasternodeSync::UpdatedBlockTip");
+    }
+
+    if (fInitialDownload) {
+        // switched too early
+        if (IsBlockchainSynced()) {
+            Reset(true);
+        }
+
+        // no need to check any further while still in IBD mode
+        return;
+    }
+    // Note: since we sync headers first, it should be ok to use this
+    bool fReachedBestHeaderNew = pindexNew->GetBlockHash() == pindexTip->GetBlockHash();
+
+    if (ReachedBestHeader() && !fReachedBestHeaderNew) {
+        // Switching from true to false means that we previously stuck syncing headers for some reason,
+        // probably initial timeout was not enough,
+        // because there is no way we can update tip not having best header
+        Reset(true);
+    }
+
+    fReachedBestHeader = fReachedBestHeaderNew;
+    LogPrint(BCLog::MNSYNC, "CMasternodeSync::UpdatedBlockTip -- pindexNew->nHeight: %d pindexBestHeader->nHeight: %d fInitialDownload=%d fReachedBestHeader=%d\n",
+                pindexNew->nHeight, pindexTip->nHeight, fInitialDownload, ReachedBestHeader());
+}
+
+void CMasternodeSync::DoMaintenance(CConnman &connman, const PeerManager& peerman)
+{
+    if (ShutdownRequested()) return;
+
+    ProcessTick(connman, peerman);
+}

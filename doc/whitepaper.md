@@ -58,6 +58,12 @@ smelly, technically a biohazard. Mr. Shitoshi is what it looks like when it
 works out. He is the patron saint of everyone who bought the top and stayed
 anyway. Stay stinky.
 
+The little ETHs orbiting him are the project's one honest belief, drawn right
+on the mascot: everything outside Bitcoin is a shitcoin — including this one.
+Shitcoin isn't competing with Bitcoin. It exists to serve it: more
+transactions flowing, and merge-mined rewards that keep Bitcoin mining
+profitable for longer. The joke coin with a day job.
+
 ---
 
 ## 2. Merged Mining with Bitcoin: Security for Free

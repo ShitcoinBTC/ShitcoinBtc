@@ -105,12 +105,12 @@ use it.
 
 ---
 
-## 4. Bridge Tech: The Trustless Two-Way Peg
+## 4. Shitbridge: The Trustless Two-Way Peg
 
 Turns out the trustless bridge isn't a roadmap item — it's already in the
 codebase. Here's how Shitcoin uses it.
 
-### 4.1 UTXO ↔ NEVM bridge (native)
+### 4.1 Shitbridge: UTXO ↔ NEVM (native)
 
 Moving SHIT between the payment layer and the contract layer:
 
@@ -125,7 +125,7 @@ Moving SHIT between the payment layer and the contract layer:
   up on the payment layer.
 
 The trust model is SPV proofs plus a deterministic masternode quorum (DIP-3) —
-not a multisig committee pinky-swearing it'll behave. The bridge is as
+not a multisig committee pinky-swearing it'll behave. Shitbridge is as
 decentralized as the masternode set, and every step is verifiable on-chain.
 
 ### 4.2 Bridging outward
@@ -144,7 +144,7 @@ The NEVM is a fork of go-ethereum maintained alongside this repo. The plan for
 keeping it fresh:
 
 1. **Track upstream geth.** Rebase onto every stable go-ethereum release. The
-   only patches we carry are the Shitcoin precompiles (bridge proof
+   only patches we carry are the Shitcoin precompiles (Shitbridge proof
    verification, quorum randomness hooks) and the SHIT-as-gas changes.
 2. **Keep the precompile surface minimal.** Every custom precompile is
    consensus-critical, so any addition needs an audit note in `doc/`.
@@ -305,7 +305,7 @@ year and in total. The genesis block's 50 SHIT is unspendable, as is tradition.
   remaining 90%: 25% to miners (merge-mined, Section 2), 75% to masternodes.
   Half of all transaction fees go to masternodes too.
 - **Masternodes.** 100,000 SHIT collateral, DIP-3 deterministic registration.
-  They run the quorum services: ChainLocks (instant finality), bridge relaying,
+  They run the quorum services: ChainLocks (instant finality), Shitbridge relaying,
   governance voting.
 - **Governance.** Monthly superblocks fund whatever masternodes vote for —
   bridge deployments, EVM updates, lottery tweaks, marketing. Vault yield

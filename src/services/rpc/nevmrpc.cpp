@@ -100,7 +100,7 @@ static RPCHelpMan getnevmblobdata()
     return RPCHelpMan{"getnevmblobdata",
         "\nReturn NEVM blob information and status from a version hash.\n",
         {
-            {"versionhash_or_txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The version hash or txid of the NEVM blob"},
+            {"versionhash_or_txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The version hash or txid of the Shitbridge blob"},
             {"getdata", RPCArg::Type::BOOL, RPCArg::Optional::OMITTED, "Optional, retrieve the blob data"}
         },
         RPCResult{RPCResult::Type::ANY, "", ""},
@@ -311,7 +311,7 @@ static RPCHelpMan listnevmblobdata()
             {
                 {RPCResult::Type::OBJ, "", "",
                 {
-                    {RPCResult::Type::STR_HEX, "versionhash", "The version hash of the NEVM blob"},
+                    {RPCResult::Type::STR_HEX, "versionhash", "The version hash of the Shitbridge blob"},
                     {RPCResult::Type::NUM, "datasize", "Size of data blob in bytes"},
                     {RPCResult::Type::STR_HEX, "txid", "Transaction ID of the blob tx"},
                     {RPCResult::Type::NUM, "mtp", "Median timestamp of the blob"},

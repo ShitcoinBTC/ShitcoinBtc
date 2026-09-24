@@ -8,7 +8,7 @@
 Shitcoin integration/staging tree
 =====================================
 
-Read the [Shitcoin whitepaper](doc/whitepaper.md) ([PDF](doc/whitepaper.pdf)) — merged mining with Bitcoin, the UTXO↔NEVM bridge, ShitSwap DEX, and the ShitLottery (90% to the winner, 10% burned). NEVM smart contracts live in [contracts/](contracts/).
+Read the [Shitcoin whitepaper](doc/whitepaper.md) ([PDF](doc/whitepaper.pdf)) — merged mining with Bitcoin, the UTXO↔NEVM bridge (Shitbridge), ShitSwap DEX, and the ShitLottery (90% to the winner, 10% burned). NEVM smart contracts live in [contracts/](contracts/).
 
 [![Build Status](https://travis-ci.org/syscoin/syscoin.svg?branch=master)](https://travis-ci.org/syscoin/syscoin)
 
@@ -26,11 +26,11 @@ For more information, as well as an immediately useable, binary version of the s
 
 shitcoin is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology.
 
-Hybrid layer 2 PoW/PoS consensus with bonded validator system (masternodes) ZDAG technology for point-of-sale speeds and probabilistic confirmations useful for microtransactions Trustless sidechain access to [NEVM](https://github.com/syscoin/go-ethereum) and back through a custom permissionless/trustless sidechain technology (SYSX bridge) https://github.com/syscoin/sysethereum Decentralized governance (blockchain pays for work via proposals and masternode votes) Digital asset creation and management. ZDAG is open-source and developed over the course of 12 months by [Blockchain Foundry Inc](https://www.blockchainfoundry.co/), with external audit done over 6 months by [Whiteblock](https://whiteblock.io). [Performance report can be found here](https://syscoin.org/tps_whiteblock_syscoin_report.pdf).
+Hybrid layer 2 PoW/PoS consensus with bonded validator system (masternodes) ZDAG technology for point-of-sale speeds and probabilistic confirmations useful for microtransactions Trustless sidechain access to [NEVM](https://github.com/syscoin/go-ethereum) and back through a custom permissionless/trustless sidechain technology (Shitbridge) https://github.com/syscoin/sysethereum Decentralized governance (blockchain pays for work via proposals and masternode votes) Digital asset creation and management. ZDAG is open-source and developed over the course of 12 months by [Blockchain Foundry Inc](https://www.blockchainfoundry.co/), with external audit done over 6 months by [Whiteblock](https://whiteblock.io). [Performance report can be found here](https://syscoin.org/tps_whiteblock_syscoin_report.pdf).
 
 Governance formula: We have implemented a % decline schedule — starting the first month with 1500000 SYS and ending on the 24th month with 196708 SYS. After that period, the superblock starts with 151767 SYS a month and will decline 5% every year. Read more about it here: https://medium.com/@syscoin/syscoin-4-0-rewards-specifications-a3dc01d85adf.
 
-Interoptibility between UTXO assets and SHIT-20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge. Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
+Interoptibility between UTXO assets and SHIT-20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge (Shitbridge). Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
 
 For more information, as well as an immediately useable, binary version of
 the Shit Core software, see https://syscoin.org/, or read the

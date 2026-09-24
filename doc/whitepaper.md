@@ -47,6 +47,17 @@ What we're going for, in order:
 Nothing in this paper is financial advice. SHIT is a meme coin with real tech —
 not real tech with a meme excuse.
 
+### 1.1 The Mascot
+
+Every chain gets the mascot it deserves. Ours is **Mr. Shitoshi** — a golden
+poop with diamond sparkles, googly eyes, and the quiet confidence of someone
+who has never once checked the price.
+
+Why a golden poop? Because every portfolio starts as a liability: brown,
+smelly, technically a biohazard. Mr. Shitoshi is what it looks like when it
+works out. He is the patron saint of everyone who bought the top and stayed
+anyway. Stay stinky.
+
 ---
 
 ## 2. Merged Mining with Bitcoin: Security for Free

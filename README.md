@@ -35,8 +35,8 @@ the Shit Core software, see https://syscoin.org/, or read the
 
 Shitcoin is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology. It enables turing complete smart contracts running in an [NEVM (Network-enhanced Virtual Machine)](https://github.com/syscoin/go-ethereum) to leverage bitcoin security through merged-mining. Scaling the technology will happen on layer 2 (zkRollups for NEVM and Lightning Networks for UTXO assets).
 
-- Block time: 150 seconds target
-- Halving interval: 210240 (~1 year)
+- Block time: 30 seconds target
+- Halving interval: 1051200 (~1 year)
 - Max supply: 21,000,000,000 SHIT (21 billion, hard cap)
   - Block 1 allocations: 18% team (3.78B) + 2% coin support (420M), enforced by consensus
   - Vault yield reserve: 30% (6.3B) as a protocol-level reserve (no custodian) — minted as vault yield, capped at 84M SHIT/year over 75 years
@@ -52,7 +52,7 @@ Shitcoin is a merge-minable SHA256 coin which provides an array of useful servic
 - SHA256 Proof of Work
 - Mineable either exclusively or via merge-mining any SHA256 PoW coin
 - Masternode collateral requirement: 100000 
-- Masternode seniority: 35 percent increase after 210240 blocks (~1 year), 100 percent increase after 525600 blocks (~2.5 years)
+- Masternode seniority: 35 percent increase after 1051200 blocks (~1 year), 100 percent increase after 2628000 blocks (~2.5 years)
 - Governance proposals payout schedule: every 17520 blocks (~1 month)
 - Governance funding per round (Approx. 2m shit per month to start)
 - Governance funding gets 5% deflation per round (superblock). See formula below

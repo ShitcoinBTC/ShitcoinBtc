@@ -22,7 +22,7 @@ Bitcoin Core / Syscoin Core software: SHA-256 AuxPoW merged mining, LLMQ
 chainlocks, DIP-3 deterministic masternodes, and a full EVM. The meme is the
 marketing; the tech is the product.
 
-**Ticker:** SHIT · **Block time:** 150 seconds · **Consensus:** PoW (merge-mined
+**Ticker:** SHIT · **Block time:** 30 seconds · **Consensus:** PoW (merge-mined
 with Bitcoin) + masternode quorum services · **Smart contracts:** NEVM
 (EVM-equivalent, chain ID 57)
 
@@ -91,7 +91,7 @@ Shitcoin runs two execution environments in one client, because payments and
 programmability have different needs:
 
 **Layer 1 — UTXO (the Bitcoin layer).** Fast, simple, auditable payments.
-2.5-minute blocks, native assets, aliases, and instant probabilistic
+30-second blocks, native assets, aliases, and instant probabilistic
 confirmations (ZDAG-style). This is where SHIT lives as money.
 
 **Layer 2 — NEVM (the Ethereum layer).** A full EVM-equivalent runtime
@@ -153,7 +153,7 @@ standing policy for "updating the EVM codebase":
 
 Because the EVM is equivalent (not merely "compatible"), contracts deployed on
 Ethereum can be redeployed on Shitcoin's NEVM unchanged — bringing the entire
-Ethereum DeFi toolbox to a merge-mined chain with 2.5-minute finality vibes
+Ethereum DeFi toolbox to a merge-mined chain with 30-second finality vibes
 and joke-tier branding.
 
 ---
@@ -320,7 +320,7 @@ block's 50 SHIT is unspendable, as is tradition.
 
 ## 9. Network & Consensus
 
-- **150-second blocks**, SHA-256 PoW, AuxPoW merged mining with Bitcoin.
+- **30-second blocks**, SHA-256 PoW, AuxPoW merged mining with Bitcoin.
 - **LLMQ ChainLocks** (`llmq400_60`): masternode quorums sign each block,
   giving near-instant finality and 51%-attack immunity on top of merged mining.
 - **DIP-3 deterministic masternodes**, **DIP-19** data handling, full

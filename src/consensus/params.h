@@ -215,7 +215,7 @@ struct Params {
      */
     int64_t nVaultTierMult[5]{104000000, 112360000, 129502900, 157351936, 201135718};
     /** Base mining subsidy; 5% annual decay over a 50-year tail sums to 10.5B SHIT. */
-    CAmount nMiningSubsidyBase{270530720103LL}; // 2705.30720103 SHIT
+    CAmount nMiningSubsidyBase{54106121701LL}; // 541.06121701 SHIT (30s blocks: 5x blocks/yr vs 150s)
     /**
      * Hashes of blocks that
      * - are known to be consensus valid, and

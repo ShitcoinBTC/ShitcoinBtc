@@ -143,15 +143,15 @@ public:
         m_chain_type = ChainType::MAIN;
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
-        consensus.nSubsidyHalvingInterval = 210240;
+        consensus.nSubsidyHalvingInterval = 1051200; // ~1 year of 30-second blocks
         // 35% increase after ~1 year, 100% increase after sr level 2 (~2.5 years)
-        consensus.nSeniorityHeight1 = 525600;
+        consensus.nSeniorityHeight1 = 2628000; // ~1 year of 30-second blocks (was 525600 @150s)
         consensus.nSeniorityLevel1 = 0.35;
         consensus.nSeniorityHeight2 = consensus.nSeniorityHeight1*2.5;
         consensus.nSeniorityLevel2 = 1.0;
         consensus.nSuperblockStartBlock = 1;
-        consensus.nSuperblockCycle = 17520; // ~(60*24*30)/2.5
-        consensus.nSuperblockMaturityWindow = 1728; // ~(60*24*3)/2.5, ~3 days before actual Superblock is emitted
+        consensus.nSuperblockCycle = 86400; // ~30 days of 30-second blocks
+        consensus.nSuperblockMaturityWindow = 8640; // ~3 days of 30-second blocks before Superblock is emitted
         consensus.nGovernanceMinQuorum = 10;
         consensus.nGovernanceFilterElements = 20000;
         consensus.nMasternodeMinimumConfirmations = 15;
@@ -168,7 +168,7 @@ public:
         consensus.SegwitHeight = 0;
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~uint256(0) >> 20
         consensus.nPowTargetTimespan = 6 * 60 * 60;
-        consensus.nPowTargetSpacing = 2.5 * 60; // Syscoin: 2.5 minute
+        consensus.nPowTargetSpacing = 30; // Shitcoin: 30 seconds
         consensus.nAuxpowChainId = 16;
         consensus.nAuxpowOldChainId = 4096;
         consensus.nAuxpowStartHeight = 1;
@@ -286,15 +286,15 @@ public:
         m_chain_type = ChainType::TESTNET;
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
-        consensus.nSubsidyHalvingInterval = 210240;
-        consensus.nSeniorityHeight1 = 60;
+        consensus.nSubsidyHalvingInterval = 1051200; // ~1 year of 30-second blocks
+        consensus.nSeniorityHeight1 = 300;
         consensus.bTestnet = true;
         consensus.nSeniorityLevel1 = 0.35;
         consensus.nSeniorityHeight2 = consensus.nSeniorityHeight1*2.5;
         consensus.nSeniorityLevel2 = 1.0;
         consensus.nSuperblockStartBlock = 1;
-        consensus.nSuperblockCycle = 60;
-        consensus.nSuperblockMaturityWindow = 20;
+        consensus.nSuperblockCycle = 300;
+        consensus.nSuperblockMaturityWindow = 100;
         consensus.nGovernanceMinQuorum = 1;
         consensus.nGovernanceFilterElements = 500;
         consensus.nMasternodeMinimumConfirmations = 1;
@@ -308,7 +308,7 @@ public:
         consensus.CSVHeight = 1;
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); // ~uint256(0) >> 20
         consensus.nPowTargetTimespan = 6 * 60 * 60;
-        consensus.nPowTargetSpacing = 2.5 * 60; // Syscoin: 2.5 minute
+        consensus.nPowTargetSpacing = 30; // Shitcoin: 30 seconds
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains

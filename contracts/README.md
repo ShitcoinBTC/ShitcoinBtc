@@ -57,8 +57,8 @@ earn higher APY, paid from a governance-funded reward pool:
 
 **Note:** ShitVault.sol is the DeFi companion vault (with a 10%-burn early
 exit). The canonical, trustless vault is native: `vaultlock`/`vaultclaim`/
-`vaultinfo` RPCs backed by a consensus-level 6.3B SHIT reserve that nobody
-holds — yield is minted by the protocol, capped at 84M SHIT/year over
+`vaultinfo` RPCs backed by a consensus-level 5.25B SHIT reserve that nobody
+holds — yield is minted by the protocol, capped at 70M SHIT/year over
 75 years. See whitepaper §7.4.
 
 ## Build artifacts

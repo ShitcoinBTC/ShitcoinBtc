@@ -1936,17 +1936,18 @@ CAmount GetBlockSubsidy(unsigned int nHeight, const Consensus::Params& consensus
     if (nHeight == 1)
     {
         // Shitcoin launch allocations (21B supply schedule):
-        //   18% team + 2% coin support (10% of the 20% team bucket).
-        // The 30% vault yield reserve (6.3B SHIT) is NOT paid out here: it is a
+        //   18% presale + 15% team + 2% coin support.
+        // The 25% vault yield reserve (5.25B SHIT) is NOT paid out here: it is a
         // protocol-level reserve with no address and no custodian, minted over
         // time as vault yield (see CheckVaultYield) and hard-capped by
         // nVaultReserveTotal / nVaultYearlyYieldCap.
         // The exact output amounts are enforced in CheckAllocationBlock().
-        return consensusParams.nTeamAllocation +
+        return consensusParams.nPresaleAllocation +
+               consensusParams.nTeamAllocation +
                consensusParams.nCoinSupportAllocation;
     }
 
-    // Mining allocation: 50% of the 21B supply (10.5B SHIT).
+    // Mining allocation: 40% of the 21B supply (8.4B SHIT).
     // nMiningSubsidyBase is tuned so the 5%-per-year decay over the 50-year
     // tail sums to exactly the mining allocation.
     CAmount nSubsidy = consensusParams.nMiningSubsidyBase;
@@ -4912,9 +4913,10 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
 /**
  * Enforce the Shitcoin launch allocations in block 1.
  *
- * The block 1 coinbase must contain exactly two outputs paying the
- * scheduled allocation amounts — team (18%) and coin support (2%) — in any
- * order and to any addresses. The 30% vault yield reserve is NOT paid here:
+ * The block 1 coinbase must contain exactly three outputs paying the
+ * scheduled allocation amounts — presale (18%), team (15%) and coin
+ * support (2%) — in any order and to any addresses. The 25% vault yield
+ * reserve is NOT paid here:
  * it is a protocol-level reserve with no custodian, minted over time as
  * vault yield (see CheckVaultYield) and hard-capped by nVaultReserveTotal /
  * nVaultYearlyYieldCap. The team publishes the exact block 1 coinbase
@@ -4928,14 +4930,16 @@ static bool CheckAllocationBlock(const CBlock& block, BlockValidationState& stat
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-alloc-txcount",
                              "allocation block must contain only the coinbase");
     }
-    if (coinbase.vout.size() != 2) {
+    if (coinbase.vout.size() != 3) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-alloc-vout-count",
-                             "allocation block coinbase must have exactly 2 outputs (team + coin support)");
+                             "allocation block coinbase must have exactly 3 outputs (presale + team + coin support)");
     }
-    CAmount expected[2] = {consensusParams.nTeamAllocation,
+    CAmount expected[3] = {consensusParams.nPresaleAllocation,
+                           consensusParams.nTeamAllocation,
                            consensusParams.nCoinSupportAllocation};
-    CAmount actual[2] = {coinbase.vout[0].nValue, coinbase.vout[1].nValue};
-    for (int i = 0; i < 2; i++) {
+    CAmount actual[3] = {coinbase.vout[0].nValue, coinbase.vout[1].nValue,
+                         coinbase.vout[2].nValue};
+    for (int i = 0; i < 3; i++) {
         if (!MoneyRange(actual[i])) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-alloc-range",
                                  "allocation output value out of range");

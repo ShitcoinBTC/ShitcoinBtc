@@ -187,25 +187,29 @@ struct Params {
      *
      * Block 1 pays the launch allocations (amounts enforced in
      * CheckAllocationBlock()):
-     *   18%  team                    (3,780,000,000 SHIT)
-     *    2%  coin support            (  420,000,000 SHIT; 10% of the 20% team bucket)
-     * The 30% vault yield reserve (6,300,000,000 SHIT) is NOT paid out in
+     *   18%  presale                 (3,780,000,000 SHIT; team-controlled,
+     *                                distributed via the ShitVesting contract)
+     *   15%  team                    (3,150,000,000 SHIT)
+     *    2%  coin support            (  420,000,000 SHIT)
+     * The 25% vault yield reserve (5,250,000,000 SHIT) is NOT paid out in
      * block 1: it is a protocol-level reserve with no address and no
      * custodian. Vault yield is minted directly by consensus when native
      * vault locks are claimed (see CheckVaultYield), paced over
      * nVaultScheduleYears and hard-capped by nVaultYearlyYieldCap and
      * nVaultReserveTotal. Nobody holds these coins; every node enforces the
      * schedule the way it enforces the block subsidy.
-     * Mining (50%, 10,500,000,000 SHIT) is emitted via the block subsidy below.
+     * Mining (40%, 8,400,000,000 SHIT) is emitted via the block subsidy below.
      */
-    CAmount nTeamAllocation{3780000000LL * COIN};
+    CAmount nTeamAllocation{3150000000LL * COIN};
     CAmount nCoinSupportAllocation{420000000LL * COIN};
+    /** Presale allocation, in sats: paid in block 1 to a team-controlled address. */
+    CAmount nPresaleAllocation{3780000000LL * COIN};
     /** Protocol-level vault yield reserve, in sats. Never exists as a UTXO; no private key can spend it. */
-    CAmount nVaultReserveTotal{6300000000LL * COIN};
+    CAmount nVaultReserveTotal{5250000000LL * COIN};
     /** Schedule length, in years, over which the vault reserve may be drawn as yield. */
     int nVaultScheduleYears{75};
-    /** Maximum vault yield mintable per schedule-year, in sats (84,000,000 SHIT). */
-    CAmount nVaultYearlyYieldCap{84000000LL * COIN};
+    /** Maximum vault yield mintable per schedule-year, in sats (70,000,000 SHIT). */
+    CAmount nVaultYearlyYieldCap{70000000LL * COIN};
     /** Native vault lock tiers: APY in basis points for 1, 2, 3, 4, 5 year locks. */
     int nVaultTierAPYbps[5]{400, 600, 900, 1200, 1500};
     /**
@@ -214,8 +218,8 @@ struct Params {
      * is principal * (mult - 1e8) / 1e8 (compounded APY, floored to the sat).
      */
     int64_t nVaultTierMult[5]{104000000, 112360000, 129502900, 157351936, 201135718};
-    /** Base mining subsidy; 5% annual decay over a 50-year tail sums to 10.5B SHIT. */
-    CAmount nMiningSubsidyBase{54106121701LL}; // 541.06121701 SHIT (30s blocks: 5x blocks/yr vs 150s)
+    /** Base mining subsidy; 5% annual decay over a 50-year tail sums to 8.4B SHIT. */
+    CAmount nMiningSubsidyBase{43284892901LL}; // 432.84892901 SHIT (30s blocks: 5x blocks/yr vs 150s)
     /**
      * Hashes of blocks that
      * - are known to be consensus valid, and

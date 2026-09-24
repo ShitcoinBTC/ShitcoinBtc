@@ -255,13 +255,13 @@ maturity, the network itself mints your yield — `principal × (tierMultiplier 
 1)`, compounded per the table — and pays it out next to your principal. Nobody
 approves it, nobody funds it, nobody can stop it. It works like a block reward.
 
-**Where the yield comes from.** Vault yield is paid out of the 30% vault yield
-reserve (6,300,000,000 SHIT) — and here's the important part: **those coins
+**Where the yield comes from.** Vault yield is paid out of the 25% vault yield
+reserve (5,250,000,000 SHIT) — and here's the important part: **those coins
 don't exist yet, and nobody holds them.** The reserve was never sent to an
 address. It's a protocol-level number every node tracks, like the block
 subsidy schedule, and fresh SHIT for yield is minted straight from it. No
 address means no private key means not even the team can touch it. Two
-consensus caps keep it honest: at most **84M SHIT of yield per year**, 6.3B
+consensus caps keep it honest: at most **70M SHIT of yield per year**, 5.25B
 total — so the math guarantees the reserve lasts the full **75-year** schedule.
 If it's ever exhausted, locks still pay back principal in full; they just stop
 earning.
@@ -285,22 +285,23 @@ new SHIT gets minted roughly 50 years after genesis. Where it all goes:
 
 | Bucket | Share | Amount | Notes |
 |--------|-------|--------|-------|
-| Team | 18% | 3,780,000,000 | Core team & founders |
-| Coin support | 2% | 420,000,000 | 10% of the 20% team bucket: listings, liquidity, marketing, ops |
-| Vault yield reserve | 30% | 6,300,000,000 | Protocol-level reserve (no custodian); minted as vault yield, capped at 84M SHIT/year over 75 years |
-| Mining | 50% | 10,500,000,000 | Block rewards (see below) |
+| Presale | 18% | 3,780,000,000 | Team-controlled block-1 payout; distributed to buyers via the ShitVesting contract (24 monthly unlocks, no cliff) |
+| Team | 15% | 3,150,000,000 | Core team & founders |
+| Coin support | 2% | 420,000,000 | Listings, liquidity, marketing, ops |
+| Vault yield reserve | 25% | 5,250,000,000 | Protocol-level reserve (no custodian); minted as vault yield, capped at 70M SHIT/year over 75 years |
+| Mining | 40% | 8,400,000,000 | Block rewards (see below) |
 
-The team and coin-support allocations are paid in **block 1** — the coinbase
-has to contain exactly two outputs with exactly those amounts, enforced in
+The presale, team and coin-support allocations are paid in **block 1** — the coinbase
+has to contain exactly three outputs with exactly those amounts, enforced in
 consensus (`CheckAllocationBlock()` in `src/validation.cpp`). The schedule
-can't be changed after launch, by anyone. The 30% vault reserve is *not* paid
+can't be changed after launch, by anyone. The 25% vault reserve is *not* paid
 in block 1: it only exists as a consensus-tracked reserve, and the only thing
 that can ever mint from it is vault yield (`CheckVaultYield()`), capped per
 year and in total. The genesis block's 50 SHIT is unspendable, as is tradition.
 
-- **Emission.** Mining starts at block 2 at ~541.06 SHIT per block, declining
+- **Emission.** Mining starts at block 2 at ~432.85 SHIT per block, declining
   5% per year over a 50-year tail. The base subsidy is tuned so lifetime mining
-  lands exactly on the 10.5B allocation.
+  lands exactly on the 8.4B allocation.
 - **Reward split (per block):** 10% goes to the governance superblock. Of the
   remaining 90%: 25% to miners (merge-mined, Section 2), 75% to masternodes.
   Half of all transaction fees go to masternodes too.

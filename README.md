@@ -41,10 +41,10 @@ Shitcoin is a merge-minable SHA256 coin which provides an array of useful servic
 - Block time: 30 seconds target
 - Halving interval: 1051200 (~1 year)
 - Max supply: 21,000,000,000 SHIT (21 billion, hard cap)
-  - Block 1 allocations: 18% team (3.78B) + 2% coin support (420M), enforced by consensus
-  - Vault yield reserve: 30% (6.3B) as a protocol-level reserve (no custodian) — minted as vault yield, capped at 84M SHIT/year over 75 years
+  - Block 1 allocations: 18% presale (3.78B) + 15% team (3.15B) + 2% coin support (420M), enforced by consensus
+  - Vault yield reserve: 25% (5.25B) as a protocol-level reserve (no custodian) — minted as vault yield, capped at 70M SHIT/year over 75 years
   - Native vault: `vaultlock` / `vaultclaim` / `vaultinfo` RPCs; 1–5 year timelocks at 4/6/9/12/15% APY; requires holding any amount of BTC (wallet-enforced)
-  - Mining: 50% (10.5B) via block rewards — ~2705.31 SHIT per block at launch, deflated 5 percent per year over a 50-year tail
+  - Mining: 40% (8.4B) via block rewards — ~432.85 SHIT per block at launch, deflated 5 percent per year over a 50-year tail
   - 10 percent to governance proposals
   - 90 percent split with miner/masternode of which:
     - 25 percent to miner

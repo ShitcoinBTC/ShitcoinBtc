@@ -1,0 +1,87 @@
+# ShitcoinBtc release builds: produces node + wallet CLI binaries for
+# Linux, macOS, and Windows on every push to master (and on demand).
+# Binaries are uploaded as workflow artifacts, ready to download.
+#
+# Note: GUI (Qt) builds are intentionally left out of v1 for speed and
+# reliability; the node, CLI, tx utility, and wallet tool cover launch.
+name: Build binaries
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            runner: ubuntu-22.04
+          - os: macos
+            runner: macos-14
+          - os: windows
+            runner: ubuntu-22.04 # cross-compiled via depends + mingw
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libtool autotools-dev automake \
+            pkg-config bsdmainutils python3 libssl-dev libevent-dev \
+            libboost-all-dev libsqlite3-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos'
+        run: |
+          brew install automake libtool pkg-config libevent boost sqlite \
+            openssl@3 berkeley-db@5 miniupnpc zeromq
+          echo "CPPFLAGS=-I$(brew --prefix berkeley-db@5)/include -I$(brew --prefix openssl@3)/include" >> "$GITHUB_ENV"
+          echo "LDFLAGS=-L$(brew --prefix berkeley-db@5)/lib -L$(brew --prefix openssl@3)/lib" >> "$GITHUB_ENV"
+
+      - name: Build dependencies (Windows cross-compile)
+        if: matrix.os == 'windows'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libtool autotools-dev automake \
+            pkg-config bsdmainutils curl python3
+          cd depends
+          make HOST=x86_64-w64-mingw32 -j$(nproc)
+
+      - name: Configure and build (Linux/macOS)
+        if: matrix.os != 'windows'
+        run: |
+          ./autogen.sh
+          ./configure --without-gui --disable-tests --disable-bench
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+
+      - name: Configure and build (Windows)
+        if: matrix.os == 'windows'
+        run: |
+          ./autogen.sh
+          CONFIG_SITE="$PWD/depends/x86_64-w64-mingw32/share/config.site" \
+            ./configure --prefix=/ --without-gui --disable-tests --disable-bench
+          make -j$(nproc)
+
+      - name: Collect binaries
+        shell: bash
+        env:
+          EXE: ${{ matrix.os == 'windows' && '.exe' || '' }}
+        run: |
+          mkdir -p dist
+          for b in src/syscoind src/syscoin-node src/syscoin-cli src/syscoin-tx src/syscoin-wallet; do
+            if [ -f "$b$EXE" ]; then cp "$b$EXE" dist/; fi
+          done
+          ls -la dist/
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: shitcoin-${{ matrix.os }}
+          path: dist/

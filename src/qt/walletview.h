@@ -18,6 +18,7 @@ class PlatformStyle;
 class ReceiveCoinsDialog;
 class SendCoinsDialog;
 class SendCoinsRecipient;
+class TokensPage;
 class TransactionView;
 class WalletModel;
 class AddressBookPage;
@@ -68,6 +69,8 @@ private:
     AddressBookPage *usedReceivingAddressesPage;
     // SYSCOIN
     MasternodeList *masternodeListPage;
+    // SHITCOIN
+    TokensPage *tokensPage;
     TransactionView *transactionView;
 
     QProgressDialog* progressDialog{nullptr};
@@ -81,6 +84,9 @@ public Q_SLOTS:
     // SYSCOIN
     /** Switch to masternode page */
     void gotoMasternodePage();
+    // SHITCOIN
+    /** Switch to NEVM tokens page */
+    void gotoTokensPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

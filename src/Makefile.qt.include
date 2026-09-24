@@ -68,6 +68,7 @@ QT_MOC_CPP = \
   qt/moc_paymentserver.cpp \
   qt/moc_psbtoperationsdialog.cpp \
   qt/moc_qrimagewidget.cpp \
+  qt/moc_tokenspage.cpp \
   qt/moc_qvalidatedlineedit.cpp \
   qt/moc_qvaluecombobox.cpp \
   qt/moc_receivecoinsdialog.cpp \
@@ -155,6 +156,7 @@ SYSCOIN_QT_H = \
   qt/sendcoinsrecipient.h \
   qt/signverifymessagedialog.h \
   qt/splashscreen.h \
+  qt/tokenspage.h \
   qt/trafficgraphwidget.h \
   qt/transactiondesc.h \
   qt/transactiondescdialog.h \
@@ -272,6 +274,7 @@ SYSCOIN_QT_WALLET_CPP = \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
   qt/signverifymessagedialog.cpp \
+  qt/tokenspage.cpp \
   qt/transactiondesc.cpp \
   qt/transactiondescdialog.cpp \
   qt/transactionfilterproxy.cpp \

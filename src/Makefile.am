@@ -394,6 +394,7 @@ SYSCOIN_CORE_H = \
   wallet/crypter.h \
   wallet/db.h \
   wallet/dump.h \
+  wallet/evm.h \
   wallet/external_signer_scriptpubkeyman.h \
   wallet/feebumper.h \
   wallet/fees.h \
@@ -625,6 +626,7 @@ libsyscoin_wallet_a_SOURCES = \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/dump.cpp \
+  wallet/evm.cpp \
   wallet/external_signer_scriptpubkeyman.cpp \
   wallet/feebumper.cpp \
   wallet/fees.cpp \

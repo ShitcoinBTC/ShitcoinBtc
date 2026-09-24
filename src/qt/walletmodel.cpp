@@ -578,6 +578,38 @@ bool WalletModel::displayAddress(std::string sAddress) const
     return res;
 }
 
+// SHITCOIN: NEVM (EVM-side) support for the Tokens tab.
+QString WalletModel::getEVMAddress() const
+{
+    return QString::fromStdString(m_wallet->getEVMAddress());
+}
+
+QString WalletModel::signEVMTransaction(const QString& to, const QString& valueWei,
+                                        const QString& dataHex, const QString& nonce,
+                                        const QString& gasPriceWei, const QString& gasLimit,
+                                        quint64 chainId, QString& error)
+{
+    WalletModel::UnlockContext ctx(requestUnlock());
+    if (!ctx.isValid()) {
+        error = tr("Wallet unlock was cancelled.");
+        return {};
+    }
+    interfaces::EVMTxParams params;
+    params.to = to.toStdString();
+    params.valueWei = valueWei.toStdString();
+    params.dataHex = dataHex.toStdString();
+    params.nonce = nonce.toStdString();
+    params.gasPriceWei = gasPriceWei.toStdString();
+    params.gasLimit = gasLimit.toStdString();
+    params.chainId = chainId;
+    auto result = m_wallet->signEVMTransaction(params);
+    if (!result) {
+        error = QString::fromStdString(result.error().message.original);
+        return {};
+    }
+    return QString::fromStdString(*result);
+}
+
 bool WalletModel::isWalletEnabled()
 {
    return !gArgs.GetBoolArg("-disablewallet", DEFAULT_DISABLE_WALLET);

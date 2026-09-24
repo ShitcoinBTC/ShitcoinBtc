@@ -136,6 +136,18 @@ public:
     bool bumpFee(uint256 hash, uint256& new_hash);
     bool displayAddress(std::string sAddress) const;
 
+    // SHITCOIN: NEVM (EVM-side) support for the Tokens tab. The EVM address is
+    // derived from the wallet's signing key (same key as the UTXO side).
+    // Returns an empty string when the wallet is locked or has no keys.
+    QString getEVMAddress() const;
+    // Build and EIP-155 sign a legacy NEVM transaction. Requests wallet unlock
+    // when needed. Returns the 0x-prefixed raw tx hex, or empty on failure
+    // with a human-readable message in `error`.
+    QString signEVMTransaction(const QString& to, const QString& valueWei,
+                               const QString& dataHex, const QString& nonce,
+                               const QString& gasPriceWei, const QString& gasLimit,
+                               quint64 chainId, QString& error);
+
     static bool isWalletEnabled();
 
     interfaces::Node& node() const { return m_node; }

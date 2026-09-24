@@ -308,6 +308,15 @@ void SyscoinGUI::createActions()
     connect(receiveCoinsAction, &QAction::triggered, this, &SyscoinGUI::gotoReceiveCoinsPage);
     connect(historyAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(historyAction, &QAction::triggered, this, &SyscoinGUI::gotoHistoryPage);
+    // SHITCOIN: NEVM tokens tab
+    tokensAction = new QAction(platformStyle->SingleColorIcon(":/icons/syscoin"), tr("&Tokens"), this);
+    tokensAction->setStatusTip(tr("NEVM tokens and SHIT-20 balances"));
+    tokensAction->setToolTip(tokensAction->statusTip());
+    tokensAction->setCheckable(true);
+    tokensAction->setShortcut(QKeySequence(QStringLiteral("Alt+6")));
+    tabGroup->addAction(tokensAction);
+    connect(tokensAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
+    connect(tokensAction, &QAction::triggered, this, &SyscoinGUI::gotoTokensPage);
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(tr("E&xit"), this);
@@ -606,6 +615,11 @@ void SyscoinGUI::createToolBars()
         if (settings.value("fShowMasternodesTab").toBool() && masternodeAction)
         {
             toolbar->addAction(masternodeAction);
+        }
+        // SHITCOIN
+        if (tokensAction)
+        {
+            toolbar->addAction(tokensAction);
         }
         overviewAction->setChecked(true);
 
@@ -982,6 +996,14 @@ void SyscoinGUI::gotoMasternodePage()
     if (settings.value("fShowMasternodesTab").toBool() && masternodeAction) {
         masternodeAction->setChecked(true);
         if (walletFrame) walletFrame->gotoMasternodePage();
+    }
+}
+// SHITCOIN
+void SyscoinGUI::gotoTokensPage()
+{
+    if (tokensAction) {
+        tokensAction->setChecked(true);
+        if (walletFrame) walletFrame->gotoTokensPage();
     }
 }
 void SyscoinGUI::gotoOverviewPage()

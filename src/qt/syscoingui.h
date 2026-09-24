@@ -165,6 +165,8 @@ private:
     QAction* m_wallet_selector_action = nullptr;
     // SYSCOIN
     QAction *masternodeAction = nullptr;
+    // SHITCOIN
+    QAction *tokensAction = nullptr;
     QAction* m_mask_values_action{nullptr};
     QAction* m_migrate_wallet_action{nullptr};
     QMenu* m_migrate_wallet_menu{nullptr};
@@ -285,6 +287,8 @@ public Q_SLOTS:
     void gotoHistoryPage();
     /** SYSCOIN Switch to masternode page */
     void gotoMasternodePage();
+    /** SHITCOIN Switch to NEVM tokens page */
+    void gotoTokensPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

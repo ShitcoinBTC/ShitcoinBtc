@@ -575,12 +575,8 @@ private:
 
     bool AddDescriptorKeyWithDB(WalletBatch& batch, const CKey& key, const CPubKey &pubkey) EXCLUSIVE_LOCKS_REQUIRED(cs_desc_man);
 
-    KeyMap GetKeys() const EXCLUSIVE_LOCKS_REQUIRED(cs_desc_man);
-
     // Cached FlatSigningProviders to avoid regenerating them each time they are needed.
     mutable std::map<int32_t, FlatSigningProvider> m_map_signing_providers;
-    // Fetch the SigningProvider for the given script and optionally include private keys
-    std::unique_ptr<FlatSigningProvider> GetSigningProvider(const CScript& script, bool include_private = false) const;
     // Fetch the SigningProvider for a given index and optionally include private keys. Called by the above functions.
     std::unique_ptr<FlatSigningProvider> GetSigningProvider(int32_t index, bool include_private = false) const EXCLUSIVE_LOCKS_REQUIRED(cs_desc_man);
 
@@ -599,6 +595,12 @@ public:
         {}
 
     mutable RecursiveMutex cs_desc_man;
+
+    // SHITCOIN: public so wallet EVM helpers can fetch private keys
+    // (LegacyScriptPubKeyMan::GetKeys is public as well). Behavior unchanged.
+    KeyMap GetKeys() const EXCLUSIVE_LOCKS_REQUIRED(cs_desc_man);
+    // Fetch the SigningProvider for the given script and optionally include private keys
+    std::unique_ptr<FlatSigningProvider> GetSigningProvider(const CScript& script, bool include_private = false) const;
 
     util::Result<CTxDestination> GetNewDestination(const OutputType type) override;
     isminetype IsMine(const CScript& script) const override;

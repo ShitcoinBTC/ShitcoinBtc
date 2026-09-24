@@ -19,6 +19,7 @@
 #include <util/ui_change_type.h>
 #include <wallet/coincontrol.h>
 #include <wallet/context.h>
+#include <wallet/evm.h>
 #include <wallet/feebumper.h>
 #include <wallet/fees.h>
 #include <wallet/types.h>
@@ -173,6 +174,35 @@ public:
     SigningResult signMessage(const std::string& message, const CTxDestination& dest, std::string& str_sig) override
     {
         return m_wallet->SignMessage(message, dest, str_sig);
+    }
+    // SHITCOIN: NEVM helpers
+    std::string getEVMAddress() override
+    {
+        LOCK(m_wallet->cs_wallet);
+        CKey key;
+        if (!wallet::GetWalletEVMKey(*m_wallet, key)) return {};
+        return wallet::EVMAddressHex(key);
+    }
+    util::Result<std::string> signEVMTransaction(const interfaces::EVMTxParams& params) override
+    {
+        LOCK(m_wallet->cs_wallet);
+        CKey key;
+        if (!wallet::GetWalletEVMKey(*m_wallet, key)) {
+            return util::Error{Untranslated("Wallet is locked or has no private keys available for NEVM signing")};
+        }
+        wallet::EVMTxParams txp;
+        txp.to = params.to;
+        txp.valueWei = params.valueWei;
+        txp.dataHex = params.dataHex;
+        txp.nonce = params.nonce;
+        txp.gasPriceWei = params.gasPriceWei;
+        txp.gasLimit = params.gasLimit;
+        txp.chainId = params.chainId;
+        std::string rawHex = wallet::SignEVMTransaction(key, txp);
+        if (rawHex.empty()) {
+            return util::Error{Untranslated("Failed to build/sign the NEVM transaction (check parameters)")};
+        }
+        return rawHex;
     }
     // SYSCOIN
     bool isSpendable(const CScript& script) override

@@ -14,6 +14,7 @@
 #include <qt/receivecoinsdialog.h>
 #include <qt/sendcoinsdialog.h>
 #include <qt/signverifymessagedialog.h>
+#include <qt/tokenspage.h>
 #include <qt/transactiontablemodel.h>
 #include <qt/transactionview.h>
 #include <qt/walletmodel.h>
@@ -74,6 +75,10 @@ WalletView::WalletView(WalletModel* wallet_model, const PlatformStyle* _platform
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
+    // SHITCOIN: NEVM tokens tab
+    tokensPage = new TokensPage(this);
+    tokensPage->setWalletModel(walletModel);
+    addWidget(tokensPage);
     // SYSCOIN
     QSettings settings;
     if (settings.value("fShowMasternodesTab").toBool()) {
@@ -171,6 +176,11 @@ void WalletView::gotoMasternodePage()
     if (settings.value("fShowMasternodesTab").toBool()) {
         setCurrentWidget(masternodeListPage);
     }
+}
+// SHITCOIN
+void WalletView::gotoTokensPage()
+{
+    setCurrentWidget(tokensPage);
 }
 void WalletView::gotoReceiveCoinsPage()
 {

@@ -170,7 +170,7 @@ maker, deployed on NEVM.
   Permissionless pair creation, LP tokens, 0.3% swap fees going to liquidity
   providers.
 - **Factory + pair architecture** (`contracts/ShitSwap.sol`): one factory spins
-  up minimal pairs, and each pair is its own ERC-20 LP token.
+  up minimal pairs, and each pair is its own SHIT-20 LP token.
 - **SHIT as the hub asset.** Every serious pair routes through SHIT, so all
   liquidity ultimately deepens the SHIT market. WSHIT pairs let UTXO-native
   assets trade against EVM tokens once bridged.

@@ -76,6 +76,8 @@ public Q_SLOTS:
     void gotoHistoryPage();
     /** SYSCOIN Switch to masternode page */
     void gotoMasternodePage(); 
+    /** SHITCOIN Switch to NEVM tokens page */
+    void gotoTokensPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

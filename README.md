@@ -30,7 +30,7 @@ Hybrid layer 2 PoW/PoS consensus with bonded validator system (masternodes) ZDAG
 
 Governance formula: We have implemented a % decline schedule — starting the first month with 1500000 SYS and ending on the 24th month with 196708 SYS. After that period, the superblock starts with 151767 SYS a month and will decline 5% every year. Read more about it here: https://medium.com/@syscoin/syscoin-4-0-rewards-specifications-a3dc01d85adf.
 
-Interoptibility between UTXO assets and ERC20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge. Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
+Interoptibility between UTXO assets and SHIT-20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge. Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
 
 For more information, as well as an immediately useable, binary version of
 the Shit Core software, see https://syscoin.org/, or read the

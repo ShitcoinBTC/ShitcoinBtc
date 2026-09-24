@@ -53,6 +53,18 @@ struct WalletTxOut;
 struct WalletTxStatus;
 struct WalletMigrationResult;
 
+//! Parameters for signing an EIP-155 legacy NEVM transaction. Big integers
+//! are decimal strings; hex fields accept an optional 0x prefix.
+struct EVMTxParams {
+    std::string to;          //!< 20-byte hex destination (EOA or token contract)
+    std::string valueWei;    //!< decimal wei (0 for SHIT-20 transfers)
+    std::string dataHex;     //!< hex calldata (SHIT-20 transfer payload, or empty)
+    std::string nonce;       //!< decimal transaction count
+    std::string gasPriceWei; //!< decimal wei per gas
+    std::string gasLimit;    //!< decimal gas limit
+    uint64_t chainId{0};     //!< EIP-155 chain id (57 on Shitcoin NEVM mainnet)
+};
+
 using WalletOrderForm = std::vector<std::pair<std::string, std::string>>;
 using WalletValueMap = std::map<std::string, std::string>;
 
@@ -100,6 +112,16 @@ public:
     virtual SigningResult signMessage(const std::string& message, const PKHash& pkhash, std::string& str_sig) = 0;
     // SYSCOIN
     virtual SigningResult signMessage(const std::string& message, const CTxDestination& dest, std::string& str_sig) = 0;
+
+    // SHITCOIN: NEVM (EVM-side) address derived from the wallet's signing key.
+    // Returns the 0x-prefixed hex address, or an empty string when the wallet
+    // is locked or has no private keys.
+    virtual std::string getEVMAddress() = 0;
+
+    // SHITCOIN: build and EIP-155 sign a legacy NEVM transaction with the
+    // wallet's EVM key. Returns the 0x-prefixed signed raw transaction hex,
+    // or an error when the wallet is locked or the params are invalid.
+    virtual util::Result<std::string> signEVMTransaction(const EVMTxParams& params) = 0;
     //! Return whether wallet has private key.
     virtual bool isSpendable(const CTxDestination& dest) = 0;
     // SYSCOIN

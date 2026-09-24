@@ -2,14 +2,14 @@
   <img src="shitcoin-logo.png" width="140" alt="Shitcoin logo">
 </p>
 
-Owlee Core
+Shitcoin Core
 =============
 
 **New here?** Start with the [Shitcoin whitepaper](whitepaper.md) ([PDF](whitepaper.pdf)) — it covers merged mining with Bitcoin, bridge tech, the NEVM/EVM layer, the ShitSwap DEX, and the ShitLottery game (90% winner / 10% burn). The NEVM smart contracts live in [../contracts/](../contracts/).
 
 Setup
 ---------------------
-Owleecoin Core is the original Syscoin client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Syscoin transactions, which requires a few hundred gigabytes of disk space. Depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+Shitcoin Core is the original Syscoin client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Syscoin transactions, which requires a few hundred gigabytes of disk space. Depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
 To download Syscoin Core, visit [syscoincore.org](https://syscoincore.org/en/download/).
 

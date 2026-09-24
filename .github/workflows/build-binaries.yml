@@ -1,9 +1,8 @@
 # ShitcoinBtc release builds: produces node + wallet CLI binaries for
 # Linux, macOS, and Windows on every push to master (and on demand).
-# Binaries are uploaded as workflow artifacts, ready to download.
-#
-# Note: GUI (Qt) builds are intentionally left out of v1 for speed and
-# reliability; the node, CLI, tx utility, and wallet tool cover launch.
+# The `build-qt` job additionally produces the Qt desktop wallet
+# (dark gold Shitcoin theme) per OS. Binaries are uploaded as workflow
+# artifacts, ready to download.
 name: Build binaries
 
 on:
@@ -84,4 +83,81 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shitcoin-${{ matrix.os }}
+          path: dist/
+
+  # Qt desktop wallet (Shitcoin dark-gold theme). Separate job so a GUI
+  # build issue can never block the node/CLI artifacts above.
+  build-qt:
+    name: qt-${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            runner: ubuntu-22.04
+          - os: macos
+            runner: macos-14
+          - os: windows
+            runner: ubuntu-22.04 # cross-compiled via depends + mingw
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libtool autotools-dev automake \
+            pkg-config bsdmainutils python3 libssl-dev libevent-dev \
+            libboost-all-dev libsqlite3-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5svg5-dev libqrencode-dev
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos'
+        run: |
+          brew install automake libtool pkg-config libevent boost sqlite \
+            openssl@3 berkeley-db@5 miniupnpc zeromq qt@5
+          echo "CPPFLAGS=-I$(brew --prefix berkeley-db@5)/include -I$(brew --prefix openssl@3)/include" >> "$GITHUB_ENV"
+          echo "LDFLAGS=-L$(brew --prefix berkeley-db@5)/lib -L$(brew --prefix openssl@3)/lib" >> "$GITHUB_ENV"
+          echo "PATH=$(brew --prefix qt@5)/bin:$PATH" >> "$GITHUB_ENV"
+          echo "PKG_CONFIG_PATH=$(brew --prefix qt@5)/lib/pkgconfig" >> "$GITHUB_ENV"
+
+      - name: Build dependencies (Windows cross-compile)
+        if: matrix.os == 'windows'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libtool autotools-dev automake \
+            pkg-config bsdmainutils curl python3
+          cd depends
+          make HOST=x86_64-w64-mingw32 -j$(nproc)
+
+      - name: Configure and build (Linux/macOS)
+        if: matrix.os != 'windows'
+        run: |
+          ./autogen.sh
+          ./configure --with-gui=qt5 --disable-tests --disable-bench
+          make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+
+      - name: Configure and build (Windows)
+        if: matrix.os == 'windows'
+        run: |
+          ./autogen.sh
+          CONFIG_SITE="$PWD/depends/x86_64-w64-mingw32/share/config.site" \
+            ./configure --prefix=/ --with-gui=qt5 --disable-tests --disable-bench
+          make -j$(nproc)
+
+      - name: Collect Qt wallet
+        shell: bash
+        env:
+          EXE: ${{ matrix.os == 'windows' && '.exe' || '' }}
+        run: |
+          mkdir -p dist
+          cp "src/qt/syscoin-qt$EXE" dist/
+          ls -la dist/
+
+      - name: Upload Qt wallet
+        uses: actions/upload-artifact@v4
+        with:
+          name: shitcoin-qt-${{ matrix.os }}
           path: dist/

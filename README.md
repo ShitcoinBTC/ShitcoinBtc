@@ -1,4 +1,7 @@
 <p align="center">
+  <img src="assets/shitcoin-logo.png" width="180" alt="Shitcoin logo">
+</p>
+<p align="center">
   <img src="doc/shitcoin-wordmark.png" width="420" alt="Shitcoin">
 </p>
 

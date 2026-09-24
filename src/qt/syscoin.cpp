@@ -52,6 +52,7 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QFile>
 #include <QLatin1String>
 #include <QLibraryInfo>
 #include <QLocale>
@@ -530,6 +531,31 @@ int GuiMain(int argc, char* argv[])
 
     SyscoinApplication app;
     GUIUtil::LoadFont(QStringLiteral(":/fonts/monospace"));
+
+    // Shitcoin dark "gold rush" theme. The palette also drives
+    // PlatformStyle::SingleColor(), so toolbar icons recolor gold.
+    {
+        QPalette dark;
+        dark.setColor(QPalette::Window, QColor(0x14, 0x14, 0x14));
+        dark.setColor(QPalette::WindowText, QColor(0xe8, 0xe8, 0xe8));
+        dark.setColor(QPalette::Base, QColor(0x0d, 0x0d, 0x0d));
+        dark.setColor(QPalette::AlternateBase, QColor(0x1b, 0x1b, 0x1b));
+        dark.setColor(QPalette::Text, QColor(0xe8, 0xe8, 0xe8));
+        dark.setColor(QPalette::Button, QColor(0x22, 0x22, 0x22));
+        dark.setColor(QPalette::ButtonText, QColor(0xe8, 0xe8, 0xe8));
+        dark.setColor(QPalette::Highlight, QColor(0xf5, 0xb3, 0x01));
+        dark.setColor(QPalette::HighlightedText, QColor(0x14, 0x14, 0x14));
+        dark.setColor(QPalette::ToolTipBase, QColor(0xf5, 0xb3, 0x01));
+        dark.setColor(QPalette::ToolTipText, QColor(0x14, 0x14, 0x14));
+        dark.setColor(QPalette::Disabled, QPalette::Text, QColor(0x77, 0x77, 0x77));
+        dark.setColor(QPalette::Disabled, QPalette::WindowText, QColor(0x77, 0x77, 0x77));
+        dark.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(0x77, 0x77, 0x77));
+        app.setPalette(dark);
+        QFile qss(QStringLiteral(":/css/shitcoin"));
+        if (qss.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            app.setStyleSheet(QString::fromUtf8(qss.readAll()));
+        }
+    }
 
     /// 2. Parse command-line options. We do this after qt in order to show an error if there are problems parsing these
     // Command-line options take precedence:

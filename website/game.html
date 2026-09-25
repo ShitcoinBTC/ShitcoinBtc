@@ -135,7 +135,7 @@ function spawnEnemy() {
     });
   }
   
-  const spawnRate = Math.max(8, 50 - level * 2);
+  const spawnRate = Math.max(30, 140 - level * 4);
   
   // Boss at end of each level (after enough enemies)
   if (!boss && enemyTimer > 3600) {

@@ -98,21 +98,20 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
   <button id="spinbtn" onclick="spin()">SPIN</button>
   <div id="result"></div>
   <div id="paytable">
-    <div>7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; = JACKPOT, 25% of the pool</div>
+    <div>7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; = JACKPOT, 75% of the pool</div>
     <div>any 3 of a kind = 10% of the pool</div>
   </div>
 </div>
 <div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%;">
 <div style="font-size: 28px; margin-bottom: 10px;">Shity Slots</div>
-<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Pay 2 SHIT for <strong style="color:#f2a900;">10 spins</strong>.<br>Three 7s = JACKPOT, 25% of the pool!<br>Any three of a kind = 10% of the pool.</div>
+<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Pay <strong style="color:#f2a900;">20 SHIT</strong> for <strong style="color:#f2a900;">10 spins</strong>.<br>Three 7s = JACKPOT, 75% of the pool!<br>Any three of a kind = 10% of the pool.</div>
 <div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>
 <div style="margin-bottom: 15px; font-size: 16px;">Pay one:</div>
 <div style="text-align: left; margin-bottom: 15px; font-size: 15px; line-height: 2;">
-<div><img src="/img/poop-icon.png" class="pe" alt=""> <strong>2 SHIT</strong> <button onclick="copyAddr('shit1qdnqywhj3ws7lj7ev9u66tfushkfwufprrn0d59')" style="font-size: 12px; padding: 4px 8px;">Copy SHIT addr</button></div>
-<div>&#x25CE; <strong>0.001 SOL</strong> <button onclick="copyAddr('3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4')" style="font-size: 12px; padding: 4px 8px;">Copy SOL addr</button></div>
-<div>&#x39E; <strong>0.0000436 ETH</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy ETH addr</button></div>
-<div>&#x1F535; <strong>0.0000436 ETH on Base</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy Base addr</button></div>
-<div>&#x20BF; <strong>0.00000140 BTC</strong> (140 sats) <button onclick="copyAddr('3FPSdy4dtNpMJxEnrhXMBEm3akEUY3Z592')" style="font-size: 12px; padding: 4px 8px;">Copy BTC addr</button></div>
+<div><img src="/img/poop-icon.png" class="pe" alt=""> <strong>20 SHIT</strong> <button onclick="copyAddr('shit1qdnqywhj3ws7lj7ev9u66tfushkfwufprrn0d59')" style="font-size: 12px; padding: 4px 8px;">Copy SHIT addr</button></div>
+<div>&#x20BF; <strong id="amt-btc">$1 in BTC</strong> <button onclick="copyAddr('3FPSdy4dtNpMJxEnrhXMBEm3akEUY3Z592')" style="font-size: 12px; padding: 4px 8px;">Copy BTC addr</button></div>
+<div>&#x25CE; <strong id="amt-sol">$1 in SOL</strong> <button onclick="copyAddr('3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4')" style="font-size: 12px; padding: 4px 8px;">Copy SOL addr</button></div>
+<div>&#x39E; <strong id="amt-eth">$1 in ETH</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy ETH addr</button></div>
 </div>
 <button onclick="startGame()" style="font-size: 20px; padding: 15px 30px;">I Paid - Start Game</button>
 </div>
@@ -162,7 +161,7 @@ function evaluate(){
   var seven = '7\uFE0F\u20E3';
   var res = document.getElementById('result');
   if (r[0] === seven && r[1] === seven && r[2] === seven){
-    winScreen('jackpot', 'JACKPOT! Three 7s! You win 25% of the pool!');
+    winScreen('jackpot', 'JACKPOT! Three 7s! You win 75% of the pool!');
   } else if (r[0] === r[1] && r[1] === r[2]){
     winScreen('threeoak', 'Three of a kind! You win 10% of the pool!');
   } else if (spinsLeft > 0){
@@ -212,6 +211,14 @@ function copyAddr(a){
 
 fetch('/api/game/pool').then(function(r){ return r.json(); }).then(function(d){
   document.getElementById('poolamt').textContent = Number(d.pool_shit||0).toLocaleString();
+}).catch(function(){});
+// $1 entry amounts at live prices
+fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana,ethereum&vs_currencies=usd')
+.then(function(r){ return r.json(); }).then(function(p){
+  function fmt(x, dec){ return Number(x.toFixed(dec)).toString(); }
+  if (p.bitcoin && p.bitcoin.usd) document.getElementById('amt-btc').textContent = '$1 = ' + fmt(1/p.bitcoin.usd, 8) + ' BTC';
+  if (p.solana && p.solana.usd) document.getElementById('amt-sol').textContent = '$1 = ' + fmt(1/p.solana.usd, 5) + ' SOL';
+  if (p.ethereum && p.ethereum.usd) document.getElementById('amt-eth').textContent = '$1 = ' + fmt(1/p.ethereum.usd, 6) + ' ETH';
 }).catch(function(){});
 </script>
 </body>

@@ -138,7 +138,7 @@ function spawnEnemy() {
   const spawnRate = Math.max(8, 50 - level * 2);
   
   // Boss at end of each level (after enough enemies)
-  if (!boss && enemyTimer > 1500 + level * 100) {
+  if (!boss && enemyTimer > 3600) {
     const chain = CHAINS[(level - 1) % CHAINS.length];
     // Harder bosses: more HP, but possible with upgraded weapons
     const bossHp = 30 + level * 12;

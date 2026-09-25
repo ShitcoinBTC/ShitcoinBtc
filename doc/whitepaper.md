@@ -24,7 +24,7 @@ meme is the marketing; the tech is the product.
 
 **Ticker:** SHIT · **Block time:** 30 seconds · **Consensus:** PoW (merge-mined
 with Bitcoin) + masternode quorum services · **Smart contracts:** NEVM
-(EVM-equivalent, chain ID 57)
+(EVM-equivalent, chain ID 20026)
 
 ---
 
@@ -111,7 +111,7 @@ programmability want different things:
 confirmations (ZDAG-style). This is where SHIT lives as money.
 
 **Layer 2 — NEVM (the Ethereum layer).** A full EVM-equivalent runtime
-(chain ID **57** on mainnet) embedded in the node. Any Solidity contract, any
+(chain ID **20026** on mainnet) embedded in the node. Any Solidity contract, any
 Ethereum wallet, any EVM tooling — it all just works, except gas is paid in
 SHIT instead of ETH.
 

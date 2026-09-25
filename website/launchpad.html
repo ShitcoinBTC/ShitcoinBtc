@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shity Launchpad — Deploy tokens on Shitcoin</title>
+<meta name="description" content="The Shity Launchpad: deploy your own SHIT-20 token on Shitcoin's NEVM and launch a fixed-price sale. Permissionless. No tiers, no bonding curves.">
+<meta property="og:title" content="Shity Launchpad — Deploy tokens on Shitcoin">
+<meta property="og:description" content="Deploy your own SHIT-20 token and launch a fixed-price sale. Launching with the NEVM upgrade.">
+<meta property="og:image" content="https://shitcoinbtc.xyz/img/og.png">
+<meta property="og:url" content="https://shitcoinbtc.xyz/launchpad">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@ShitcoinBTC">
+<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+<link rel="shortcut icon" href="/img/favicon.ico">
+<meta name="theme-color" content="#0d0d0f">
+<link rel="stylesheet" href="/style.css?v=20260924c">
+
+</head>
+<body>
+
+<style>
+/* ---- site tab nav v2 ---- */
+nav.sitenav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
+.sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
+.sitenav .brand img{border-radius:8px;}
+.sitenav .nav-links{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+.sitenav .btn-nav{border:1px solid #F5820B;color:#F5820B;padding:6px 14px;border-radius:20px;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;transition:background .15s ease;}
+.sitenav .btn-nav:hover{background:rgba(245,130,11,.12);}
+.sitenav .btn-nav.active{background:#F5820B;border-color:#F5820B;color:#14100a;}
+.sitenav .nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:42px;height:42px;background:transparent;cursor:pointer;border:1px solid #F5820B;border-radius:12px;}
+.sitenav .nav-toggle span{display:block;width:20px;height:2px;background:#F5820B;border-radius:2px;}
+@media(max-width:900px){
+.sitenav{flex-wrap:wrap;}
+.sitenav .nav-toggle{display:flex;}
+.sitenav .nav-links{display:none;width:100%;flex-direction:column;align-items:stretch;margin-top:12px;}
+.sitenav .nav-links.open{display:flex;}
+.sitenav .btn-nav{text-align:center;}
+}
+</style>
+<nav class="sitenav">
+  <a class="brand" href="/">
+    <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
+    <span>SHITCOIN</span>
+  </a>
+  <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links">
+    <a class="btn-nav" href="/game">Shity Games</a>
+    <a class="btn-nav" href="/mine">Shity Mining</a>
+    <a class="btn-nav" href="/presale">Shity Presale</a>
+    <a class="btn-nav" href="/webwallet">Shity Web Wallet</a>
+    <a class="btn-nav" href="/whitepaper">Shity Whitepaper</a>
+    <a class="btn-nav" href="/bridge">Bridge</a>
+    <a class="btn-nav active" href="/launchpad">Launchpad</a>
+    <a class="btn-nav" href="/node">Node</a>
+    <a class="btn-nav" href="/#wallets">Wallets</a>
+    <a class="btn-nav" href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
+    <a class="btn-nav" href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
+  </div>
+</nav>
+<script>
+(function(){var b=document.querySelector('nav.sitenav .nav-toggle'),l=document.querySelector('nav.sitenav .nav-links');if(!b||!l)return;function c(){l.classList.remove('open');b.setAttribute('aria-expanded','false');}b.addEventListener('click',function(e){e.stopPropagation();var o=l.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});l.addEventListener('click',function(e){if(e.target.closest('a'))c();});document.addEventListener('click',c);})();
+</script>
+
+<header class="hero compact">
+  <div class="live-badge"><span class="dot"></span> LAUNCHING WITH THE NEVM UPGRADE</div>
+  <h1>The Shity <em>Launchpad</em></h1>
+  <p class="tagline">Deploy your own SHIT-20 token on Shitcoin's contract layer and launch a fixed-price sale for it. Permissionless — no applications, no gatekeepers. One fixed price, no tiers, no bonding curves.</p>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="create">Create a token</button>
+    <button class="tab-btn" data-tab="sale">Launch a sale</button>
+  </div>
+</header>
+
+<section class="flush-top">
+
+<div class="tab-panel active" id="panel-create">
+  <div class="warn"><strong>Not live yet:</strong> the NEVM contract layer is still activating. The forms below are the real interface — every button stays disabled until the launchpad contracts are deployed. Nobody can take your funds here because there is nothing to send them to.</div>
+
+  <div class="flow">
+    <div class="flow-step">
+      <h3>1 · Name it</h3>
+      <p>Pick a name, a symbol, and a fixed total supply. Your token is a standard SHIT-20 — every Ethereum wallet and tool already speaks it.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <h3>2 · Deploy it</h3>
+      <p>One call to the TokenFactory deploys your token. You become the owner and receive the entire supply. Fixed supply — no mint button exists, ever.</p>
+    </div>
+  </div>
+
+  <div class="gated">
+    <div class="gate-veil">NEVM ACTIVATING<br><span class="sub">token deployment opens at the upgrade</span></div>
+    <div class="form-card" aria-disabled="true">
+      <h3>Deploy your token</h3>
+      <p class="hint">Connect a wallet on the Shitcoin NEVM, fill in the details, deploy.</p>
+      <div class="cta-row left flush">
+        <button class="btn btn-ghost" id="connectBtn" disabled>Connect wallet</button>
+      </div>
+      <div class="field"><label>Token name</label><input id="tokName" type="text" placeholder="e.g. ShitDoge" disabled></div>
+      <div class="field-row">
+        <div class="field"><label>Symbol</label><input id="tokSymbol" type="text" placeholder="e.g. SDOGE" disabled></div>
+        <div class="field"><label>Total supply (whole tokens)</label><input id="tokSupply" type="number" placeholder="e.g. 1000000" disabled></div>
+      </div>
+      <div class="cta-row left tight">
+        <button class="btn btn-primary" id="deployTokenBtn" disabled>Deploy token</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-sale">
+  <div class="warn"><strong>Not live yet:</strong> sales open together with the NEVM upgrade. The sale contract is fixed-price and auditable: buyers pay native SHIT, funds go to the creator on finalize, unsold tokens return to the creator. Purchases are final — no refunds by design.</div>
+
+  <div class="flow">
+    <div class="flow-step">
+      <h3>1 · Approve &amp; launch</h3>
+      <p>Approve the launchpad to pull the tokens you're selling, then launch: set your price (native SHIT per token), hard cap, and start/end times.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <h3>2 · Sell &amp; finalize</h3>
+      <p>Buyers buy at your fixed price until the cap, the clock, or the inventory runs out. Then anyone can finalize: you get the raised SHIT plus every unsold token back.</p>
+    </div>
+  </div>
+
+  <div class="gated">
+    <div class="gate-veil">NEVM ACTIVATING<br><span class="sub">sales open at the upgrade</span></div>
+    <div class="form-card" aria-disabled="true">
+      <h3>Launch a sale</h3>
+      <p class="hint">Fixed price. No tiers, no whitelist, no bonding curve.</p>
+      <div class="field"><label>Token contract address (SHIT-20)</label><input id="saleToken" type="text" placeholder="0x…" disabled></div>
+      <div class="field-row">
+        <div class="field"><label>Price (native SHIT per token)</label><input id="salePrice" type="number" step="any" placeholder="e.g. 0.01" disabled></div>
+        <div class="field"><label>Hard cap (native SHIT)</label><input id="saleCap" type="number" step="any" placeholder="e.g. 100" disabled></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Start (UTC)</label><input id="saleStart" type="datetime-local" disabled></div>
+        <div class="field"><label>End (UTC)</label><input id="saleEnd" type="datetime-local" disabled></div>
+      </div>
+      <div class="field"><label>Tokens for sale (whole tokens)</label><input id="saleSupply" type="number" placeholder="e.g. 500000" disabled></div>
+      <div class="cta-row left tight">
+        <button class="btn btn-primary" id="launchSaleBtn" disabled>Approve &amp; launch sale</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="mt-lg">Contracts</h2>
+<table class="addr-table">
+  <tr><th>Contract</th><th>Address</th><th>Status</th></tr>
+  <tr><td>TokenFactory</td><td><code class="addr">TBD</code></td><td><span class="pill soon">DEPLOYS AT UPGRADE</span></td></tr>
+  <tr><td>LaunchpadFactory</td><td><code class="addr">TBD</code></td><td><span class="pill soon">DEPLOYS AT UPGRADE</span></td></tr>
+  <tr><td>Shit20Token (reference)</td><td><code class="addr">deployed per token</code></td><td><span class="pill soon">VIA FACTORY</span></td></tr>
+</table>
+<p class="note">Contracts are written, compiled with Solidity 0.8.24, and covered by 14 unit tests (all passing) — deployment happens on the NEVM the moment it activates. Network: Shitcoin NEVM, chain ID <code class="addr">20026</code>. Source will be published with the deployment.</p>
+
+</section>
+
+<section class="links-band">
+  <a href="https://explorer.shitcoinbtc.xyz"><strong>Explorer</strong><span>blocks, txs, addresses</span></a>
+  <a href="https://x.com/ShitcoinBTC"><strong>X</strong><span>@ShitcoinBTC</span></a>
+  <a href="https://t.me/ShityArmy"><strong>Telegram</strong><span>t.me/ShityArmy</span></a>
+  <a href="https://github.com/ShitcoinBTC/ShitcoinBtc"><strong>GitHub</strong><span>source code</span></a>
+</section>
+
+<footer>
+  <img src="/img/logo.png" alt="Shitcoin logo" width="48" height="48">
+  <p>Contact: <a href="mailto:shitcoinbtc21@gmail.com">shitcoinbtc21@gmail.com</a></p>
+  <p class="footer-links"><a href="/#tokenomics">Tokenomics</a><a href="/#mining">Mining</a><a href="/bridge">Bridge</a><a href="https://explorer.shitcoinbtc.xyz">Explorer</a></p>
+  <p class="signoff">stay Shity.</p>
+  <p class="fine">© 2026 Shitcoin. Nothing here is financial advice.</p>
+</footer>
+
+<script>
+/* ============================================================
+ * SHITY LAUNCHPAD — frontend config
+ * ------------------------------------------------------------
+ * Chain ID comes from the NEVM activation project (fresh chain,
+ * NOT 57 — 57 is Syscoin mainnet). Contract addresses are filled
+ * in at deployment time when the NEVM goes live. While nevmLive
+ * is false the UI stays hard-gated: every action button disabled.
+ * ============================================================ */
+const LAUNCHPAD_CONFIG = {
+  chainId: 20026,          // Shitcoin NEVM (set by NEVM activation project)
+  rpcUrl: null,            // NEVM RPC endpoint — set at activation
+  tokenFactory: null,      // TokenFactory address — set at deployment
+  saleFactory: null,       // LaunchpadFactory address — set at deployment
+  nevmLive: false          // flip to true at NEVM activation
+};
+
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Gate: if NEVM is not live, keep everything disabled and say so.
+function gateCheck(actionName) {
+  if (!LAUNCHPAD_CONFIG.nevmLive) {
+    alert(actionName + ' opens with the NEVM upgrade. Nothing is live yet — no funds can move.');
+    return false;
+  }
+  return true;
+}
+['connectBtn', 'deployTokenBtn', 'launchSaleBtn'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('click', function(e){
+    e.preventDefault();
+    gateCheck(el.textContent.trim());
+  });
+});
+
+// Flip the UI live: called when NEVM activates and config is filled.
+// (Kept as a function so activation is a one-line config change.)
+function activateLaunchpad(cfg) {
+  Object.assign(LAUNCHPAD_CONFIG, cfg, { nevmLive: true });
+  document.querySelectorAll('.gate-veil').forEach(function(v){ v.style.display = 'none'; });
+  document.querySelectorAll('.form-card input, .form-card button').forEach(function(el){ el.disabled = false; });
+}
+</script>
+
+
+<script>
+(function () {
+  var btn = document.querySelector('.nav-toggle');
+  var links = document.querySelector('.nav-links');
+  if (!btn || !links) return;
+  function close() { links.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = links.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  links.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+  document.addEventListener('click', function (e) {
+    if (!links.classList.contains('open')) return;
+    if (!e.target.closest('nav')) close();
+  });
+})();
+</script>
+
+</body>
+</html>

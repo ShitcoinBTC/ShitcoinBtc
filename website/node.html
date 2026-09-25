@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Run a Node | Shitcoin</title>
+<meta name="description" content="Run your own Shitcoin full node. Verify your own transactions, strengthen the network. Peers are discovered automatically.">
+<meta property="og:title" content="Run a Shitcoin node">
+<meta property="og:description" content="Verify your own transactions. Strengthen the network. No trust required.">
+<meta property="og:image" content="https://shitcoinbtc.xyz/img/og.png">
+<meta property="og:url" content="https://shitcoinbtc.xyz/node">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@ShitcoinBTC">
+<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+<link rel="shortcut icon" href="/img/favicon.ico">
+<meta name="theme-color" content="#0d0d0f">
+<link rel="stylesheet" href="/style.css">
+<style>
+.steps { counter-reset: step; margin: 14px 0; padding: 0; list-style: none; }
+.steps li { counter-increment: step; color: var(--muted); font-size: 14px; margin: 8px 0; padding-left: 34px; position: relative; }
+.steps li::before { content: counter(step); position: absolute; left: 0; top: 0;
+  width: 24px; height: 24px; border-radius: 50%; background: rgba(245,130,11,.14);
+  border: 1px solid var(--orange); color: var(--orange); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; }
+code.addr { background: #000; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 13px; color: var(--orange); word-break: break-all; }
+pre.cmd { background: #000; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px;
+  font-size: 13px; line-height: 1.7; color: var(--text); overflow-x: auto; margin: 14px 0; }
+pre.cmd .c { color: var(--muted); }
+.warn {
+  border: 1px solid var(--orange); border-radius: 14px; padding: 20px 22px;
+  background: rgba(245,130,11,.07); color: var(--text); margin: 26px 0; font-size: 15px;
+}
+.warn strong { color: var(--orange); }
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 26px 0; }
+.status-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+.status-card h3 { font-size: 17px; margin-bottom: 8px; }
+.status-card p { color: var(--muted); font-size: 14px; margin-top: 10px; }
+.guide { max-width: 820px; margin: 0 auto; }
+.guide h2 { margin: 34px 0 10px; }
+.guide p { color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+
+<style>
+/* ---- site tab nav v2 ---- */
+nav.sitenav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
+.sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
+.sitenav .brand img{border-radius:8px;}
+.sitenav .nav-links{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+.sitenav .btn-nav{border:1px solid #F5820B;color:#F5820B;padding:6px 14px;border-radius:20px;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;transition:background .15s ease;}
+.sitenav .btn-nav:hover{background:rgba(245,130,11,.12);}
+.sitenav .btn-nav.active{background:#F5820B;border-color:#F5820B;color:#14100a;}
+.sitenav .nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:42px;height:42px;background:transparent;cursor:pointer;border:1px solid #F5820B;border-radius:12px;}
+.sitenav .nav-toggle span{display:block;width:20px;height:2px;background:#F5820B;border-radius:2px;}
+@media(max-width:900px){
+.sitenav{flex-wrap:wrap;}
+.sitenav .nav-toggle{display:flex;}
+.sitenav .nav-links{display:none;width:100%;flex-direction:column;align-items:stretch;margin-top:12px;}
+.sitenav .nav-links.open{display:flex;}
+.sitenav .btn-nav{text-align:center;}
+}
+</style>
+<nav class="sitenav">
+  <a class="brand" href="/">
+    <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
+    <span>SHITCOIN</span>
+  </a>
+  <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links">
+    <a class="btn-nav" href="/game">Shity Games</a>
+    <a class="btn-nav" href="/mine">Shity Mining</a>
+    <a class="btn-nav" href="/presale">Shity Presale</a>
+    <a class="btn-nav" href="/webwallet">Shity Web Wallet</a>
+    <a class="btn-nav" href="/whitepaper">Shity Whitepaper</a>
+    <a class="btn-nav" href="/bridge">Bridge</a>
+    <a class="btn-nav" href="/launchpad">Launchpad</a>
+    <a class="btn-nav active" href="/node">Node</a>
+    <a class="btn-nav" href="/#wallets">Wallets</a>
+    <a class="btn-nav" href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
+    <a class="btn-nav" href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
+  </div>
+</nav>
+<script>
+(function(){var b=document.querySelector('nav.sitenav .nav-toggle'),l=document.querySelector('nav.sitenav .nav-links');if(!b||!l)return;function c(){l.classList.remove('open');b.setAttribute('aria-expanded','false');}b.addEventListener('click',function(e){e.stopPropagation();var o=l.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});l.addEventListener('click',function(e){if(e.target.closest('a'))c();});document.addEventListener('click',c);})();
+</script>
+
+<header class="hero" style="padding-bottom:20px">
+  <h1>Run a <em>node</em></h1>
+  <p class="tagline">Verify your own transactions. Strengthen the network.<br>No trust required.</p>
+</header>
+
+<section style="padding-top:20px">
+<div class="guide">
+
+  <div class="status-grid">
+    <div class="status-card">
+      <h3>What it does</h3>
+      <p>A full node downloads and validates every block and transaction on the Shitcoin chain, so you never have to trust anyone else's copy of the truth.</p>
+    </div>
+    <div class="status-card">
+      <h3>What you need</h3>
+      <p>Any 64-bit computer or small VPS, ~2 GB of disk to start, and an internet connection. That's it.</p>
+    </div>
+    <div class="status-card">
+      <h3>What it doesn't do</h3>
+      <p>A node on its own doesn't earn SHIT. For that, <a href="/mine">mine</a> — or just hold.</p>
+    </div>
+  </div>
+
+  <h2>Up and running in five minutes</h2>
+  <ol class="steps">
+    <li>Download the node bundle for your system from the <a href="/#wallets">wallets section</a>. Linux is ready now; macOS and Windows builds are on the way.</li>
+    <li>Unpack it:<br><code class="addr">tar xzf shitcoin-v1.0.0-linux-x86_64.tar.gz</code></li>
+    <li>Start the daemon:<br><code class="addr">./syscoind -daemon</code><br>Peers are found automatically through the built-in DNS seed. No config file, no manual peer list.</li>
+    <li>Watch it sync:<br><code class="addr">./syscoin-cli getblockchaininfo</code><br>When <code class="addr">blocks</code> matches the <a href="https://explorer.shitcoinbtc.xyz">explorer</a> height, you're on the network.</li>
+  </ol>
+
+  <h2>Keep it running with systemd</h2>
+  <p>On a server, run the node as a service so it survives reboots. Adjust the paths to where you unpacked the bundle:</p>
+  <pre class="cmd"><span class="c"># /etc/systemd/system/shitcoind.service</span>
+[Unit]
+Description=Shitcoin full node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=shitcoin
+ExecStart=/home/shitcoin/syscoind -daemon=0
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target</pre>
+  <pre class="cmd"><span class="c"># enable and start it</span>
+sudo systemctl enable --now shitcoind
+sudo journalctl -u shitcoind -f   <span class="c"># watch the log</span></pre>
+
+  <h2>Useful commands</h2>
+  <pre class="cmd">./syscoin-cli getblockchaininfo   <span class="c"># sync status and chain tip</span>
+./syscoin-cli getpeerinfo          <span class="c"># who you're connected to</span>
+./syscoin-cli getnewaddress        <span class="c"># your first SHIT address</span>
+./syscoin-cli stop                 <span class="c"># shut down cleanly</span></pre>
+
+  <div class="warn"><strong>Port 8369.</strong> Outbound connections just work. If you want your node to accept inbound connections and do the most good for the network, open TCP port 8369 on your firewall/router.</div>
+
+</div>
+</section>
+
+<footer>
+  <img src="/img/logo.png" alt="Shitcoin logo" width="48" height="48">
+  <p>Contact: <a href="mailto:shitcoinbtc21@gmail.com">shitcoinbtc21@gmail.com</a></p>
+  <p class="signoff">stay Shity.</p>
+  <p class="fine">© 2026 Shitcoin. Nothing here is financial advice.</p>
+</footer>
+
+<script>
+(function () {
+  var btn = document.querySelector('.nav-toggle');
+  var links = document.querySelector('.nav-links');
+  if (!btn || !links) return;
+  function close() { links.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = links.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  links.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+  document.addEventListener('click', function (e) {
+    if (!links.classList.contains('open')) return;
+    if (!e.target.closest('nav')) close();
+  });
+})();
+</script>
+
+</body>
+</html>

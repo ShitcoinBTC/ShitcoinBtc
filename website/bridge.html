@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shitbridge — Bridge &amp; Swap | Shitcoin</title>
+<meta name="description" content="Shitbridge: the trustless UTXO↔NEVM bridge for SHIT. Native EVM side via the built-in two-way peg.">
+<meta property="og:title" content="Shitbridge — UTXO ↔ NEVM">
+<meta property="og:description" content="The trustless two-way peg for SHIT. Bridge status and ShitSwap.">
+<meta property="og:image" content="https://shitcoinbtc.xyz/img/og.png">
+<meta property="og:url" content="https://shitcoinbtc.xyz/bridge">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@ShitcoinBTC">
+<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+<link rel="shortcut icon" href="/img/favicon.ico">
+<meta name="theme-color" content="#0d0d0f">
+<link rel="stylesheet" href="/style.css">
+<style>
+.tabs { display: flex; gap: 10px; justify-content: center; margin: 26px 0 8px; flex-wrap: wrap; }
+.tab-btn {
+  background: var(--card); border: 1px solid var(--line); color: var(--muted);
+  padding: 12px 34px; border-radius: 30px; font-weight: 700; font-size: 16px; cursor: pointer;
+}
+.tab-btn.active { background: var(--orange); border-color: var(--orange); color: #14100a; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 26px 0; }
+.status-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+.status-card h3 { font-size: 17px; margin-bottom: 8px; }
+.pill { display: inline-block; padding: 4px 14px; border-radius: 16px; font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+.pill.live { background: rgba(245,130,11,.14); border: 1px solid var(--orange); color: var(--orange); }
+.pill.soon { background: rgba(168,164,156,.12); border: 1px solid var(--muted); color: var(--muted); }
+.status-card p { color: var(--muted); font-size: 14px; margin-top: 10px; }
+.flow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch; margin: 26px 0; }
+.flow-step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+.flow-step h3 { color: var(--orange); font-size: 16px; margin-bottom: 8px; }
+.flow-step p { color: var(--muted); font-size: 14px; }
+.flow-arrow { display: flex; align-items: center; color: var(--orange); font-size: 28px; font-weight: 800; }
+.warn {
+  border: 1px solid var(--orange); border-radius: 14px; padding: 20px 22px;
+  background: rgba(245,130,11,.07); color: var(--text); margin: 26px 0; font-size: 15px;
+}
+.warn strong { color: var(--orange); }
+.soon-hero { text-align: center; padding: 40px 20px; }
+.soon-hero .big-emoji { font-size: 56px; }
+.form-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin: 16px 0; }
+.form-card h3 { font-size: 17px; margin-bottom: 6px; }
+.form-card p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+.form-card label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+.form-card input, .form-card select {
+  width: 100%; box-sizing: border-box; background: #000; border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px;
+}
+.form-card input:disabled, .form-card select:disabled { opacity: .45; cursor: not-allowed; }
+.form-card .btn { margin-top: 14px; }
+.form-result { margin-top: 12px; font-size: 14px; display: none; }
+.form-result.ok { color: #7fd67f; display: block; }
+.form-result.err { color: #e07f7f; display: block; }
+.steps { counter-reset: step; margin: 14px 0; padding: 0; list-style: none; }
+.steps li { counter-increment: step; color: var(--muted); font-size: 14px; margin: 8px 0; padding-left: 34px; position: relative; }
+.steps li::before { content: counter(step); position: absolute; left: 0; top: 0;
+  width: 24px; height: 24px; border-radius: 50%; background: rgba(245,130,11,.14);
+  border: 1px solid var(--orange); color: var(--orange); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; }
+code.addr { background: #000; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 13px; color: var(--orange); word-break: break-all; }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr; } .flow-arrow { justify-content: center; transform: rotate(90deg); } }
+</style>
+</head>
+<body>
+
+<style>
+/* ---- site tab nav v2 ---- */
+nav.sitenav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
+.sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
+.sitenav .brand img{border-radius:8px;}
+.sitenav .nav-links{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+.sitenav .btn-nav{border:1px solid #F5820B;color:#F5820B;padding:6px 14px;border-radius:20px;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;transition:background .15s ease;}
+.sitenav .btn-nav:hover{background:rgba(245,130,11,.12);}
+.sitenav .btn-nav.active{background:#F5820B;border-color:#F5820B;color:#14100a;}
+.sitenav .nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:42px;height:42px;background:transparent;cursor:pointer;border:1px solid #F5820B;border-radius:12px;}
+.sitenav .nav-toggle span{display:block;width:20px;height:2px;background:#F5820B;border-radius:2px;}
+@media(max-width:900px){
+.sitenav{flex-wrap:wrap;}
+.sitenav .nav-toggle{display:flex;}
+.sitenav .nav-links{display:none;width:100%;flex-direction:column;align-items:stretch;margin-top:12px;}
+.sitenav .nav-links.open{display:flex;}
+.sitenav .btn-nav{text-align:center;}
+}
+</style>
+<nav class="sitenav">
+  <a class="brand" href="/">
+    <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
+    <span>SHITCOIN</span>
+  </a>
+  <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links">
+    <a class="btn-nav" href="/game">Shity Games</a>
+    <a class="btn-nav" href="/mine">Shity Mining</a>
+    <a class="btn-nav" href="/presale">Shity Presale</a>
+    <a class="btn-nav" href="/webwallet">Shity Web Wallet</a>
+    <a class="btn-nav" href="/whitepaper">Shity Whitepaper</a>
+    <a class="btn-nav active" href="/bridge">Bridge</a>
+    <a class="btn-nav" href="/launchpad">Launchpad</a>
+    <a class="btn-nav" href="/node">Node</a>
+    <a class="btn-nav" href="/#wallets">Wallets</a>
+    <a class="btn-nav" href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
+    <a class="btn-nav" href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
+  </div>
+</nav>
+<script>
+(function(){var b=document.querySelector('nav.sitenav .nav-toggle'),l=document.querySelector('nav.sitenav .nav-links');if(!b||!l)return;function c(){l.classList.remove('open');b.setAttribute('aria-expanded','false');}b.addEventListener('click',function(e){e.stopPropagation();var o=l.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});l.addEventListener('click',function(e){if(e.target.closest('a'))c();});document.addEventListener('click',c);})();
+</script>
+
+<header class="hero" style="padding-bottom:20px">
+  <h1>Shit<em>bridge</em></h1>
+  <p class="tagline">The trustless two-way peg between Shitcoin's payment layer (UTXO) and its contract layer (NEVM). No custodian. No committee. Burn on one side, mint on the other — verified on-chain.</p>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="bridge">Bridge</button>
+    <button class="tab-btn" data-tab="wrap">Wrap</button>
+    <button class="tab-btn" data-tab="swap">Swap</button>
+  </div>
+</header>
+
+<section style="padding-top:20px">
+
+<div class="tab-panel active" id="panel-bridge">
+  <div class="status-grid">
+    <div class="status-card">
+      <h3>UTXO chain <span class="pill live">LIVE</span></h3>
+      <p>Payments, mining and the bridge burn transactions run here. Track it on the <a href="https://explorer.shitcoinbtc.xyz">explorer</a>.</p>
+    </div>
+    <div class="status-card">
+      <h3>NEVM side <span class="pill soon">ACTIVATING</span></h3>
+      <p>The EVM execution layer and the Vault Manager contract are being wired up. Bridging opens the moment it's live.</p>
+    </div>
+  </div>
+
+  <div class="warn"><strong>Heads up:</strong> bridge transfers are not active yet. Don't send SHIT to any "bridge address" — there isn't one. When bridging opens, this page will handle the whole flow.</div>
+
+  <h2>How it will work</h2>
+  <div class="flow">
+    <div class="flow-step">
+      <h3>UTXO → NEVM</h3>
+      <p>You burn SHIT in a special UTXO transaction naming your NEVM address. The paired NEVM client sees the burn and the Vault Manager mints the same amount of SHIT on the contract layer. The burn <em>is</em> the deposit — no custodian ever touches it.</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <h3>NEVM → UTXO</h3>
+      <p>You freeze SHIT in the Vault Manager contract on NEVM. Anyone can then submit the SPV proof of that freeze to the UTXO chain, which mints your SHIT back on the payment layer. Every step is verifiable on-chain.</p>
+    </div>
+  </div>
+  <p class="note">Trust model: SPV proofs plus the deterministic masternode quorum — as decentralized as the network itself. Vault Manager: <code class="addr">0x7904299b3D3dC1b03d1DdEb45E9fDF3576aCBd5f</code></p>
+</div>
+
+<div class="tab-panel" id="panel-wrap">
+  <div class="status-grid">
+    <div class="status-card">
+      <h3>Base wSHIT <span class="pill soon" id="pill-base">PENDING DEPLOYMENT</span></h3>
+      <p id="sub-base">ERC-20 on Base, fixed 630M supply. Contract not deployed yet — the deploy wallet needs funding first.</p>
+    </div>
+    <div class="status-card">
+      <h3>Solana wSHIT <span class="pill soon" id="pill-solana">PENDING DEPLOYMENT</span></h3>
+      <p id="sub-solana">Token-2022 with SOL fee rewards for holders, fixed 630M supply. Program built and tested — awaiting devnet dry run and deploy funding.</p>
+    </div>
+  </div>
+
+  <div class="warn" id="wrap-warn"><strong>Not live yet:</strong> the wrap forms below are disabled until each wSHIT contract is deployed and funded. Nothing here will move your funds until then — your SHIT stays yours.</div>
+
+  <div class="form-card">
+    <h3>Wrap: SHIT &rarr; wSHIT</h3>
+    <p>Deposit native SHIT to the wrap vault, then claim wSHIT 1:1 on Base or Solana. The vault holds part of the on-chain 6% wrapping reserve — every movement is verifiable on the explorers.</p>
+    <ol class="steps">
+      <li>Send SHIT to the vault: <code class="addr" id="vault-addr">sys1q9h2mfp4u0aer6k3t6pnx332g4cmf399dmhwuha</code> (<a href="https://explorer.shitcoinbtc.xyz/address/sys1q9h2mfp4u0aer6k3t6pnx332g4cmf399dmhwuha">view on explorer</a>). Wait for 6 confirmations (~3 min).</li>
+      <li>Paste your deposit txid and your destination address below.</li>
+      <li>The watcher verifies the deposit and sends wSHIT 1:1 from team inventory. Minimum 100 SHIT.</li>
+    </ol>
+    <form id="wrap-form">
+      <label for="wrap-txid">Deposit txid (native SHIT)</label>
+      <input id="wrap-txid" name="txid" placeholder="64-hex transaction id" disabled>
+      <label for="wrap-chain">Receive wSHIT on</label>
+      <select id="wrap-chain" name="chain" disabled>
+        <option value="base">Base</option>
+        <option value="solana">Solana</option>
+      </select>
+      <label for="wrap-dest">Destination address</label>
+      <input id="wrap-dest" name="dest" placeholder="0x... (Base) or Solana wallet address" disabled>
+      <button class="btn btn-primary" type="submit" id="wrap-submit" disabled>Claim wSHIT</button>
+      <div class="form-result" id="wrap-result"></div>
+    </form>
+  </div>
+
+  <div class="form-card">
+    <h3>Unwrap: wSHIT &rarr; SHIT</h3>
+    <p>Send wSHIT back to the team inventory address, then claim native SHIT 1:1 to any SHIT address. The vault releases your SHIT on-chain.</p>
+    <ol class="steps">
+      <li>Send your wSHIT to the team inventory address (shown on this page once the contract is live).</li>
+      <li>Paste the return tx hash and the SHIT address you want paid.</li>
+      <li>The watcher verifies the return and releases SHIT 1:1 from the vault.</li>
+    </ol>
+    <form id="unwrap-form">
+      <label for="unwrap-chain">Returning wSHIT from</label>
+      <select id="unwrap-chain" name="chain" disabled>
+        <option value="base">Base</option>
+        <option value="solana">Solana</option>
+      </select>
+      <label for="unwrap-txhash">Return tx hash</label>
+      <input id="unwrap-txhash" name="txhash" placeholder="wSHIT transfer to inventory" disabled>
+      <label for="unwrap-shit">Your SHIT address</label>
+      <input id="unwrap-shit" name="shit_address" placeholder="sys1..." disabled>
+      <button class="btn btn-primary" type="submit" id="unwrap-submit" disabled>Claim SHIT</button>
+      <div class="form-result" id="unwrap-result"></div>
+    </form>
+  </div>
+
+  <p class="note">Trust model: team-operated vault backed by the on-chain 6% SHIT wrapping reserve (paid in block 1). Every movement is verifiable — SHIT side on the <a href="https://explorer.shitcoinbtc.xyz">Shitcoin explorer</a>, Base on <a href="https://basescan.org">BaseScan</a>, Solana on <a href="https://solscan.io">Solscan</a>. This is the honest interim until the trustless UTXO&harr;NEVM peg ships with the NEVM upgrade.</p>
+</div>
+
+<div class="tab-panel" id="panel-swap">
+  <div class="soon-hero">
+    <div class="big-emoji">🔜</div>
+    <h2>ShitSwap is coming soon</h2>
+    <p class="tagline">The native SHIT DEX (constant-product AMM, 0.3% fee to LPs) launches on the NEVM side together with the bridge. No fake buttons here — trading opens when the contracts are live and audited.</p>
+    <p>Follow <a href="https://x.com/ShitcoinBTC">@ShitcoinBTC</a> and <a href="https://t.me/ShityArmy">the Shity Army</a> for the launch announcement.</p>
+  </div>
+</div>
+
+</section>
+
+<section class="links-band">
+  <a href="https://explorer.shitcoinbtc.xyz"><strong>Explorer</strong><span>blocks, txs, addresses</span></a>
+  <a href="https://x.com/ShitcoinBTC"><strong>X</strong><span>@ShitcoinBTC</span></a>
+  <a href="https://t.me/ShityArmy"><strong>Telegram</strong><span>t.me/ShityArmy</span></a>
+  <a href="https://github.com/ShitcoinBTC/ShitcoinBtc"><strong>GitHub</strong><span>source code</span></a>
+</section>
+
+<footer>
+  <img src="/img/logo.png" alt="Shitcoin logo" width="48" height="48">
+  <p>Contact: <a href="mailto:shitcoinbtc21@gmail.com">shitcoinbtc21@gmail.com</a></p>
+  <p class="signoff">stay Shity.</p>
+  <p class="fine">© 2026 Shitcoin. Nothing here is financial advice.</p>
+</footer>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    history.replaceState(null, '', btn.dataset.tab === 'bridge' ? '/bridge' : '/bridge#' + btn.dataset.tab);
+  });
+});
+if (location.hash === '#swap' || location.hash === '#wrap') {
+  document.querySelector('[data-tab="' + location.hash.slice(1) + '"]').click();
+}
+
+// Wrap status: the watcher publishes per-direction state; pills and forms
+// flip live automatically when a direction deploys. Until then the forms
+// stay disabled and the page says so honestly.
+function setPill(id, live, sub) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = live ? 'LIVE' : 'PENDING DEPLOYMENT';
+  el.className = 'pill ' + (live ? 'live' : 'soon');
+  if (sub) document.getElementById(sub).textContent =
+    live ? 'Contract deployed. Wrap and unwrap are processing.' : null;
+}
+function enableForms(live) {
+  ['wrap-txid','wrap-chain','wrap-dest','wrap-submit',
+   'unwrap-chain','unwrap-txhash','unwrap-shit','unwrap-submit'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.disabled = !live;
+  });
+  var warn = document.getElementById('wrap-warn');
+  if (warn && live) warn.style.display = 'none';
+}
+fetch('/bridge/api/status').then(function(r){ return r.json(); }).then(function(s){
+  setPill('pill-base', s.base.live); setPill('pill-solana', s.solana.live);
+  if (s.vault_address) document.getElementById('vault-addr').textContent = s.vault_address;
+  enableForms(s.base.live || s.solana.live);
+}).catch(function(){ /* API not up yet: static honest fallback stays */ });
+
+function postClaim(url, data, resultId) {
+  var res = document.getElementById(resultId);
+  res.className = 'form-result'; res.textContent = 'Submitting...';
+  fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(data)}).then(function(r){ return r.json().then(function(j){ return {s: r.status, j: j}; }); }).then(function(x){
+    res.className = 'form-result ' + (x.j.ok ? 'ok' : 'err');
+    res.textContent = x.j.ok ? ('Queued — ' + x.j.shit + ' SHIT. The watcher will pay out shortly; track it on the explorers.')
+                             : ('Not submitted: ' + x.j.error);
+  }).catch(function(){ res.className = 'form-result err'; res.textContent = 'Could not reach the watcher. Try again in a minute.'; });
+}
+document.getElementById('wrap-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  postClaim('/bridge/api/wrap/claim',
+    {txid: document.getElementById('wrap-txid').value.trim(),
+     chain: document.getElementById('wrap-chain').value,
+     dest: document.getElementById('wrap-dest').value.trim()}, 'wrap-result');
+});
+document.getElementById('unwrap-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  postClaim('/bridge/api/unwrap/claim',
+    {chain: document.getElementById('unwrap-chain').value,
+     txhash: document.getElementById('unwrap-txhash').value.trim(),
+     shit_address: document.getElementById('unwrap-shit').value.trim()}, 'unwrap-result');
+});
+</script>
+
+
+<script>
+(function () {
+  var btn = document.querySelector('.nav-toggle');
+  var links = document.querySelector('.nav-links');
+  if (!btn || !links) return;
+  function close() { links.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = links.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  links.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+  document.addEventListener('click', function (e) {
+    if (!links.classList.contains('open')) return;
+    if (!e.target.closest('nav')) close();
+  });
+})();
+</script>
+
+</body>
+</html>

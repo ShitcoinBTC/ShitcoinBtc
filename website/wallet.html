@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Shitcoin Wallet</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: #0d0d0d; color: #f5f5f5; font-family: -apple-system, system-ui, sans-serif; }
+  #app { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { color: #f2a900; font-size: 26px; text-align: center; margin: 10px 0 4px; }
+  .sub { text-align: center; color: #999; font-size: 14px; margin-bottom: 24px; }
+  .screen { display: none; }
+  .screen.on { display: block; }
+  button.big { display: block; width: 100%; font-size: 19px; font-weight: bold; padding: 16px; margin: 10px 0;
+    background: #f2a900; color: #000; border: none; border-radius: 12px; cursor: pointer; }
+  button.big:active { transform: scale(0.98); }
+  button.ghost { display: block; width: 100%; font-size: 16px; padding: 14px; margin: 10px 0;
+    background: #1e1e1e; color: #f2a900; border: 1px solid #f2a900; border-radius: 12px; cursor: pointer; }
+  button.small { font-size: 14px; padding: 8px 14px; background: #2a2a2a; color: #f2a900;
+    border: 1px solid #444; border-radius: 8px; cursor: pointer; }
+  .card { background: #161616; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin: 12px 0; }
+  .label { font-size: 13px; color: #999; margin-bottom: 6px; }
+  .addr { font-family: monospace; font-size: 14px; word-break: break-all; color: #fff; }
+  .balance { font-size: 34px; font-weight: bold; color: #f2a900; }
+  input, textarea { width: 100%; font-size: 17px; padding: 14px; margin: 6px 0 12px; background: #1e1e1e;
+    color: #fff; border: 1px solid #444; border-radius: 10px; }
+  textarea { min-height: 90px; resize: none; }
+  .warn { background: #3a1c00; border: 1px solid #f2a900; border-radius: 10px; padding: 14px;
+    font-size: 15px; line-height: 1.5; margin: 14px 0; }
+  .words { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 16px 0; }
+  .word { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 10px 4px;
+    text-align: center; font-size: 16px; }
+  .word b { color: #666; font-size: 12px; display: block; }
+  .err { background: #3a0d0d; border: 1px solid #c33; border-radius: 10px; padding: 12px;
+    font-size: 15px; margin: 12px 0; display: none; }
+  .ok { background: #0d3a1c; border: 1px solid #2c6; border-radius: 10px; padding: 14px;
+    font-size: 16px; margin: 12px 0; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row .grow { flex: 1; min-width: 0; }
+  .center { text-align: center; }
+  .muted { color: #888; font-size: 13px; }
+  .linklike { background: none; border: none; color: #888; font-size: 14px; text-decoration: underline;
+    cursor: pointer; padding: 10px; width: 100%; }
+  .confirm-amt { font-size: 40px; font-weight: bold; color: #f2a900; text-align: center; margin: 16px 0 4px; }
+  .spinner { text-align: center; padding: 30px; font-size: 17px; color: #999; }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>💩 Shitcoin Wallet</h1>
+  <div class="sub">Your SHIT, on your phone. Your secret words never leave this device.</div>
+
+  <!-- START -->
+  <div class="screen on" id="s-start">
+    <button class="big" id="btn-create">Create new wallet</button>
+    <button class="ghost" id="btn-import-go">I already have secret words</button>
+  </div>
+
+  <!-- SHOW SEED -->
+  <div class="screen" id="s-seed">
+    <div class="warn">⚠️ <b>Write these 12 words down on paper, in order.</b><br>
+      Anyone with these words can take your SHIT. Never share them. If you lose them, your SHIT is gone forever.</div>
+    <div class="words" id="seed-words"></div>
+    <button class="big" id="btn-seed-done">I've written them down</button>
+    <button class="linklike" id="btn-seed-back">Back</button>
+  </div>
+
+  <!-- IMPORT -->
+  <div class="screen" id="s-import">
+    <div class="label">Type your 12 secret words, in order, separated by spaces:</div>
+    <textarea id="import-words" placeholder="word word word ..." autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+    <div class="err" id="import-err"></div>
+    <button class="big" id="btn-import">Open wallet</button>
+    <button class="linklike" id="btn-import-back">Back</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="screen" id="s-main">
+    <div class="card">
+      <div class="label">YOUR ADDRESS (give this to receive SHIT)</div>
+      <div class="row">
+        <div class="addr grow" id="my-addr"></div>
+        <button class="small" id="btn-copy">Copy</button>
+      </div>
+    </div>
+    <div class="card center">
+      <div class="label">BALANCE</div>
+      <div class="balance"><span id="balance">...</span> <span style="font-size:18px">SHIT</span></div>
+      <button class="small" id="btn-refresh" style="margin-top:8px">Refresh</button>
+    </div>
+    <div class="card">
+      <div class="label">SEND SHIT</div>
+      <input id="send-to" placeholder="Send to address (shit1...)" autocapitalize="off" autocomplete="off" spellcheck="false">
+      <input id="send-amt" placeholder="Amount (SHIT)" inputmode="decimal" autocomplete="off">
+      <button class="ghost" id="btn-game">🎮 Send 2 SHIT to Shity Spaceship</button>
+      <button class="big" id="btn-send">Send</button>
+      <div class="muted center">Network fee: 0.0001 SHIT (fixed)</div>
+    </div>
+    <button class="linklike" id="btn-forget">Forget this wallet on this phone</button>
+  </div>
+
+  <!-- CONFIRM -->
+  <div class="screen" id="s-confirm">
+    <div class="label center">YOU ARE SENDING</div>
+    <div class="confirm-amt"><span id="c-amt"></span> SHIT</div>
+    <div class="card">
+      <div class="label">TO</div>
+      <div class="addr" id="c-to"></div>
+      <div class="label" style="margin-top:10px">NETWORK FEE</div>
+      <div>0.0001 SHIT</div>
+    </div>
+    <div class="err" id="confirm-err"></div>
+    <button class="big" id="btn-confirm">Confirm send</button>
+    <button class="linklike" id="btn-confirm-back">Back</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="s-result">
+    <div id="result-body"></div>
+    <button class="big" id="btn-result-done">Done</button>
+  </div>
+
+  <div class="screen" id="s-busy"><div class="spinner" id="busy-msg">Working...</div></div>
+</div>
+
+<script src="/wallet.bundle.js"></script>
+<script>
+(function () {
+  'use strict';
+  var LS_KEY = 'shitcoin_wallet_mnemonic';
+  var API = '/api/wallet';
+  var GAME_ADDR = 'shit1qdnqywhj3ws7lj7ev9u66tfushkfwufprrn0d59';
+
+  var mnemonic = null;
+  var myAddress = null;
+  var utxosCache = [];
+  var pendingSend = null;
+
+  function $(id) { return document.getElementById(id); }
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('on'); });
+    $(id).classList.add('on');
+    window.scrollTo(0, 0);
+  }
+  function errBox(id, msg) {
+    var el = $(id);
+    if (!msg) { el.style.display = 'none'; el.textContent = ''; return; }
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function shortAddr(a) { return a.slice(0, 12) + '...' + a.slice(-8); }
+
+  function openMain() {
+    myAddress = ShitWallet.addressFromMnemonic(mnemonic);
+    $('my-addr').textContent = shortAddr(myAddress);
+    $('my-addr').title = myAddress;
+    show('s-main');
+    refreshBalance();
+  }
+
+  function refreshBalance() {
+    $('balance').textContent = '...';
+    fetch(API + '/utxos/' + myAddress)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.error) throw new Error(d.error);
+        utxosCache = d.utxos || [];
+        $('balance').textContent = Number(d.balance_shit).toLocaleString('en-US', { maximumFractionDigits: 8 });
+      })
+      .catch(function () { $('balance').textContent = 'error'; });
+  }
+
+  function copyAddr() {
+    var done = function () { $('btn-copy').textContent = 'Copied!'; setTimeout(function () { $('btn-copy').textContent = 'Copy'; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(myAddress).then(done, function () { fallbackCopy(done); });
+    } else { fallbackCopy(done); }
+  }
+  function fallbackCopy(done) {
+    var ta = document.createElement('textarea');
+    ta.value = myAddress;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    done();
+  }
+
+  function startSend(to, amtStr) {
+    errBox('confirm-err', null);
+    to = (to || '').trim();
+    var amt = parseFloat(amtStr);
+    if (!ShitWallet.isValidAddress(to)) { alert('That address does not look right. It should start with shit1.'); return; }
+    if (!amt || amt <= 0) { alert('Enter an amount greater than 0.'); return; }
+    var fee = 0.0001;
+    var bal = utxosCache.reduce(function (s, u) { return s + u.amount; }, 0);
+    if (amt + fee > bal) { alert('Not enough SHIT. You have ' + bal.toFixed(8) + ' and need ' + (amt + fee).toFixed(8) + ' including the fee.'); return; }
+    pendingSend = { to: to, sats: ShitWallet.toSats(amt), amtStr: amtStr };
+    $('c-amt').textContent = amtStr;
+    $('c-to').textContent = to;
+    show('s-confirm');
+  }
+
+  function doBroadcast() {
+    show('s-busy');
+    $('busy-msg').textContent = 'Sending...';
+    var hex;
+    try {
+      hex = ShitWallet.buildSignedTx(mnemonic, utxosCache, pendingSend.to, pendingSend.sats);
+    } catch (e) {
+      show('s-confirm');
+      errBox('confirm-err', 'Could not build the transaction: ' + e.message);
+      return;
+    }
+    fetch(API + '/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hex: hex })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (res.ok && res.d.txid) {
+          $('result-body').innerHTML = '<div class="ok">✅ Sent!<br><br>' + pendingSend.amtStr + ' SHIT is on its way.<br><span class="muted">It confirms in about a minute.</span></div>';
+        } else {
+          $('result-body').innerHTML = '<div class="err" style="display:block">❌ Send failed: ' + ((res.d && res.d.error) || 'unknown error') + '</div>';
+        }
+        show('s-result');
+      })
+      .catch(function () {
+        $('result-body').innerHTML = '<div class="err" style="display:block">❌ Network error. Check your connection and try again.</div>';
+        show('s-result');
+      });
+  }
+
+  // --- wiring ---
+  $('btn-create').onclick = function () {
+    var words = ShitWallet.createMnemonic().split(' ');
+    var box = $('seed-words');
+    box.innerHTML = '';
+    words.forEach(function (w, i) {
+      var d = document.createElement('div');
+      d.className = 'word';
+      d.innerHTML = '<b>' + (i + 1) + '</b>' + w;
+      box.appendChild(d);
+    });
+    show('s-seed');
+  };
+  $('btn-seed-done').onclick = function () {
+    var words = Array.prototype.map.call($('seed-words').children, function (d) { return d.textContent.replace(/^\d+/, ''); }).join(' ');
+    mnemonic = words;
+    try { localStorage.setItem(LS_KEY, mnemonic); } catch (e) {}
+    openMain();
+  };
+  $('btn-seed-back').onclick = function () { show('s-start'); };
+  $('btn-import-go').onclick = function () { errBox('import-err', null); $('import-words').value = ''; show('s-import'); };
+  $('btn-import-back').onclick = function () { show('s-start'); };
+  $('btn-import').onclick = function () {
+    var words = $('import-words').value;
+    if (!ShitWallet.isValidMnemonic(words)) { errBox('import-err', 'Those words do not look right. Check the order and spelling.'); return; }
+    mnemonic = words.trim().toLowerCase().replace(/\s+/g, ' ');
+    try { localStorage.setItem(LS_KEY, mnemonic); } catch (e) {}
+    openMain();
+  };
+  $('btn-copy').onclick = copyAddr;
+  $('btn-refresh').onclick = refreshBalance;
+  $('btn-send').onclick = function () { startSend($('send-to').value, $('send-amt').value); };
+  $('btn-game').onclick = function () { startSend(GAME_ADDR, '2'); };
+  $('btn-confirm').onclick = doBroadcast;
+  $('btn-confirm-back').onclick = function () { show('s-main'); };
+  $('btn-result-done').onclick = function () { $('send-to').value = ''; $('send-amt').value = ''; openMain(); };
+  $('btn-forget').onclick = function () {
+    if (confirm('Forget this wallet on this phone? Make sure you wrote down your 12 secret words first!')) {
+      try { localStorage.removeItem(LS_KEY); } catch (e) {}
+      mnemonic = null; myAddress = null; utxosCache = [];
+      show('s-start');
+    }
+  };
+
+  // auto-open if wallet saved
+  try {
+    var saved = localStorage.getItem(LS_KEY);
+    if (saved && ShitWallet.isValidMnemonic(saved)) {
+      mnemonic = saved;
+      openMain();
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

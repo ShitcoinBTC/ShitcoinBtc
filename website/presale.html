@@ -22,8 +22,8 @@ button { width: 100%; padding: 15px; background: #f2a900; border: none; border-r
 <h2>Terms</h2>
 <p><strong>Price:</strong> $0.000095 per SHIT (~10,526 SHIT per $1)</p>
 <p><strong>Cap:</strong> 3.78B SHIT (18% of supply)</p>
-<p><strong>Vesting:</strong> 6-month cliff, then 12 equal monthly unlocks (18 months total)</p>
-<p class="info">IOU until chain distribution. Your SHIT will be sent to your address as it unlocks, starting 6 months after investment.</p>
+<p><strong>Vesting:</strong> 6-month cliff after presale ends, then 12 equal monthly unlocks</p>
+<p class="info">Vesting starts when all presale tokens are sold. Your SHIT will be sent to your address as it unlocks.</p>
 </div>
 
 <div class="card">
@@ -112,8 +112,8 @@ function submit() {
     if (d.ok) {
       el.innerHTML = `<h3 style="color: #0f0;">Registered!</h3>
         <p>SHIT allocated: <strong>${d.shit_allocated.toLocaleString()}</strong></p>
-        <p>Vesting: 6-month cliff, then 12 monthly unlocks (18 months total).</p>
-        <p>First unlock: 6 months from now.</p>`;
+        <p>Vesting: 6-month cliff after presale ends, then 12 monthly unlocks.</p>
+        <p>Vesting starts when all tokens are sold.</p>`;
     } else {
       el.innerHTML = `<h3 style="color: #f00;">Error</h3><p>${d.error}</p>`;
     }

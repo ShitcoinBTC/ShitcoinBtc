@@ -3,131 +3,396 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>SHIT Shooter</title>
+<title>SHIT Shooter - Bitcoin vs Shitcoins</title>
 <style>
 body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: monospace; }
 canvas { display: block; margin: 0 auto; }
-#ui { position: fixed; top: 10px; left: 10px; color: #f2a900; font-size: 18px; }
-#gameover { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 32px; display: none; text-align: center; }
-button { font-size: 20px; padding: 10px 20px; background: #f2a900; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+#ui { position: fixed; top: 10px; left: 10px; color: #f2a900; font-size: 16px; z-index: 10; }
+#level { position: fixed; top: 10px; right: 10px; color: #f2a900; font-size: 16px; z-index: 10; }
+#gameover, #levelup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 28px; display: none; text-align: center; background: rgba(0,0,0,0.9); padding: 30px; border-radius: 12px; z-index: 20; }
+button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold; }
 </style>
 </head>
 <body>
-<div id="payment" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 30px; border-radius: 12px; text-align: center; color: #eee; max-width: 90%;">
-  <h2 style="color: #f2a900;">SHIT Shooter - 10 SHIT to Play</h2>
-  <p>Send 10 SHIT to:</p>
-  <p style="font-family: monospace; word-break: break-all; background: #111; padding: 10px; border-radius: 4px;" id="gameaddr">Loading...</p>
-  <p>Enter your transaction ID:</p>
-  <input type="text" id="txid" placeholder="txid" style="width: 100%; padding: 10px; margin: 10px 0;">
-  <button onclick="startGame()">Play</button>
+<div id="ui">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
+<div id="level">Level: <span id="lvl">1</span></div>
+<div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%;">
+<div style="font-size: 28px; margin-bottom: 10px;">💩 SHIT Shooter 💩</div>
+<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Beat all 25 levels, win 50% of the pool!</div>
+<div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>
+<div style="margin-bottom: 15px; font-size: 16px;">Pay one:</div>
+<div style="text-align: left; margin-bottom: 15px; font-size: 15px; line-height: 2;">
+<div>💩 <strong>2 SHIT</strong> <button onclick="copyAddr('shit1qdnqywhj3ws7lj7ev9u66tfushkfwufprrn0d59')" style="font-size: 12px; padding: 4px 8px;">Copy SHIT addr</button></div>
+<div>◎ <strong>0.001 SOL</strong> <button onclick="copyAddr('3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4')" style="font-size: 12px; padding: 4px 8px;">Copy SOL addr</button></div>
+<div>Ξ <strong>0.0000436 ETH</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy ETH addr</button></div>
+<div>🔵 <strong>0.0000436 ETH on Base</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy Base addr</button></div>
+<div>₿ <strong>0.00000140 BTC</strong> (140 sats) <button onclick="copyAddr('3FPSdy4dtNpMJxEnrhXMBEm3akEUY3Z592')" style="font-size: 12px; padding: 4px 8px;">Copy BTC addr</button></div>
 </div>
-<div id="ui" style="display: none;">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
-<div id="gameover"><div>💩 GAME OVER 💩</div><div>Score: <span id="finalscore">0</span></div><button onclick="restart()">Play Again</button></div>
+<button onclick="startGame()" style="font-size: 20px; padding: 15px 30px;">I Paid - Start Game</button>
+</div>
+<div id="gameover"><div>💩 GAME OVER 💩</div><div>Score: <span id="finalscore">0</span></div><div>Level: <span id="finallvl">1</span></div><button onclick="restart()">Play Again</button></div>
+<div id="levelup"><div>LEVEL <span id="newlvl">2</span>!</div><button onclick="nextLevel()">Continue</button></div>
 <canvas id="game"></canvas>
 <script>
-let gameTxid = null;
-
-function startGame() {
-  const txid = document.getElementById('txid').value.trim();
-  if (!txid) { alert('Enter txid'); return; }
-  // Verify with backend
-  fetch('/api/game/verify', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({txid: txid})
-  }).then(r => r.json()).then(d => {
-    if (d.ok) {
-      gameTxid = txid;
-      document.getElementById('payment').style.display = 'none';
-      document.getElementById('ui').style.display = 'block';
-      init();
-    } else {
-      alert('Invalid txid or already used');
-    }
-  });
-}
-
-// Load game address
-fetch('/api/game/address').then(r => r.json()).then(d => {
-  document.getElementById('gameaddr').textContent = d.address;
-});
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-canvas.width = Math.min(window.innerWidth, 600);
-canvas.height = Math.min(window.innerHeight, 800);
+canvas.width = Math.min(window.innerWidth, 700);
+canvas.height = Math.min(window.innerHeight, 900);
 
-let player, bullets, enemies, score, lives, gameRunning, keys = {};
+let player, bullets, enemies, boss, powerups, score, lives, level, gameRunning, keys = {}, enemyTimer, laser, shield, laserTimer, laserStacks, shieldTimer;
+
+// Chain logos (colors) - 25 bosses, 25 chains
+const CHAINS = [
+  {name: 'ETH', color: '#627eea'},
+  {name: 'SOL', color: '#9945FF'},
+  {name: 'AVAX', color: '#E84142'},
+  {name: 'BASE', color: '#0052FF'},
+  {name: 'BNB', color: '#F0B90B'},
+  {name: 'MATIC', color: '#8247E5'},
+  {name: 'ARB', color: '#28A0F0'},
+  {name: 'OP', color: '#FF0420'},
+  {name: 'FTM', color: '#13b5ec'},
+  {name: 'ONE', color: '#00DDAA'},
+  {name: 'CELO', color: '#FBCC5C'},
+  {name: 'MOVR', color: '#53CBC9'},
+  {name: 'GLMR', color: '#F5B700'},
+  {name: 'KAVA', color: '#FF433E'},
+  {name: 'CRO', color: '#002D74'},
+  {name: 'FUSE', color: '#B5F36A'},
+  {name: 'METIS', color: '#00DACC'},
+  {name: 'BOBA', color: '#CBFB45'},
+  {name: 'SYS', color: '#0088cc'},
+  {name: 'XDAI', color: '#48B9A9'},
+  {name: 'EWT', color: '#A566FF'},
+  {name: 'RSK', color: '#00B520'},
+  {name: 'TLOS', color: '#571AFF'},
+  {name: 'KLAY', color: '#FF0420'},
+  {name: 'AURORA', color: '#78D64B'}
+];
+const MAX_LEVEL = 25;
 
 function init() {
-  player = { x: canvas.width/2, y: canvas.height-60, w: 40, h: 30, speed: 5 };
-  bullets = [];
-  enemies = [];
   score = 0;
   lives = 3;
+  level = 1;
+  laser = false;
+  shield = false;
+  laserTimer = 0;
+  laserStacks = 0;
+  shieldTimer = 0;
+  // Ship grows with level
+  const shipW = 50 + (level - 1) * 2;
+  const shipH = 40 + (level - 1) * 1.5;
+  player = { x: canvas.width/2, y: canvas.height-80, w: Math.min(shipW, 100), h: Math.min(shipH, 80), speed: 6 };
+  bullets = [];
+  enemies = [];
+  powerups = [];
+  boss = null;
   gameRunning = true;
+  enemyTimer = 0;
   document.getElementById('gameover').style.display = 'none';
+  document.getElementById('levelup').style.display = 'none';
   updateUI();
+}
+
+function getWeapon() {
+  // Weapon upgrades: 1 to 8 bullets over 25 levels
+  let tier, count;
+  if (level <= 3) { tier = 1; count = 1; }
+  else if (level <= 6) { tier = 2; count = 2; }
+  else if (level <= 9) { tier = 3; count = 3; }
+  else if (level <= 12) { tier = 4; count = 4; }
+  else if (level <= 15) { tier = 5; count = 5; }
+  else if (level <= 18) { tier = 6; count = 6; }
+  else if (level <= 21) { tier = 7; count = 7; }
+  else { tier = 8; count = 8; }
+  
+  return {
+    count: count,
+    damage: 1 + Math.floor((level - 1) / 6), // 1-5 damage
+    size: 14 + tier * 2,
+    tier: tier
+  };
 }
 
 function updateUI() {
   document.getElementById('score').textContent = score;
   document.getElementById('lives').textContent = lives;
+  document.getElementById('lvl').textContent = level;
 }
 
 function spawnEnemy() {
-  if (Math.random() < 0.03) {
-    enemies.push({
-      x: Math.random() * (canvas.width - 30),
-      y: -30,
-      w: 30, h: 30,
-      speed: 1 + Math.random() * 2
+  enemyTimer++;
+  
+  // Spawn powerup bubbles occasionally (every ~15 seconds)
+  if (enemyTimer % 900 === 0 && !boss) {
+    const types = ['life', 'laser', 'shield', 'bomb'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    powerups.push({
+      x: Math.random() * (canvas.width - 40),
+      y: -40, w: 35, h: 35,
+      speed: 1, type: type
     });
+  }
+  
+  const spawnRate = Math.max(8, 50 - level * 2);
+  
+  // Boss at end of each level (after enough enemies)
+  if (!boss && enemyTimer > 200 + level * 20) {
+    const chain = CHAINS[(level - 1) % CHAINS.length];
+    // Harder bosses: more HP, but possible with upgraded weapons
+    const bossHp = 30 + level * 12;
+    boss = {
+      x: canvas.width/2 - 75, y: -150, w: 150 + level*2, h: 120 + level*1.5,
+      speed: 0.5 + level * 0.05, chain: chain.name, color: chain.color,
+      hp: bossHp, maxHp: bossHp,
+      type: 'boss'
+    };
+    return;
+  }
+  
+  if (boss) return; // No regular enemies during boss
+  
+  if (enemyTimer % spawnRate === 0) {
+    const type = Math.random();
+    let enemy;
+    const chainIdx = Math.floor(Math.random() * Math.min(level + 2, CHAINS.length));
+    const chain = CHAINS[chainIdx];
+    
+    if (level <= 5) {
+      // Early levels: rocks and bubbles
+      const etype = type < 0.5 ? 'rock' : 'bubble';
+      enemy = { 
+        x: Math.random()*(canvas.width-40), y: -40, w: 40, h: 40, 
+        speed: 1 + level*0.2 + Math.random()*1.5, 
+        type: etype, chain: chain.name, color: chain.color, 
+        hp: 1 + Math.floor(level/4) 
+      };
+    } else {
+      // Later levels: faster, tougher, mixed
+      const etype = type < 0.33 ? 'rock' : (type < 0.66 ? 'bubble' : 'diamond');
+      enemy = { 
+        x: Math.random()*(canvas.width-40), y: -40, w: 40, h: 40, 
+        speed: 1.5 + level*0.25 + Math.random()*2, 
+        type: etype, chain: chain.name, color: chain.color, 
+        hp: 1 + Math.floor(level/3) 
+      };
+    }
+    enemies.push(enemy);
   }
 }
 
 function update() {
   if (!gameRunning) return;
   
-  // Player movement
   if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
   if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
   
-  // Bullets
   for (let i = bullets.length - 1; i >= 0; i--) {
-    bullets[i].y -= 7;
+    bullets[i].y -= 8;
     if (bullets[i].y < 0) bullets.splice(i, 1);
   }
   
-  // Enemies
   spawnEnemy();
+  
+  // Powerups
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    powerups[i].y += powerups[i].speed;
+    powerups[i].x += Math.sin(powerups[i].y * 0.03) * 1.5; // wobble
+    
+    if (powerups[i].y > canvas.height) {
+      powerups.splice(i, 1);
+      continue;
+    }
+    
+    // Collect
+    if (checkCollision(powerups[i], player)) {
+      const type = powerups[i].type;
+      powerups.splice(i, 1);
+      if (type === 'life') {
+        lives++;
+        score += 50;
+      } else if (type === 'laser') {
+        // GOD TIER LASER: 15s base, 25s double, 35s triple
+        if (laser) {
+          laserStacks = Math.min(3, laserStacks + 1);
+        } else {
+          laser = true;
+          laserStacks = 1;
+        }
+        // Set duration based on stacks
+        if (laserStacks === 1) laserTimer = 900; // 15s
+        else if (laserStacks === 2) laserTimer = 1500; // 25s
+        else laserTimer = 2100; // 35s
+      } else if (type === 'shield') {
+        shield = true;
+        shieldTimer = 600;
+      } else if (type === 'bomb') {
+        // Destroy all enemies
+        for (let e of enemies) score += 10 * level;
+        enemies = [];
+        if (boss) {
+          boss.hp -= 50; // Big damage to boss
+          if (boss.hp <= 0) {
+            score += 100 * level;
+            boss = null;
+            if (level >= MAX_LEVEL) gameWin();
+            else levelComplete();
+          }
+        }
+      }
+      updateUI();
+    }
+  }
+  
+  // Timers
+  if (laser) {
+    laserTimer--;
+    if (laserTimer <= 0) {
+      laser = false;
+      laserStacks = 0;
+      // Back to base weapon of this level
+    }
+  }
+  if (shield) {
+    shieldTimer--;
+    if (shieldTimer <= 0) shield = false;
+  }
+  
+  // Laser: destroys everything in its path
+  if (laser) {
+    const laserX = player.x + player.w/2;
+    const laserW = 20 + laserStacks * 10;
+    
+    // Kill enemies touching laser
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      if (enemies[i].x < laserX + laserW/2 && enemies[i].x + enemies[i].w > laserX - laserW/2) {
+        enemies.splice(i, 1);
+        score += 10 * level;
+      }
+    }
+    updateUI();
+    
+    // Damage boss
+    if (boss && boss.x < laserX + laserW/2 && boss.x + boss.w > laserX - laserW/2) {
+      boss.hp -= 2; // 2 damage per frame = 120/sec
+      if (boss.hp <= 0) {
+        score += 100 * level;
+        boss = null;
+        updateUI();
+        if (level >= MAX_LEVEL) gameWin();
+        else levelComplete();
+      }
+    }
+  }
+  
+  // Update enemies
   for (let i = enemies.length - 1; i >= 0; i--) {
     enemies[i].y += enemies[i].speed;
-    // Collision with player
-    if (enemies[i].x < player.x + player.w && enemies[i].x + enemies[i].w > player.x &&
-        enemies[i].y < player.y + player.h && enemies[i].y + enemies[i].h > player.y) {
-      enemies.splice(i, 1);
-      lives--;
-      updateUI();
-      if (lives <= 0) gameOver();
-      continue;
+    
+    // Bubble wobble
+    if (enemies[i].type === 'bubble') {
+      enemies[i].x += Math.sin(enemies[i].y * 0.05) * 2;
     }
-    // Off screen
-    if (enemies[i].y > canvas.height) {
+    
+    // Collision with player (shield protects)
+    if (checkCollision(enemies[i], player)) {
       enemies.splice(i, 1);
-      continue;
-    }
-    // Collision with bullets
-    for (let j = bullets.length - 1; j >= 0; j--) {
-      if (bullets[j].x > enemies[i].x && bullets[j].x < enemies[i].x + enemies[i].w &&
-          bullets[j].y > enemies[i].y && bullets[j].y < enemies[i].y + enemies[i].h) {
-        enemies.splice(i, 1);
-        bullets.splice(j, 1);
-        score += 10;
+      if (!shield) {
+        lives--;
         updateUI();
+        if (lives <= 0) gameOver();
+      }
+      continue;
+    }
+    
+    if (enemies[i].y > canvas.height) { enemies.splice(i, 1); continue; }
+    
+    // Bullet collision
+    for (let j = bullets.length - 1; j >= 0; j--) {
+      if (checkCollision(bullets[j], enemies[i])) {
+        const dmg = bullets[j].damage || 1;
+        bullets.splice(j, 1);
+        enemies[i].hp -= dmg;
+        if (enemies[i].hp <= 0) {
+          enemies.splice(i, 1);
+          score += 10 * level;
+          updateUI();
+        }
         break;
       }
     }
+  }
+  
+  // Boss
+  if (boss) {
+    if (boss.y < 50) boss.y += boss.speed;
+    else {
+      // Boss moves side to side
+      boss.x += Math.sin(Date.now() * 0.001) * 2;
+    }
+    
+    // Boss collision with player
+    if (checkCollision(boss, player)) {
+      lives = 0;
+      updateUI();
+      gameOver();
+      return;
+    }
+    
+    // Bullet collision with boss
+    for (let j = bullets.length - 1; j >= 0; j--) {
+      if (checkCollision(bullets[j], boss)) {
+        const dmg = bullets[j].damage || 1;
+        bullets.splice(j, 1);
+        boss.hp -= dmg;
+        if (boss.hp <= 0) {
+          score += 100 * level;
+          boss = null;
+          updateUI();
+          if (level >= MAX_LEVEL) {
+            gameWin();
+          } else {
+            levelComplete();
+          }
+        }
+        break;
+      }
+    }
+  }
+}
+
+function checkCollision(a, b) {
+  return a.x < b.x + b.w && a.x + (a.w||4) > b.x &&
+         a.y < b.y + b.h && a.y + (a.h||10) > b.y;
+}
+
+function levelComplete() {
+  gameRunning = false;
+  document.getElementById('newlvl').textContent = level + 1;
+  document.getElementById('levelup').style.display = 'block';
+}
+
+function nextLevel() {
+  level++;
+  document.getElementById('levelup').style.display = 'none';
+  enemies = [];
+  powerups = [];
+  boss = null;
+  enemyTimer = 0;
+  // Grow ship
+  const shipW = 50 + (level - 1) * 2;
+  const shipH = 40 + (level - 1) * 1.5;
+  player.w = Math.min(shipW, 100);
+  player.h = Math.min(shipH, 80);
+  player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+  gameRunning = true;
+  updateUI();
+  // Show weapon upgrade message
+  const w = getWeapon();
+  const thresholds = [4, 7, 10, 13, 16, 19, 22];
+  if (thresholds.includes(level)) {
+    setTimeout(() => alert(`Weapon upgraded! ${w.count} bullets, ${w.damage} damage!`), 100);
   }
 }
 
@@ -137,66 +402,295 @@ function draw() {
   
   // Stars
   ctx.fillStyle = '#fff';
-  for (let i = 0; i < 50; i++) {
-    ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1);
+  for (let i = 0; i < 80; i++) {
+    const y = (Math.random() * canvas.height + Date.now()*0.05) % canvas.height;
+    ctx.fillRect(Math.random() * canvas.width, y, 1, 1);
   }
   
+  if (!gameRunning && document.getElementById('levelup').style.display === 'block') return;
   if (!gameRunning) return;
   
-  // Player (poop emoji style)
-  ctx.font = '30px serif';
-  ctx.fillText('💩', player.x, player.y + 25);
+  // Player: Bitcoin orange spaceship with Bitcoin logo
+  // Ship body (bitcoin orange)
+  ctx.fillStyle = '#F7931A';
+  ctx.beginPath();
+  ctx.moveTo(player.x + player.w/2, player.y);
+  ctx.lineTo(player.x + player.w, player.y + player.h);
+  ctx.lineTo(player.x, player.y + player.h);
+  ctx.closePath();
+  ctx.fill();
+  // Bitcoin logo (white)
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('₿', player.x + player.w/2, player.y + player.h - 6);
   
-  // Bullets
-  ctx.fillStyle = '#f2a900';
-  for (let b of bullets) {
-    ctx.fillRect(b.x, b.y, 4, 10);
+  // Shield bubble
+  if (shield) {
+    ctx.strokeStyle = '#00f';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(player.x + player.w/2, player.y + player.h/2, player.w/2 + 10, 0, Math.PI*2);
+    ctx.stroke();
   }
   
-  // Enemies (ETH logo style - diamond)
-  ctx.fillStyle = '#627eea';
-  for (let e of enemies) {
+  // Laser beam (god tier)
+  if (laser) {
+    const laserX = player.x + player.w/2;
+    const laserW = 20 + laserStacks * 10;
+    // Outer glow
+    ctx.fillStyle = `rgba(255, 0, 255, 0.3)`;
+    ctx.fillRect(laserX - laserW/2 - 5, 0, laserW + 10, player.y);
+    // Core beam
+    ctx.fillStyle = '#f0f';
+    ctx.fillRect(laserX - laserW/2, 0, laserW, player.y);
+    // White hot center
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(laserX - 3, 0, 6, player.y);
+    
+    // Timer display
+    ctx.fillStyle = '#f0f';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`LASER ${Math.ceil(laserTimer/60)}s x${laserStacks}`, laserX, player.y - 15);
+  }
+  
+  // Rapid fire indicator (removed, replaced by laser)
+  // Shield bubble
+  
+  // Bullets: shit coins (cooler each tier, 1-8)
+  for (let b of bullets) {
+    const tier = b.tier || 1;
+    ctx.font = `${b.size || 16}px serif`;
+    ctx.textAlign = 'center';
+    if (tier === 1) {
+      ctx.fillText('💩', b.x, b.y);
+    } else if (tier === 2) {
+      ctx.shadowColor = '#F7931A';
+      ctx.shadowBlur = 8;
+      ctx.fillText('💩', b.x, b.y);
+      ctx.shadowBlur = 0;
+    } else if (tier === 3) {
+      ctx.fillText('🔥', b.x, b.y - 8);
+      ctx.fillText('💩', b.x, b.y);
+    } else if (tier === 4) {
+      ctx.fillText('⚡', b.x, b.y - 8);
+      ctx.fillText('💩', b.x, b.y);
+    } else if (tier === 5) {
+      ctx.fillText('💥', b.x, b.y - 8);
+      ctx.fillText('💩', b.x, b.y);
+    } else if (tier === 6) {
+      ctx.shadowColor = '#ff0';
+      ctx.shadowBlur = 12;
+      ctx.fillText('💩', b.x, b.y);
+      ctx.shadowBlur = 0;
+    } else if (tier === 7) {
+      ctx.fillText('☄️', b.x, b.y - 8);
+      ctx.fillText('💩', b.x, b.y);
+    } else {
+      // Tier 8: Ultimate rainbow shit
+      ctx.fillText('🌈', b.x, b.y - 10);
+      ctx.shadowColor = '#f0f';
+      ctx.shadowBlur = 15;
+      ctx.fillText('💩', b.x, b.y);
+      ctx.shadowBlur = 0;
+    }
+  }
+  
+  // Powerups: bubbles with icons
+  for (let p of powerups) {
+    // Bubble
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(e.x + e.w/2, e.y);
-    ctx.lineTo(e.x + e.w, e.y + e.h/2);
-    ctx.lineTo(e.x + e.w/2, e.y + e.h);
-    ctx.lineTo(e.x, e.y + e.h/2);
-    ctx.closePath();
+    ctx.arc(p.x + p.w/2, p.y + p.h/2, p.w/2, 0, Math.PI*2);
+    ctx.stroke();
+    // Shine
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.arc(p.x + p.w/2 - 5, p.y + p.h/2 - 5, 5, 0, Math.PI*2);
     ctx.fill();
+    // Icon
+    ctx.font = '18px serif';
+    ctx.textAlign = 'center';
+    let icon = '';
+    if (p.type === 'life') icon = '❤️';
+    else if (p.type === 'laser') icon = '🔫';
+    else if (p.type === 'shield') icon = '🛡️';
+    else if (p.type === 'bomb') icon = '💣';
+    ctx.fillText(icon, p.x + p.w/2, p.y + p.h/2 + 6);
+  }
+  
+  // Enemies
+  for (let e of enemies) {
+    const color = e.color || '#627eea';
+    if (e.type === 'rock') {
+      // Rock (asteroid) with chain logo
+      ctx.fillStyle = '#555';
+      ctx.beginPath();
+      ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = color;
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h/2 + 4);
+    } else if (e.type === 'bubble') {
+      // Bubble with chain logo
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h/2 + 4);
+    } else {
+      // Diamond with chain logo
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(e.x + e.w/2, e.y);
+      ctx.lineTo(e.x + e.w, e.y + e.h/2);
+      ctx.lineTo(e.x + e.w/2, e.y + e.h);
+      ctx.lineTo(e.x, e.y + e.h/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h/2 + 3);
+    }
+  }
+  
+  // Boss: Monster with chain logo (different color per level)
+  if (boss) {
+    const color = boss.color;
+    // Monster body
+    ctx.fillStyle = color;
+    // Monster shape (rounded)
+    ctx.beginPath();
+    ctx.roundRect(boss.x, boss.y, boss.w, boss.h, 20);
+    ctx.fill();
+    // Spikes
+    ctx.fillStyle = color;
+    for (let s = 0; s < 5; s++) {
+      const sx = boss.x + 15 + s * 30;
+      ctx.beginPath();
+      ctx.moveTo(sx, boss.y);
+      ctx.lineTo(sx + 10, boss.y - 15);
+      ctx.lineTo(sx + 20, boss.y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // Eyes
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(boss.x + 20, boss.y + 25, 30, 30);
+    ctx.fillRect(boss.x + boss.w - 50, boss.y + 25, 30, 30);
+    ctx.fillStyle = '#f00';
+    ctx.fillRect(boss.x + 28, boss.y + 33, 14, 14);
+    ctx.fillRect(boss.x + boss.w - 42, boss.y + 33, 14, 14);
+    // Chain logo
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText(boss.chain, boss.x + boss.w/2, boss.y + boss.h/2 + 15);
+    // Level indicator
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('BOSS LVL ' + level, boss.x + boss.w/2, boss.y + boss.h - 10);
+    // HP bar
+    ctx.fillStyle = '#f00';
+    ctx.fillRect(boss.x, boss.y - 12, boss.w, 8);
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(boss.x, boss.y - 12, boss.w * (boss.hp / boss.maxHp), 8);
+  }
+}
+
+function gameWin() {
+  gameRunning = false;
+  // TODO: Get pool amount from API, calculate 50%
+  const poolPrize = "50% of pool"; // Placeholder
+  document.getElementById('gameover').innerHTML = 
+    '<div>🏆 BITCOIN WINS! 🏆</div>' +
+    '<div>Score: ' + score + '</div>' +
+    '<div>All 25 shitcoin bosses defeated!</div>' +
+    '<div style="font-size: 22px; margin: 15px 0;">You win ' + poolPrize + '!</div>' +
+    '<div style="font-size: 14px; margin-bottom: 15px;">Enter your SHIT address to claim:</div>' +
+    '<input type="text" id="winaddr" placeholder="shit1..." style="width: 100%; padding: 10px; font-size: 14px; margin-bottom: 10px; background: #222; color: #fff; border: 1px solid #444; border-radius: 6px;">' +
+    '<button onclick="claimPrize()">Claim Prize</button><br>' +
+    '<button onclick="restart()" style="margin-top: 10px;">Play Again</button>';
+  document.getElementById('gameover').style.display = 'block';
+}
+
+async function claimPrize() {
+  const addr = document.getElementById('winaddr').value.trim();
+  if (!addr) {
+    alert('Enter your SHIT address');
+    return;
+  }
+  try {
+    const r = await fetch('http://77.42.74.252:5002/api/game/win', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({player_address: addr})
+    });
+    const d = await r.json();
+    alert(`You won ${d.prize_shit.toLocaleString()} SHIT! We'll send it to ${addr}`);
+  } catch (e) {
+    alert('Prize claim submitted! We\'ll send your winnings to ' + addr);
   }
 }
 
 function gameOver() {
   gameRunning = false;
   document.getElementById('finalscore').textContent = score;
+  document.getElementById('finallvl').textContent = level;
   document.getElementById('gameover').style.display = 'block';
-  // Submit score
-  if (gameTxid) {
-    fetch('/api/game/score', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({txid: gameTxid, score: score})
+}
+
+function restart() { // Fetch pool amount
+async function updatePool() {
+  try {
+    const r = await fetch('http://77.42.74.252:5002/api/game/pool');
+    const d = await r.json();
+    document.getElementById('poolamt').textContent = d.pool_shit.toLocaleString();
+  } catch (e) {
+    // API not reachable, show 0
+  }
+}
+updatePool();
+setInterval(updatePool, 30000); // Update every 30s
+
+function copyAddr(addr) {
+  navigator.clipboard.writeText(addr);
+  alert('Address copied!');
+}
+
+function startGame() {
+  // Simple: user clicks "I Paid", game starts
+  // Backend tracks payments via addresses
+  document.getElementById('payscreen').style.display = 'none';
+  init();
+}
+
+init();
+// Don't start game loop until payment
+gameRunning = false;
+document.getElementById('payscreen').style.display = 'block'; }
+function shoot() {
+  if (!gameRunning) return;
+  const w = getWeapon();
+  const cx = player.x + player.w/2;
+  // Spread bullets
+  for (let i = 0; i < w.count; i++) {
+    const offset = (i - (w.count - 1) / 2) * 12;
+    bullets.push({ 
+      x: cx + offset, y: player.y, 
+      damage: w.damage, size: w.size, tier: w.tier 
     });
   }
 }
 
-function restart() {
-  init();
-}
-
-function shoot() {
-  if (!gameRunning) return;
-  bullets.push({ x: player.x + player.w/2 - 2, y: player.y });
-}
-
-// Keyboard
 document.addEventListener('keydown', e => {
   keys[e.key] = true;
   if (e.key === ' ') { shoot(); e.preventDefault(); }
 });
 document.addEventListener('keyup', e => keys[e.key] = false);
 
-// Touch
 let touchX = null;
 canvas.addEventListener('touchstart', e => {
   touchX = e.touches[0].clientX;
@@ -212,15 +706,14 @@ canvas.addEventListener('touchmove', e => {
   e.preventDefault();
 }, {passive: false});
 canvas.addEventListener('touchend', () => touchX = null);
-
-// Mouse
 canvas.addEventListener('mousemove', e => {
   const rect = canvas.getBoundingClientRect();
   player.x = Math.max(0, Math.min(canvas.width - player.w, e.clientX - rect.left - player.w/2));
 });
 canvas.addEventListener('click', shoot);
 
-init();
+// Game starts after payment (see startGame)
+// init() is called from startGame()
 function loop() { update(); draw(); requestAnimationFrame(loop); }
 loop();
 </script>

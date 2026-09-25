@@ -252,6 +252,18 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
   <div class="screen" id="s-busy"><div class="spinner" id="busy-msg">Working...</div></div>
 </div>
 
+<script>
+/* Minimal browser "process" shim: wallet.bundle.js was built for node and
+   touches process.env / process.nextTick at load. This satisfies it. */
+window.process = window.process || {
+  env: {}, browser: true, version: '',
+  nextTick: function (fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    setTimeout(function () { fn.apply(null, args); }, 0);
+  },
+  stdout: null, stderr: null
+};
+</script>
 <script src="/wallet.bundle.js"></script>
 <script src="/btc.bundle.js"></script>
 <script>

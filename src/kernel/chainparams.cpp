@@ -233,10 +233,7 @@ public:
         assert(consensus.hashGenesisBlock == uint256S("0x0000022642db0346b6e01c2a397471f4f12e65d4f4251ec96c1f85367a61a7ab"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
-        vSeeds.emplace_back("seed1.syscoin.org");
-        vSeeds.emplace_back("seed2.syscoin.org");
-        vSeeds.emplace_back("seed3.syscoin.org");
-        vSeeds.emplace_back("seed4.syscoin.org");
+        vSeeds.emplace_back("seed.shitcoinbtc.xyz");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,63);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);

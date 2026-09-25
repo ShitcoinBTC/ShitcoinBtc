@@ -190,6 +190,7 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
         <div class="label">SEND BTC</div>
         <input id="btc-send-to" placeholder="Send to BTC address (bc1...)" autocapitalize="off" autocomplete="off" spellcheck="false">
         <input id="btc-send-amt" placeholder="Amount (BTC)" inputmode="decimal" autocomplete="off">
+        <div class="err" id="btc-send-err"></div>
         <button class="big" id="btn-btc-send">Send BTC</button>
         <div class="muted center">Sending includes a 600-sat Shitcoin fee (about $0.50). Receiving is free.</div>
         <div class="muted center" style="margin-top:6px">Bitcoin sends need your spending PIN. Your 12 words still control everything.</div>
@@ -427,15 +428,15 @@ window.process = window.process || {
   }
 
   function startBtcSend() {
-    errBox('btc-confirm-err', null);
-    if (!btcReady()) { alert('Bitcoin support is still loading. Wait a moment and try again.'); return; }
-    if (!btcAddress) { alert('Bitcoin address is not ready yet.'); return; }
+    errBox('btc-send-err', null);
+    if (!btcReady()) { errBox('btc-send-err', 'Bitcoin support is still loading. Wait a moment and try again.'); return; }
+    if (!btcAddress) { errBox('btc-send-err', 'Bitcoin address is not ready yet.'); return; }
     var to = ($('btc-send-to').value || '').trim();
     var amt = parseFloat($('btc-send-amt').value);
-    if (!BTCWallet.isValidBtcAddress(to)) { alert('That Bitcoin address does not look right.'); return; }
-    if (!amt || amt <= 0) { alert('Enter an amount greater than 0.'); return; }
+    if (!BTCWallet.isValidBtcAddress(to)) { errBox('btc-send-err', 'That Bitcoin address does not look right.'); return; }
+    if (!amt || amt <= 0) { errBox('btc-send-err', 'Enter an amount greater than 0.'); return; }
     var sats = Math.round(amt * 1e8);
-    if (sats < 546) { alert('Amount is below the dust limit.'); return; }
+    if (sats < 546) { errBox('btc-send-err', 'Amount is below the dust limit.'); return; }
     show('s-busy');
     $('busy-msg').textContent = 'Building your Bitcoin transaction...';
     BTCWallet.getFeeRate()
@@ -452,16 +453,11 @@ window.process = window.process || {
       .catch(function (e) {
         show('s-main');
         switchTab('btc');
-        alert('Could not build the transaction: ' + (e && e.message ? e.message : e));
+        errBox('btc-send-err', 'Could not build the transaction: ' + (e && e.message ? e.message : e));
       });
   }
 
   function openPinScreen() {
-    var locked = pinLockedMs();
-    if (locked > 0) {
-      alert('Too many wrong PIN tries. Try again in ' + Math.ceil(locked / 60000) + ' minute(s).');
-      return;
-    }
     var hasPin = !!localStorage.getItem(PIN_KEY);
     pinMode = hasPin ? 'verify' : 'setup';
     $('pin-title').textContent = hasPin ? 'ENTER SPENDING PIN' : 'SET YOUR SPENDING PIN';
@@ -471,6 +467,10 @@ window.process = window.process || {
     $('pin-input2').value = '';
     errBox('pin-err', null);
     show('s-pin');
+    var locked = pinLockedMs();
+    if (locked > 0) {
+      errBox('pin-err', 'Too many wrong PIN tries. Try again in ' + Math.ceil(locked / 60000) + ' minute(s).');
+    }
   }
 
   function submitPin() {

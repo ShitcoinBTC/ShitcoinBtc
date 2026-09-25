@@ -70,12 +70,11 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 <script>
 (function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
 </script>
-<div id="ui">Caught: <span id="score">0</span>/50</div>
-<div id="lives">Lives: <span id="livesn">3</span></div>
+<div id="ui">Caught: <span id="score">0</span>/50 &nbsp;|&nbsp; Time: <span id="clock">2:00</span></div>
 <canvas id="cv"></canvas>
 <div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%;">
-<div style="font-size: 28px; margin-bottom: 10px;">🚀 Shity Catcher 🚀</div>
-<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Catch 50 SHIT, dodge the ETH, win 50% of the pool!</div>
+<div style="font-size: 28px; margin-bottom: 10px;">Shity Catcher</div>
+<div style="font-size: 14px; color: #888; margin-bottom: 15px;">A dog drops 50 poops in 2 minutes. Mr. Shitoshi catches them all.<br>Catch every single poop to win <strong style="color:#f2a900;">5% of the pool</strong>! Miss one and it is over.</div>
 <div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>
 <div style="margin-bottom: 15px; font-size: 16px;">Pay one:</div>
 <div style="text-align: left; margin-bottom: 15px; font-size: 15px; line-height: 2;">
@@ -95,134 +94,190 @@ function sizeCanvas(){ canvas.width = Math.min(window.innerWidth, 700); canvas.h
 sizeCanvas(); window.addEventListener('resize', sizeCanvas);
 
 var poopImg = new Image(); poopImg.src = '/img/poop-icon.png';
-var stars = []; for (var i=0;i<90;i++) stars.push({x:Math.random(),y:Math.random(),s:Math.random()*1.6+0.4});
 
-var player, items, score, lives, gameRunning, lastSpawn, spawnGap, fallSpeed;
-var WIN_SCORE = 50;
+var TOTAL_POOPS = 50, GAME_SECS = 120, DROP_GAP = 2.3;
+var dog, shitoshi, poops, dropped, caught, gameRunning, dropTimer, elapsed, keys, raf;
+
+function fallTimeFor(n){ // n = 1..50
+  if (n > 45) return 0.55;               // last 5: really fast
+  return 2.8 - (n - 1) * (1.4 / 44);    // 2.8s -> 1.4s, faster and faster
+}
 
 function init(){
-  player = { x: canvas.width/2, w: 64, h: 64, y: canvas.height - 80 };
-  items = []; score = 0; lives = 3;
-  lastSpawn = 0; spawnGap = 700; fallSpeed = 2.2;
+  dog = { x: canvas.width/2, dir: 1, speed: 150, w: 76, h: 46, y: 56, legPhase: 0 };
+  shitoshi = { x: canvas.width/2, w: 64, h: 64, y: canvas.height - 80, speed: 430 };
+  poops = []; dropped = 0; caught = 0; elapsed = 0; dropTimer = 0.8; keys = {};
   document.getElementById('score').textContent = '0';
-  document.getElementById('livesn').textContent = '3';
+  document.getElementById('clock').textContent = '2:00';
+  document.getElementById('gameover').style.display = 'none';
 }
 
-function spawnItem(){
-  var isEth = Math.random() < 0.28;
-  items.push({ x: 20 + Math.random()*(canvas.width-40), y: -24,
-    r: isEth ? 16 : 14, eth: isEth,
-    vy: fallSpeed * (0.8 + Math.random()*0.6),
-    wob: Math.random()*Math.PI*2 });
+function drawDog(d){
+  ctx.save();
+  ctx.translate(d.x, d.y);
+  ctx.scale(d.dir, 1);
+  var trot = Math.sin(d.legPhase) * 4;
+  // tail
+  ctx.strokeStyle = '#7a4f26'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-30, -12);
+  ctx.quadraticCurveTo(-42, -22 + trot, -38, -30 + trot); ctx.stroke();
+  // legs
+  ctx.fillStyle = '#7a4f26';
+  ctx.fillRect(-22, 8, 9, 16 + trot); ctx.fillRect(-8, 8, 9, 16 - trot);
+  ctx.fillRect(8, 8, 9, 16 + trot); ctx.fillRect(22, 8, 9, 16 - trot);
+  // body
+  ctx.fillStyle = '#9c6b3c';
+  ctx.beginPath(); ctx.ellipse(0, 0, 32, 15, 0, 0, Math.PI*2); ctx.fill();
+  // head
+  ctx.beginPath(); ctx.arc(28, -12, 14, 0, Math.PI*2); ctx.fill();
+  // snout
+  ctx.fillStyle = '#b3814e';
+  ctx.beginPath(); ctx.ellipse(40, -8, 9, 6, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(47, -9, 3, 0, Math.PI*2); ctx.fill();
+  // ear
+  ctx.fillStyle = '#7a4f26';
+  ctx.beginPath(); ctx.ellipse(22, -20, 6, 10, 0.4, 0, Math.PI*2); ctx.fill();
+  // eye
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(32, -15, 2.6, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
 }
 
-function update(){
-  var now = performance.now();
-  if (now - lastSpawn > spawnGap){ spawnItem(); lastSpawn = now; }
-  for (var i=items.length-1;i>=0;i--){
-    var it = items[i];
-    it.y += it.vy; it.wob += 0.05; it.x += Math.sin(it.wob)*0.7;
-    // catch check: item reaches player zone
-    if (it.y + it.r >= player.y && it.y - it.r <= player.y + player.h &&
-        Math.abs(it.x - player.x) < player.w/2 + it.r*0.6){
-      items.splice(i,1);
-      if (it.eth){ lives--; document.getElementById('livesn').textContent = lives;
-        if (lives<=0){ gameOver(); return; } }
-      else { score++; document.getElementById('score').textContent = score;
-        // ramp difficulty
-        fallSpeed = 2.2 + score*0.05; spawnGap = Math.max(280, 700 - score*8);
-        if (score >= WIN_SCORE){ gameWin(); return; } }
+function update(dt){
+  elapsed += dt;
+  // dog patrol
+  dog.x += dog.dir * dog.speed * dt;
+  dog.legPhase += dt * 10;
+  if (dog.x > canvas.width - 40) { dog.x = canvas.width - 40; dog.dir = -1; }
+  if (dog.x < 40) { dog.x = 40; dog.dir = 1; }
+  // drop poops
+  dropTimer -= dt;
+  if (dropTimer <= 0 && dropped < TOTAL_POOPS){
+    dropped++;
+    var ft = fallTimeFor(dropped);
+    var dist = (canvas.height - 90) - (dog.y + 20);
+    poops.push({ x: dog.x, y: dog.y + 20, v: dist / ft, r: 13, n: dropped });
+    dropTimer = DROP_GAP;
+  }
+  // shitoshi movement: keys
+  if (keys['left']) shitoshi.x -= shitoshi.speed * dt;
+  if (keys['right']) shitoshi.x += shitoshi.speed * dt;
+  shitoshi.x = Math.max(32, Math.min(canvas.width - 32, shitoshi.x));
+  // poops fall
+  for (var i = poops.length - 1; i >= 0; i--){
+    var p = poops[i];
+    p.y += p.v * dt;
+    // caught?
+    if (p.y + p.r >= shitoshi.y && p.y - p.r <= shitoshi.y + shitoshi.h &&
+        Math.abs(p.x - shitoshi.x) < 42){
+      poops.splice(i, 1); caught++;
+      document.getElementById('score').textContent = caught;
+      if (caught >= TOTAL_POOPS){ winGame(); return; }
       continue;
     }
-    if (it.y > canvas.height + 30) items.splice(i,1);
+    if (p.y - p.r > canvas.height){ loseGame(); return; }
   }
+  // clock
+  var left = Math.max(0, GAME_SECS - elapsed);
+  var m = Math.floor(left / 60), sec = Math.floor(left % 60);
+  document.getElementById('clock').textContent = m + ':' + (sec < 10 ? '0' : '') + sec;
+  if (left <= 0 && caught < TOTAL_POOPS){ loseGame(); return; }
 }
 
 function draw(){
-  ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = '#fff';
-  for (var i=0;i<stars.length;i++){ var st=stars[i]; ctx.globalAlpha=0.35+0.3*Math.sin(st.s*5); ctx.fillRect(st.x*canvas.width, st.y*canvas.height, st.s, st.s); }
-  ctx.globalAlpha = 1;
-  // player
-  if (poopImg.complete && poopImg.naturalWidth) ctx.drawImage(poopImg, player.x-player.w/2, player.y, player.w, player.h);
-  else { ctx.fillStyle='#F5820B'; ctx.beginPath(); ctx.arc(player.x, player.y+player.h/2, 26, 0, 7); ctx.fill(); }
-  // items
-  for (var j=0;j<items.length;j++){ var it=items[j];
-    if (it.eth){ // ETH diamond
-      ctx.fillStyle = '#8ab4ff'; ctx.beginPath();
-      ctx.moveTo(it.x, it.y-it.r); ctx.lineTo(it.x+it.r*0.7, it.y);
-      ctx.lineTo(it.x, it.y+it.r); ctx.lineTo(it.x-it.r*0.7, it.y);
-      ctx.closePath(); ctx.fill();
-    } else { // SHIT coin
-      ctx.fillStyle = '#F7931A'; ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, 7); ctx.fill();
-      ctx.fillStyle = '#7a4a00'; ctx.font = 'bold 15px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('S', it.x, it.y+1);
-    }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // ground line
+  ctx.strokeStyle = '#2a2a30'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, canvas.height - 8); ctx.lineTo(canvas.width, canvas.height - 8); ctx.stroke();
+  drawDog(dog);
+  // poops
+  for (var i = 0; i < poops.length; i++){
+    var p = poops[i];
+    ctx.drawImage(poopImg, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
   }
+  // mr shitoshi
+  ctx.drawImage(poopImg, shitoshi.x - shitoshi.w/2, shitoshi.y, shitoshi.w, shitoshi.h);
 }
 
-function loop(){ if(!gameRunning) return; update(); draw(); requestAnimationFrame(loop); }
+var lastT = 0;
+function loop(t){
+  if (!gameRunning) return;
+  var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+  lastT = t;
+  update(dt); draw();
+  raf = requestAnimationFrame(loop);
+}
 
-function gameOver(){
+function startGame(){
+  document.getElementById('payscreen').style.display = 'none';
+  init(); gameRunning = true; lastT = 0;
+  raf = requestAnimationFrame(loop);
+}
+
+function endScreen(html){
   gameRunning = false;
-  document.getElementById('gameover').innerHTML =
-    '<div><img src="/img/poop-icon.png" class="pe" alt=""> GAME OVER <img src="/img/poop-icon.png" class="pe" alt=""></div>'+
-    '<div>Caught: '+score+' SHIT</div>'+
-    '<div style="font-size:15px;margin-top:8px;">The ETH got you. Everything outside Bitcoin is a shitcoin.</div>'+
-    '<button onclick="restart()">Play Again</button>';
-  document.getElementById('gameover').style.display = 'block';
+  cancelAnimationFrame(raf);
+  var g = document.getElementById('gameover');
+  g.innerHTML = html; g.style.display = 'block';
 }
 
-function gameWin(){
-  gameRunning = false;
-  document.getElementById('gameover').innerHTML =
-    '<div>&#127942; 50 CAUGHT! &#127942;</div>'+
-    '<div style="font-size:18px;margin:12px 0;">You win 50% of the pool!</div>'+
-    '<div style="font-size:14px;margin-bottom:12px;">Enter your SHIT address to claim:</div>'+
-    '<input type="text" id="winaddr" placeholder="shit1..." style="width:100%;padding:10px;font-size:14px;margin-bottom:10px;background:#222;color:#fff;border:1px solid #444;border-radius:6px;">'+
-    '<button onclick="claimPrize()">Claim Prize</button><br>'+
-    '<button onclick="restart()" style="margin-top:10px;">Play Again</button>';
-  document.getElementById('gameover').style.display = 'block';
+function loseGame(){
+  endScreen('<div style="font-size:22px;margin-bottom:10px;">You missed a poop!</div>'+
+    '<div style="font-size:15px;color:#999;margin-bottom:16px;">Caught '+caught+' of '+TOTAL_POOPS+'.</div>'+
+    '<button onclick="startGame()" style="font-size:17px;padding:12px 26px;">Try Again</button>');
 }
 
-async function claimPrize(){
-  const addr = document.getElementById('winaddr').value.trim();
+function winGame(){
+  endScreen('<div style="font-size:22px;margin-bottom:10px;">YOU CAUGHT ALL 50!</div>'+
+    '<div style="font-size:18px;margin:12px 0;">You win 5% of the pool!</div>'+
+    '<div style="font-size:14px;color:#999;margin-bottom:10px;">Enter your SHIT address to claim:</div>'+
+    '<input id="winaddr" placeholder="shit1..." style="width:90%;padding:10px;font-size:14px;margin-bottom:12px;background:#0d0d0f;border:1px solid #2a2a30;color:#f2a900;border-radius:8px;font-family:monospace;">'+
+    '<br><button onclick="claimWin()" style="font-size:17px;padding:12px 26px;">Claim Prize</button>');
+}
+
+async function claimWin(){
+  var addr = document.getElementById('winaddr').value.trim();
   if (!addr){ alert('Enter your SHIT address'); return; }
-  if (!addr.toLowerCase().startsWith('shit1')){ alert('That address does not look right. It should start with shit1.'); return; }
   try {
-    const r = await fetch('/api/game/win', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player_address: addr}) });
+    const r = await fetch('/api/game/win', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player_address: addr, game: 'catcher'}) });
     const d = await r.json();
     if (!r.ok || typeof d.prize_shit !== 'number') throw new Error((d && d.error) || 'claim rejected');
     alert('You won '+d.prize_shit.toLocaleString()+' SHIT! We will send it to '+addr);
-  } catch(e){ alert('Claim failed: '+(e.message||'network error')); }
+    document.getElementById('gameover').style.display = 'none';
+  } catch(e){ alert('Claim failed: '+e.message); }
 }
 
-function restart(){
-  document.getElementById('gameover').style.display = 'none';
-  init(); gameRunning = true; loop();
+function copyAddr(a){
+  if (navigator.clipboard) navigator.clipboard.writeText(a).catch(function(){});
+  var t = document.createElement('textarea'); t.value = a; document.body.appendChild(t); t.select();
+  try { document.execCommand('copy'); } catch(e){}
+  document.body.removeChild(t);
 }
 
 // controls: mouse / touch / keys
-function moveTo(cx){ var r=canvas.getBoundingClientRect(); player.x = Math.max(player.w/2, Math.min(canvas.width-player.w/2, cx - r.left)); }
-canvas.addEventListener('mousemove', function(e){ if(gameRunning) moveTo(e.clientX); });
-canvas.addEventListener('touchmove', function(e){ if(gameRunning){ moveTo(e.touches[0].clientX); e.preventDefault(); } }, {passive:false});
-document.addEventListener('keydown', function(e){
-  if(!gameRunning) return;
-  if(e.key==='ArrowLeft'||e.key==='a') player.x = Math.max(player.w/2, player.x-28);
-  if(e.key==='ArrowRight'||e.key==='d') player.x = Math.min(canvas.width-player.w/2, player.x+28);
+canvas.addEventListener('mousemove', function(e){
+  var r = canvas.getBoundingClientRect();
+  if (gameRunning) shitoshi.x = Math.max(32, Math.min(canvas.width - 32, e.clientX - r.left));
+});
+canvas.addEventListener('touchmove', function(e){
+  e.preventDefault();
+  var r = canvas.getBoundingClientRect();
+  var t = e.touches[0];
+  if (gameRunning) shitoshi.x = Math.max(32, Math.min(canvas.width - 32, t.clientX - r.left));
+}, {passive:false});
+window.addEventListener('keydown', function(e){
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys['left'] = true;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys['right'] = true;
+});
+window.addEventListener('keyup', function(e){
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys['left'] = false;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys['right'] = false;
 });
 
-function copyAddr(addr){ navigator.clipboard.writeText(addr); alert('Address copied!'); }
-function startGame(){
-  document.getElementById('payscreen').style.display = 'none';
-  init(); gameRunning = true; loop();
-}
-async function updatePool(){
-  try { const r = await fetch('/api/game/pool'); const d = await r.json();
-    document.getElementById('poolamt').textContent = Number(d.pool_shit||0).toLocaleString();
-  } catch(e){}
-}
-updatePool(); setInterval(updatePool, 30000);
+fetch('/api/game/pool').then(r=>r.json()).then(d=>{
+  document.getElementById('poolamt').textContent = Number(d.pool_shit||0).toLocaleString();
+}).catch(()=>{});
 </script>
 </body>
 </html>

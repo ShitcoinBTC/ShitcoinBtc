@@ -703,17 +703,7 @@
 </style>
 <style>
 
-    /* ---- explore grid ---- */
-    .explore{padding:70px 0;}
-    .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:26px;}
-    .xcard{display:block;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;text-decoration:none;transition:transform .15s ease,border-color .15s ease;}
-    .xcard:hover{transform:translateY(-3px);border-color:var(--gold);}
-    .xcard b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px;}
-    .xcard span{display:block;font-size:14px;color:var(--muted);line-height:1.55;}
-    .xcard i{display:block;margin-top:12px;font-style:normal;font-size:14px;color:var(--gold);font-weight:600;}
-    .section-lede{color:var(--muted);font-size:16px;max-width:420px;}
-    .wallet-cta p{color:var(--muted);font-size:15px;margin:0 0 18px;max-width:520px;}
-    @media(max-width:640px){.explore{padding:50px 0;}}
+    
 
     </style>
 <style>
@@ -730,7 +720,9 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 .menu-btn .bars{display:flex;flex-direction:column;gap:4px;}
 .menu-btn .bars span{display:block;width:18px;height:2px;background:#F5820B;border-radius:2px;}
 .menu-drop{display:none;position:absolute;right:0;top:calc(100% + 10px);min-width:250px;background:#1a1a1e;border:1px solid #2a2a30;border-radius:14px;padding:8px;box-shadow:0 18px 50px rgba(0,0,0,.55);}
-.nav-menu.open .menu-drop{display:block;}
+.menu-check{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.menu-check:checked ~ .menu-drop{display:block;}
+.menu-check:checked ~ .menu-btn{background:rgba(245,130,11,.14);}
 .menu-drop a{display:block;padding:11px 14px;border-radius:10px;color:#f2f0eb;text-decoration:none;font-size:15px;}
 .menu-drop a:hover{background:rgba(245,130,11,.12);}
 .menu-drop a.active{background:#F5820B;color:#14100a;font-weight:700;}
@@ -742,10 +734,11 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     <span>SHITCOIN</span>
   </a>
   <div class="nav-menu">
-    <button class="menu-btn" aria-haspopup="true" aria-expanded="false">
+    <input type="checkbox" id="navmenu-toggle" class="menu-check" tabindex="-1" aria-hidden="true">
+    <label for="navmenu-toggle" class="menu-btn" aria-haspopup="true" aria-expanded="false">
       <span class="bars"><span></span><span></span><span></span></span>
       Menu
-    </button>
+    </label>
     <div class="menu-drop">
     <a class="" href="/game">Shity Games</a>
     <a class="" href="/mine">Shity Mining</a>
@@ -763,7 +756,7 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
   </div>
 </div></nav>
 <script>
-(function(){var m=document.querySelector('nav.sitenav .nav-menu'),b=document.querySelector('nav.sitenav .menu-btn');if(!m||!b)return;var lastTouch=0;function close(){m.classList.remove('open');b.setAttribute('aria-expanded','false');}function toggle(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');}b.addEventListener('click',function(e){if(Date.now()-lastTouch<600)return;e.stopPropagation();toggle();});b.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();lastTouch=Date.now();toggle();},{passive:false});m.addEventListener('click',function(e){if(e.target.closest('a'))close();});m.addEventListener('touchend',function(e){if(e.target.closest('a'))close();},{passive:true});document.addEventListener('click',close);document.addEventListener('touchend',function(e){if(!m.contains(e.target))close();},{passive:true});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
+(function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
 </script>
 
 
@@ -861,25 +854,11 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     
 
     
-    <section class="explore">
-      <div class="wrap">
-        <div class="section-head">
-          <div><div class="section-index">04 / EXPLORE</div>
-          <h2>Hit a tab.<br>Go deeper.</h2></div>
-          <p class="section-lede">The homepage is the brochure. Everything that <em>does</em> something lives one click away.</p>
-        </div>
-        <div class="card-grid">
-          <a class="xcard" href="/mine"><b>Shity Mining</b><span>Mine SHIT from your browser, or merge-mine it for real with Bitcoin.</span><i>Open &rarr;</i></a>
-          <a class="xcard" href="/presale"><b>Shity Presale</b><span>Presale terms, accepted coins and how to take part.</span><i>Open &rarr;</i></a>
-          <a class="xcard" href="/launchpad"><b>Launchpad</b><span>Deploy your own SHIT-20 token when NEVM goes live.</span><i>Open &rarr;</i></a>
-          <a class="xcard" href="/whitepaper"><b>Shity Whitepaper</b><span>The full design: tokenomics, bridge, mining, the works.</span><i>Read &rarr;</i></a>
-        </div>
-      </div>
-    </section>
+    
 <section class="community-section" id="community">
       <div class="wrap community-card">
         <div class="community-copy">
-          <div class="section-index" style="color:var(--gold)">05 / FOLLOW THE BUILD</div>
+          <div class="section-index" style="color:var(--gold)">04 / FOLLOW THE BUILD</div>
           <h2>Laugh loudly.<br>Verify everything.</h2>
           <p>Track launch progress, wallet builds and Shitbridge updates. The code is public; the timeline is public; the joke is obvious.</p>
           <div class="community-actions">

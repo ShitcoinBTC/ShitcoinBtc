@@ -654,7 +654,14 @@ function gameOver() {
   document.getElementById('gameover').style.display = 'block';
 }
 
-function restart() { // Fetch pool amount
+function restart() {
+  document.getElementById('gameover').style.display = 'none';
+  document.getElementById('levelup').style.display = 'none';
+  init();
+  gameRunning = true;
+}
+
+// Fetch pool amount
 async function updatePool() {
   try {
     const r = await fetch('http://77.42.74.252:5002/api/game/pool');
@@ -682,7 +689,7 @@ function startGame() {
 init();
 // Don't start game loop until payment
 gameRunning = false;
-document.getElementById('payscreen').style.display = 'block'; }
+document.getElementById('payscreen').style.display = 'block';
 function shoot() {
   if (!gameRunning) return;
   const w = getWeapon();

@@ -47,6 +47,7 @@ canvas.width = Math.min(window.innerWidth, 700);
 canvas.height = Math.min(window.innerHeight, 900);
 
 let player, bullets, enemies, boss, powerups, score, lives, level, gameRunning, keys = {}, enemyTimer, laser, shield, laserTimer, laserStacks, shieldTimer;
+let zombieMode = false, zombieBosses = [], enemyBullets = [], zombieBombs = [], pendingZombie = false, zombieDone = false;
 
 // Chain logos (colors) - 25 bosses, 25 chains
 const CHAINS = [
@@ -95,6 +96,12 @@ function init() {
   enemies = [];
   powerups = [];
   boss = null;
+  zombieMode = false;
+  zombieBosses = [];
+  enemyBullets = [];
+  zombieBombs = [];
+  pendingZombie = false;
+  zombieDone = false;
   gameRunning = true;
   enemyTimer = 0;
   document.getElementById('gameover').style.display = 'none';
@@ -125,11 +132,17 @@ function getWeapon() {
 function updateUI() {
   document.getElementById('score').textContent = score;
   document.getElementById('lives').textContent = lives;
-  document.getElementById('lvl').textContent = level;
+  document.getElementById('lvl').textContent = zombieMode ? '🧟 ZOMBIE' : level;
 }
 
 function spawnEnemy() {
   enemyTimer++;
+  
+  // SECRET ZOMBIE LEVEL: the pot level
+  if (zombieMode) {
+    spawnZombieStuff();
+    return;
+  }
   
   // Spawn powerup bubbles occasionally (every ~15 seconds)
   if (enemyTimer % 900 === 0 && !boss) {
@@ -145,7 +158,9 @@ function spawnEnemy() {
   const spawnRate = Math.max(30, 140 - level * 4);
   
   // Boss at end of each level (after enough enemies)
-  if (!boss && enemyTimer > 3600) {
+  // Levels 1-10: 1 min each, levels 11+: 2.5 mins each
+  const levelTicks = level <= 10 ? 3600 : 9000;
+  if (!boss && enemyTimer > levelTicks) {
     const chain = CHAINS[(level - 1) % CHAINS.length];
     // Harder bosses: more HP, but possible with upgraded weapons
     const bossHp = 30 + level * 12;
@@ -187,6 +202,55 @@ function spawnEnemy() {
     }
     enemies.push(enemy);
   }
+}
+
+// SECRET ZOMBIE LEVEL (pot level): two zombie monsters that shoot back, raining bombs, 5 minutes
+function makeZombieBoss(x) {
+  const hp = 400;
+  return { x: x, y: -160, w: 130, h: 140, speed: 0.8, hp: hp, maxHp: hp, type: 'zombie' };
+}
+
+function spawnZombieStuff() {
+  // Spawn the two zombie monsters once
+  if (zombieBosses.length === 0 && enemyTimer === 1) {
+    zombieBosses.push(makeZombieBoss(canvas.width * 0.15));
+    zombieBosses.push(makeZombieBoss(canvas.width * 0.60));
+  }
+  // Zombies shoot back: aimed shots every ~1.2s
+  if (enemyTimer % 72 === 0) {
+    for (let zb of zombieBosses) {
+      if (zb.y < 0) continue;
+      const sx = zb.x + zb.w / 2, sy = zb.y + zb.h;
+      const dx = (player.x + player.w / 2) - sx, dy = (player.y + player.h / 2) - sy;
+      const d = Math.hypot(dx, dy) || 1;
+      enemyBullets.push({ x: sx - 5, y: sy, w: 10, h: 14, vx: dx / d * 3.2, vy: dy / d * 3.2 });
+    }
+  }
+  // Bombs rain every ~3s
+  if (enemyTimer % 180 === 0) {
+    zombieBombs.push({ x: Math.random() * (canvas.width - 36), y: -36, w: 36, h: 36, speed: 2 + Math.random() * 1.5 });
+  }
+  // Occasional powerup (every ~20s)
+  if (enemyTimer % 1200 === 0) {
+    const types = ['life', 'shield', 'bomb'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    powerups.push({ x: Math.random() * (canvas.width - 40), y: -40, w: 35, h: 35, speed: 1, type: type });
+  }
+  // Survive 5 minutes (18000 ticks) to clear the pot level
+  if (enemyTimer >= 18000) {
+    endZombieLevel();
+  }
+}
+
+function endZombieLevel() {
+  zombieMode = false;
+  zombieDone = true;
+  zombieBosses = [];
+  enemyBullets = [];
+  zombieBombs = [];
+  score += 5000; // pot level bonus
+  updateUI();
+  levelComplete(); // continues to level 11
 }
 
 function update() {
@@ -241,10 +305,16 @@ function update() {
         if (boss) {
           boss.hp -= 50; // Big damage to boss
           if (boss.hp <= 0) {
-            score += 100 * level;
-            boss = null;
-            if (level >= MAX_LEVEL) gameWin();
-            else levelComplete();
+            onBossDefeated();
+          }
+        }
+        // Bomb also hurts zombie bosses
+        for (let i = zombieBosses.length - 1; i >= 0; i--) {
+          zombieBosses[i].hp -= 50;
+          if (zombieBosses[i].hp <= 0) {
+            zombieBosses.splice(i, 1);
+            score += 500;
+            updateUI();
           }
         }
       }
@@ -284,11 +354,7 @@ function update() {
     if (boss && boss.x < laserX + laserW/2 && boss.x + boss.w > laserX - laserW/2) {
       boss.hp -= 2; // 2 damage per frame = 120/sec
       if (boss.hp <= 0) {
-        score += 100 * level;
-        boss = null;
-        updateUI();
-        if (level >= MAX_LEVEL) gameWin();
-        else levelComplete();
+        onBossDefeated();
       }
     }
   }
@@ -354,16 +420,108 @@ function update() {
         bullets.splice(j, 1);
         boss.hp -= dmg;
         if (boss.hp <= 0) {
-          score += 100 * level;
-          boss = null;
-          updateUI();
-          if (level >= MAX_LEVEL) {
-            gameWin();
-          } else {
-            levelComplete();
-          }
+          onBossDefeated();
         }
         break;
+      }
+    }
+  }
+
+  // SECRET ZOMBIE LEVEL entities
+  if (zombieMode) {
+    // Zombie bosses drift down then sway side to side
+    for (let i = zombieBosses.length - 1; i >= 0; i--) {
+      const zb = zombieBosses[i];
+      if (zb.y < 40 + (i * 60)) zb.y += zb.speed;
+      else zb.x += Math.sin(Date.now() * 0.001 + i * 2) * 2.5;
+      if (zb.x < 0) zb.x = 0;
+      if (zb.x + zb.w > canvas.width) zb.x = canvas.width - zb.w;
+      // Touching a zombie = death
+      if (checkCollision(zb, player)) {
+        lives = 0;
+        updateUI();
+        gameOver();
+        return;
+      }
+      // Player bullets damage zombies
+      for (let j = bullets.length - 1; j >= 0; j--) {
+        if (checkCollision(bullets[j], zb)) {
+          const dmg = bullets[j].damage || 1;
+          bullets.splice(j, 1);
+          zb.hp -= dmg;
+          if (zb.hp <= 0) {
+            zombieBosses.splice(i, 1);
+            score += 500;
+            updateUI();
+          }
+          break;
+        }
+      }
+    }
+    // Laser melts zombies too
+    if (laser) {
+      const laserX = player.x + player.w / 2;
+      const laserW = 20 + laserStacks * 10;
+      for (let i = zombieBosses.length - 1; i >= 0; i--) {
+        const zb = zombieBosses[i];
+        if (zb.x < laserX + laserW / 2 && zb.x + zb.w > laserX - laserW / 2) {
+          zb.hp -= 2;
+          if (zb.hp <= 0) {
+            zombieBosses.splice(i, 1);
+            score += 500;
+            updateUI();
+          }
+        }
+      }
+    }
+    // Both zombies dead = cleared early
+    if (zombieBosses.length === 0 && enemyTimer > 10) {
+      endZombieLevel();
+      return;
+    }
+    // Zombie shots (shield blocks)
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+      const b = enemyBullets[i];
+      b.x += b.vx;
+      b.y += b.vy;
+      if (b.y > canvas.height || b.x < -20 || b.x > canvas.width + 20) {
+        enemyBullets.splice(i, 1);
+        continue;
+      }
+      if (checkCollision(b, player)) {
+        enemyBullets.splice(i, 1);
+        if (!shield) {
+          lives--;
+          updateUI();
+          if (lives <= 0) { gameOver(); return; }
+        }
+      }
+    }
+    // Falling bombs: shoot them or dodge them (shield blocks)
+    for (let i = zombieBombs.length - 1; i >= 0; i--) {
+      const bm = zombieBombs[i];
+      bm.y += bm.speed;
+      if (bm.y > canvas.height) {
+        zombieBombs.splice(i, 1);
+        continue;
+      }
+      if (checkCollision(bm, player)) {
+        zombieBombs.splice(i, 1);
+        if (!shield) {
+          lives--;
+          updateUI();
+          if (lives <= 0) { gameOver(); return; }
+        }
+        continue;
+      }
+      for (let j = bullets.length - 1; j >= 0; j--) {
+        if (checkCollision(bullets[j], bm)) {
+          bullets.splice(j, 1);
+          zombieBombs.splice(i, 1);
+          score += 25;
+          updateUI();
+          break;
+        }
       }
     }
   }
@@ -374,15 +532,46 @@ function checkCollision(a, b) {
          a.y < b.y + b.h && a.y + (a.h||10) > b.y;
 }
 
+function onBossDefeated() {
+  score += 100 * level;
+  boss = null;
+  updateUI();
+  if (level === 10 && !zombieDone) {
+    // Unlock the SECRET ZOMBIE LEVEL (pot level)
+    pendingZombie = true;
+    gameRunning = false;
+    document.getElementById('levelup').innerHTML = '<div>🧟 SECRET ZOMBIE LEVEL 🧟</div><div style="font-size:16px;margin:12px 0;line-height:1.6;">THE POT LEVEL<br>Two zombie monsters. They shoot back.<br>Bombs rain from above.<br>Survive 5 minutes.</div><button onclick="nextLevel()">Enter if you dare</button>';
+    document.getElementById('levelup').style.display = 'block';
+    return;
+  }
+  if (level >= MAX_LEVEL) gameWin();
+  else levelComplete();
+}
+
 function levelComplete() {
   gameRunning = false;
-  document.getElementById('newlvl').textContent = level + 1;
+  document.getElementById('levelup').innerHTML = '<div>LEVEL <span id="newlvl">' + (level + 1) + '</span>!</div><button onclick="nextLevel()">Continue</button>';
   document.getElementById('levelup').style.display = 'block';
 }
 
 function nextLevel() {
-  level++;
   document.getElementById('levelup').style.display = 'none';
+  // Enter the secret zombie level (pot level)
+  if (pendingZombie) {
+    pendingZombie = false;
+    zombieMode = true;
+    enemies = [];
+    powerups = [];
+    boss = null;
+    zombieBosses = [];
+    enemyBullets = [];
+    zombieBombs = [];
+    enemyTimer = 0;
+    gameRunning = true;
+    updateUI();
+    return;
+  }
+  level++;
   enemies = [];
   powerups = [];
   boss = null;
@@ -616,6 +805,44 @@ function draw() {
     ctx.fillRect(boss.x, boss.y - 12, boss.w, 8);
     ctx.fillStyle = '#0f0';
     ctx.fillRect(boss.x, boss.y - 12, boss.w * (boss.hp / boss.maxHp), 8);
+  }
+
+  // SECRET ZOMBIE LEVEL: zombie bosses, their shots, falling bombs
+  if (zombieMode || zombieBosses.length) {
+    for (let zb of zombieBosses) {
+      ctx.font = '90px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🧟', zb.x + zb.w / 2, zb.y + zb.h - 20);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('ZOMBIE', zb.x + zb.w / 2, zb.y + zb.h + 12);
+      // HP bar
+      ctx.fillStyle = '#f00';
+      ctx.fillRect(zb.x, zb.y - 12, zb.w, 8);
+      ctx.fillStyle = '#0f0';
+      ctx.fillRect(zb.x, zb.y - 12, zb.w * (zb.hp / zb.maxHp), 8);
+    }
+    // Zombie shots
+    ctx.fillStyle = '#ff0';
+    for (let b of enemyBullets) {
+      ctx.beginPath();
+      ctx.arc(b.x + b.w / 2, b.y + b.h / 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Falling bombs
+    ctx.font = '28px serif';
+    ctx.textAlign = 'center';
+    for (let bm of zombieBombs) {
+      ctx.fillText('💣', bm.x + bm.w / 2, bm.y + bm.h - 4);
+    }
+    // Survive timer
+    if (zombieMode) {
+      const left = Math.max(0, Math.ceil((18000 - enemyTimer) / 60));
+      ctx.fillStyle = '#f2a900';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🧟 SURVIVE ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'), canvas.width / 2, 30);
+    }
   }
 }
 

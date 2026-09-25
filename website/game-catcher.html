@@ -15,6 +15,28 @@ button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none;
 </style>
 </head>
 <body>
+<style>
+/* ---- site nav v4: single dropdown ---- */
+nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative;z-index:60;}
+.sitenav-inner{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
+.sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
+.sitenav .brand img{border-radius:8px;}
+.nav-menu{position:relative;}
+.menu-btn{display:flex;align-items:center;gap:9px;border:1px solid #F5820B;color:#F5820B;background:transparent;padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;}
+.menu-btn:hover{background:rgba(245,130,11,.12);}
+.menu-btn{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.menu-drop a{cursor:pointer;}
+.menu-btn .bars{display:flex;flex-direction:column;gap:4px;}
+.menu-btn .bars span{display:block;width:18px;height:2px;background:#F5820B;border-radius:2px;}
+.menu-drop{display:none;position:absolute;right:0;top:calc(100% + 10px);min-width:250px;background:#1a1a1e;border:1px solid #2a2a30;border-radius:14px;padding:8px;box-shadow:0 18px 50px rgba(0,0,0,.55);}
+.menu-check{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.menu-check:checked ~ .menu-drop{display:block;}
+.menu-check:checked ~ .menu-btn{background:rgba(245,130,11,.14);}
+.menu-drop a{display:block;padding:11px 14px;border-radius:10px;color:#f2f0eb;text-decoration:none;font-size:15px;}
+.menu-drop a:hover{background:rgba(245,130,11,.12);}
+.menu-drop a.active{background:#F5820B;color:#14100a;font-weight:700;}
+.menu-drop hr{border:none;border-top:1px solid #2a2a30;margin:6px 4px;}
+</style>
 <nav class="sitenav"><div class="sitenav-inner">
   <a class="brand" href="/">
     <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
@@ -28,6 +50,7 @@ button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none;
     </label>
     <div class="menu-drop">
     <a class="active" href="/game">Shity Games</a>
+    <a class="" href="/lottery">Shity Lottery</a>
     <a class="" href="/mine">Shity Mining</a>
     <a class="" href="/presale">Shity Presale</a>
     <a class="" href="/webwallet">Shity Web Wallet</a>

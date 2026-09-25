@@ -3,20 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shity Games - Pick Your Game</title>
+<title>Shity Lottery - Shitcoin</title>
 <style>
 body { margin: 0; background: #0d0d0f; color: #f2f0eb; font-family: monospace; }
 .wrap { max-width: 900px; margin: 0 auto; padding: 34px 18px 60px; text-align: center; }
 h1 { color: #f2a900; font-size: 34px; margin: 10px 0 6px; }
 .sub { color: #999; font-size: 15px; margin-bottom: 8px; }
-.pool { display: inline-block; margin: 12px 0 26px; padding: 10px 22px; border: 1px solid #F5820B; border-radius: 12px; color: #f2a900; font-size: 17px; }
-.cards { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
-.card { background: #16161a; border: 1px solid #2a2a30; border-radius: 16px; padding: 26px 22px; width: 300px; text-decoration: none; color: inherit; transition: transform .12s, border-color .12s; }
-.card:hover { transform: translateY(-3px); border-color: #F5820B; }
-.card .art { font-size: 54px; margin-bottom: 10px; }
-.card h2 { color: #f2a900; margin: 6px 0 10px; font-size: 22px; }
-.card p { color: #aaa; font-size: 14px; line-height: 1.55; margin: 0 0 16px; }
-.card .play { display: inline-block; background: #f2a900; color: #14100a; font-weight: bold; padding: 12px 28px; border-radius: 10px; font-size: 17px; }
+.stats { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 18px 0 26px; }
+.stat { background: #16161a; border: 1px solid #2a2a30; border-radius: 12px; padding: 14px 22px; min-width: 120px; }
+.stat .k { font-size: 11px; color: #777; letter-spacing: 1px; }
+.stat .v { font-size: 22px; color: #f2a900; font-weight: bold; margin-top: 4px; }
+.howto { background: #16161a; border: 1px solid #2a2a30; border-radius: 16px; padding: 26px 24px; text-align: left; max-width: 640px; margin: 0 auto; }
+.howto h2 { color: #f2a900; font-size: 20px; margin: 0 0 14px; text-align: center; }
+.howto ol { color: #ccc; font-size: 14px; line-height: 1.7; margin: 0; padding-left: 22px; }
+.addrbox { display: flex; gap: 8px; margin: 18px auto 0; max-width: 640px; }
+.addrbox input { flex: 1; background: #0d0d0f; border: 1px solid #2a2a30; color: #f2a900; border-radius: 10px; padding: 12px; font-family: monospace; font-size: 13px; min-width: 0; }
+.addrbox button { background: #f2a900; color: #14100a; font-weight: bold; border: none; border-radius: 10px; padding: 12px 20px; cursor: pointer; font-family: monospace; font-size: 15px; }
 .note { margin-top: 30px; color: #777; font-size: 13px; line-height: 1.6; }
 </style>
 </head>
@@ -55,8 +57,8 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
       Menu
     </label>
     <div class="menu-drop">
-    <a class="active" href="/game">Shity Games</a>
-    <a class="" href="/lottery">Shity Lottery</a>
+    <a class="" href="/game">Shity Games</a>
+    <a class="active" href="/lottery">Shity Lottery</a>
     <a class="" href="/mine">Shity Mining</a>
     <a class="" href="/presale">Shity Presale</a>
     <a class="" href="/webwallet">Shity Web Wallet</a>
@@ -77,29 +79,44 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 (function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
 </script>
 <div class="wrap">
-  <h1>Shity Games</h1>
-  <div class="sub">Pay 2 SHIT to play. Winner takes 50% of the pool.</div>
-  <div class="pool">Pool: <strong id="poolamt">...</strong> SHIT</div>
-  <div class="cards">
-    <a class="card" href="/game-spaceship">
-      <div class="art">&#128640;</div>
-      <h2>Shity Spaceship</h2>
-      <p>Blast through 25 levels of shitcoins with Mr. Shitoshi. Beat every level and claim half the pool.</p>
-      <span class="play">Play</span>
-    </a>
-    <a class="card" href="/game-catcher">
-      <div class="art"><img src="/img/poop-icon.png" alt="" style="width:54px;height:54px;vertical-align:middle;"></div>
-      <h2>Shity Catcher</h2>
-      <p>Catch the falling SHIT, dodge the ETH. First to 50 catches takes half the pool.</p>
-      <span class="play">Play</span>
-    </a>
+  <h1>&#x1F3B0; Shity Lottery</h1>
+  <div class="sub">10 SHIT per ticket. Winner takes 80% of the pot. Drawing every 1440 blocks (~12 hours).</div>
+  <div class="stats">
+    <div class="stat"><div class="k">ROUND</div><div class="v" id="st-round">...</div></div>
+    <div class="stat"><div class="k">POT</div><div class="v" id="st-pot">...</div></div>
+    <div class="stat"><div class="k">TICKETS</div><div class="v" id="st-tickets">...</div></div>
+    <div class="stat"><div class="k">PLAYERS</div><div class="v" id="st-players">...</div></div>
+    <div class="stat"><div class="k">BLOCKS TO DRAW</div><div class="v" id="st-blocks">...</div></div>
   </div>
-  <div class="note">Winners are paid in SHIT to the address they give after winning.<br>stay Shity.</div>
+  <div class="howto">
+    <h2>How to play</h2>
+    <ol>
+      <li>Send <strong>10 SHIT per ticket</strong> to the lottery address below. Max 100 tickets per player per round.</li>
+      <li>At the draw block, the winner is picked by block hash from all tickets.</li>
+      <li>Winner gets <strong>80%</strong> of the pot, 20% goes to the team. Paid in SHIT.</li>
+    </ol>
+    <div class="addrbox">
+      <input id="lotto-addr" readonly value="shit1qkh0zzuxyxnn2lzhezvd3vrgrqw38fa2ej8nmun">
+      <button onclick="copyLotto()">Copy</button>
+    </div>
+  </div>
+  <div class="note">Tickets are counted from confirmed payments to the lottery address.<br>stay Shity.</div>
 </div>
 <script>
-fetch('/api/game/pool').then(r=>r.json()).then(d=>{
-  document.getElementById('poolamt').textContent = Number(d.pool_shit||0).toLocaleString();
-}).catch(()=>{ document.getElementById('poolamt').textContent = '0'; });
+fetch('/lottery.json').then(r=>r.json()).then(d=>{
+  document.getElementById('st-round').textContent = d.round;
+  document.getElementById('st-pot').textContent = Number(d.pot_shit||0).toLocaleString() + ' SHIT';
+  document.getElementById('st-tickets').textContent = d.tickets;
+  document.getElementById('st-players').textContent = d.players;
+  document.getElementById('st-blocks').textContent = d.blocks_to_draw;
+  if(d.address) document.getElementById('lotto-addr').value = d.address;
+}).catch(()=>{});
+function copyLotto(){
+  var i = document.getElementById('lotto-addr');
+  i.select(); i.setSelectionRange(0, 99999);
+  document.execCommand('copy');
+  if(navigator.clipboard) navigator.clipboard.writeText(i.value).catch(()=>{});
+}
 </script>
 </body>
 </html>

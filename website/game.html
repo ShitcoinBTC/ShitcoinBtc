@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>SHIT Shooter</title>
+<style>
+body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: monospace; }
+canvas { display: block; margin: 0 auto; }
+#ui { position: fixed; top: 10px; left: 10px; color: #f2a900; font-size: 18px; }
+#gameover { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 32px; display: none; text-align: center; }
+button { font-size: 20px; padding: 10px 20px; background: #f2a900; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div id="payment" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 30px; border-radius: 12px; text-align: center; color: #eee; max-width: 90%;">
+  <h2 style="color: #f2a900;">SHIT Shooter - 10 SHIT to Play</h2>
+  <p>Send 10 SHIT to:</p>
+  <p style="font-family: monospace; word-break: break-all; background: #111; padding: 10px; border-radius: 4px;" id="gameaddr">Loading...</p>
+  <p>Enter your transaction ID:</p>
+  <input type="text" id="txid" placeholder="txid" style="width: 100%; padding: 10px; margin: 10px 0;">
+  <button onclick="startGame()">Play</button>
+</div>
+<div id="ui" style="display: none;">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
+<div id="gameover"><div>💩 GAME OVER 💩</div><div>Score: <span id="finalscore">0</span></div><button onclick="restart()">Play Again</button></div>
+<canvas id="game"></canvas>
+<script>
+let gameTxid = null;
+
+function startGame() {
+  const txid = document.getElementById('txid').value.trim();
+  if (!txid) { alert('Enter txid'); return; }
+  // Verify with backend
+  fetch('/api/game/verify', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({txid: txid})
+  }).then(r => r.json()).then(d => {
+    if (d.ok) {
+      gameTxid = txid;
+      document.getElementById('payment').style.display = 'none';
+      document.getElementById('ui').style.display = 'block';
+      init();
+    } else {
+      alert('Invalid txid or already used');
+    }
+  });
+}
+
+// Load game address
+fetch('/api/game/address').then(r => r.json()).then(d => {
+  document.getElementById('gameaddr').textContent = d.address;
+});
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+canvas.width = Math.min(window.innerWidth, 600);
+canvas.height = Math.min(window.innerHeight, 800);
+
+let player, bullets, enemies, score, lives, gameRunning, keys = {};
+
+function init() {
+  player = { x: canvas.width/2, y: canvas.height-60, w: 40, h: 30, speed: 5 };
+  bullets = [];
+  enemies = [];
+  score = 0;
+  lives = 3;
+  gameRunning = true;
+  document.getElementById('gameover').style.display = 'none';
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+}
+
+function spawnEnemy() {
+  if (Math.random() < 0.03) {
+    enemies.push({
+      x: Math.random() * (canvas.width - 30),
+      y: -30,
+      w: 30, h: 30,
+      speed: 1 + Math.random() * 2
+    });
+  }
+}
+
+function update() {
+  if (!gameRunning) return;
+  
+  // Player movement
+  if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+  if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
+  
+  // Bullets
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    bullets[i].y -= 7;
+    if (bullets[i].y < 0) bullets.splice(i, 1);
+  }
+  
+  // Enemies
+  spawnEnemy();
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    enemies[i].y += enemies[i].speed;
+    // Collision with player
+    if (enemies[i].x < player.x + player.w && enemies[i].x + enemies[i].w > player.x &&
+        enemies[i].y < player.y + player.h && enemies[i].y + enemies[i].h > player.y) {
+      enemies.splice(i, 1);
+      lives--;
+      updateUI();
+      if (lives <= 0) gameOver();
+      continue;
+    }
+    // Off screen
+    if (enemies[i].y > canvas.height) {
+      enemies.splice(i, 1);
+      continue;
+    }
+    // Collision with bullets
+    for (let j = bullets.length - 1; j >= 0; j--) {
+      if (bullets[j].x > enemies[i].x && bullets[j].x < enemies[i].x + enemies[i].w &&
+          bullets[j].y > enemies[i].y && bullets[j].y < enemies[i].y + enemies[i].h) {
+        enemies.splice(i, 1);
+        bullets.splice(j, 1);
+        score += 10;
+        updateUI();
+        break;
+      }
+    }
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Stars
+  ctx.fillStyle = '#fff';
+  for (let i = 0; i < 50; i++) {
+    ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1);
+  }
+  
+  if (!gameRunning) return;
+  
+  // Player (poop emoji style)
+  ctx.font = '30px serif';
+  ctx.fillText('💩', player.x, player.y + 25);
+  
+  // Bullets
+  ctx.fillStyle = '#f2a900';
+  for (let b of bullets) {
+    ctx.fillRect(b.x, b.y, 4, 10);
+  }
+  
+  // Enemies (ETH logo style - diamond)
+  ctx.fillStyle = '#627eea';
+  for (let e of enemies) {
+    ctx.beginPath();
+    ctx.moveTo(e.x + e.w/2, e.y);
+    ctx.lineTo(e.x + e.w, e.y + e.h/2);
+    ctx.lineTo(e.x + e.w/2, e.y + e.h);
+    ctx.lineTo(e.x, e.y + e.h/2);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+function gameOver() {
+  gameRunning = false;
+  document.getElementById('finalscore').textContent = score;
+  document.getElementById('gameover').style.display = 'block';
+  // Submit score
+  if (gameTxid) {
+    fetch('/api/game/score', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({txid: gameTxid, score: score})
+    });
+  }
+}
+
+function restart() {
+  init();
+}
+
+function shoot() {
+  if (!gameRunning) return;
+  bullets.push({ x: player.x + player.w/2 - 2, y: player.y });
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ') { shoot(); e.preventDefault(); }
+});
+document.addEventListener('keyup', e => keys[e.key] = false);
+
+// Touch
+let touchX = null;
+canvas.addEventListener('touchstart', e => {
+  touchX = e.touches[0].clientX;
+  shoot();
+  e.preventDefault();
+}, {passive: false});
+canvas.addEventListener('touchmove', e => {
+  if (touchX !== null) {
+    let dx = e.touches[0].clientX - touchX;
+    player.x = Math.max(0, Math.min(canvas.width - player.w, player.x + dx));
+    touchX = e.touches[0].clientX;
+  }
+  e.preventDefault();
+}, {passive: false});
+canvas.addEventListener('touchend', () => touchX = null);
+
+// Mouse
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  player.x = Math.max(0, Math.min(canvas.width - player.w, e.clientX - rect.left - player.w/2));
+});
+canvas.addEventListener('click', shoot);
+
+init();
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

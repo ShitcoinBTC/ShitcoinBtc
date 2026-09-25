@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHIT Presale</title>
+<style>
+body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background: #0a0a0a; color: #eee; }
+h1 { color: #f2a900; text-align: center; }
+.card { background: #1a1a1a; padding: 20px; border-radius: 12px; margin: 20px 0; }
+label { display: block; margin: 15px 0 5px; font-weight: bold; }
+input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #222; color: #eee; font-size: 16px; box-sizing: border-box; }
+button { width: 100%; padding: 15px; background: #f2a900; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+.addr { font-family: monospace; word-break: break-all; background: #111; padding: 10px; border-radius: 4px; margin: 10px 0; }
+.info { color: #888; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1>💩 SHIT Presale</h1>
+
+<div class="card">
+<h2>Terms</h2>
+<p><strong>Price:</strong> $0.000095 per SHIT (~10,526 SHIT per $1)</p>
+<p><strong>Cap:</strong> 3.78B SHIT (18% of supply)</p>
+<p><strong>Vesting:</strong> 6-month cliff, then 12 equal monthly unlocks (18 months total)</p>
+<p class="info">IOU until chain distribution. Your SHIT will be sent to your address as it unlocks, starting 6 months after investment.</p>
+</div>
+
+<div class="card">
+<h2>Step 1: Send Payment</h2>
+<label>Currency</label>
+<select id="currency" onchange="showAddress()">
+<option value="BTC">Bitcoin (BTC)</option>
+<option value="ETH">Ethereum (ETH)</option>
+<option value="SOL">Solana (SOL)</option>
+<option value="GRAM">Gram (TON)</option>
+<option value="USDT-ETH">Tether (USDT on Ethereum)</option>
+<option value="USDT-SOL">Tether (USDT on Solana)</option>
+<option value="USDT-BASE">Tether (USDT on Base)</option>
+</select>
+<div style="margin-top: 15px;">
+<p>Send to:</p>
+<div class="addr" id="depaddr">Select currency</div>
+<button onclick="copyAddr()" style="width: auto; padding: 10px 20px; margin-top: 10px;">Copy Address</button>
+</div>
+</div>
+
+<div class="card">
+<h2>Step 2: Register Investment</h2>
+<label>Transaction ID (txid)</label>
+<input type="text" id="txid" placeholder="Paste your transaction ID">
+<label>Amount Sent (USD value)</label>
+<input type="number" id="usdamount" placeholder="e.g. 100" step="any" oninput="calcShit()">
+<div id="shitcalc" style="margin: 10px 0; padding: 10px; background: #111; border-radius: 4px; font-size: 18px; color: #f2a900;"></div>
+<label>Amount Sent (in crypto, for reference)</label>
+<input type="number" id="amount" placeholder="e.g. 0.001" step="any">
+<label>Your SHIT Address (for distribution)</label>
+<input type="text" id="shitaddr" placeholder="shit1...">
+<p class="info">This is where your SHIT will be sent as it unlocks. Double-check it.</p>
+<label>Email (optional, for updates)</label>
+<input type="email" id="email" placeholder="you@email.com">
+<button onclick="submit()">Register Investment</button>
+</div>
+
+<div id="result" class="card" style="display: none;"></div>
+
+<script>
+const SHIT_PRICE = 0.000095;
+function calcShit() {
+  const usd = parseFloat(document.getElementById('usdamount').value) || 0;
+  const shit = usd / SHIT_PRICE;
+  document.getElementById('shitcalc').textContent =
+    usd > 0 ? `You get: ${shit.toLocaleString(undefined, {maximumFractionDigits: 0})} SHIT` : '';
+}
+const ADDRESSES = {
+  BTC: '3FPSdy4dtNpMJxEnrhXMBEm3akEUY3Z592',
+  ETH: '0x67de87a2419522265f7d7b9f50f3810b3a2111d3',
+  SOL: '3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4',
+  GRAM: 'UQBhJAV0TcB7lYCLb7nvbwmFis0VLqBYX04t6FdVw5T853rE',
+  'USDT-ETH': '0x67de87a2419522265f7d7b9f50f3810b3a2111d3',
+  'USDT-SOL': '3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4',
+  'USDT-BASE': '0x67de87a2419522265f7d7b9f50f3810b3a2111d3'
+};
+function showAddress() {
+  const c = document.getElementById('currency').value;
+  document.getElementById('depaddr').textContent = ADDRESSES[c];
+}
+function copyAddr() {
+  navigator.clipboard.writeText(document.getElementById('depaddr').textContent);
+  alert('Copied');
+}
+function submit() {
+  const data = {
+    currency: document.getElementById('currency').value,
+    txid: document.getElementById('txid').value.trim(),
+    amount_usd: parseFloat(document.getElementById('usdamount').value),
+    amount: parseFloat(document.getElementById('amount').value) || 0,
+    shit_address: document.getElementById('shitaddr').value.trim(),
+    email: document.getElementById('email').value.trim()
+  };
+  if (!data.txid || !data.amount_usd || !data.shit_address) {
+    alert('Fill in txid, USD amount, and SHIT address');
+    return;
+  }
+  fetch('/api/presale/register', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(r => r.json()).then(d => {
+    const el = document.getElementById('result');
+    el.style.display = 'block';
+    if (d.ok) {
+      el.innerHTML = `<h3 style="color: #0f0;">Registered!</h3>
+        <p>SHIT allocated: <strong>${d.shit_allocated.toLocaleString()}</strong></p>
+        <p>Vesting: 6-month cliff, then 12 monthly unlocks (18 months total).</p>
+        <p>First unlock: 6 months from now.</p>`;
+    } else {
+      el.innerHTML = `<h3 style="color: #f00;">Error</h3><p>${d.error}</p>`;
+    }
+  });
+}
+showAddress();
+</script>
+</body>
+</html>

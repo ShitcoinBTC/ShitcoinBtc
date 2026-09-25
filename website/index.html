@@ -1004,5 +1004,48 @@
       });
     }());
   </script>
+
+  <section id="lottery" style="padding: 3rem 1.5rem; max-width: 800px; margin: 0 auto; text-align: center;">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">Daily SHIT Lottery</h2>
+    <p style="margin-bottom: 1.5rem; color: var(--muted);">10 SHIT per ticket. Max 100 tickets per player. 80% to winner, 20% to team. Drawing every 1440 blocks (~12 hours).</p>
+    <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
+      <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">SEND TICKETS TO</div>
+      <code id="lottery-addr" style="font-size: 0.9rem; word-break: break-all; display: block; margin-bottom: 1rem;">shit1qkh0zzuxyxnn2lzhezvd3vrgrqw38fa2ej8nmun</code>
+      <button onclick="navigator.clipboard.writeText('shit1qkh0zzuxyxnn2lzhezvd3vrgrqw38fa2ej8nmun').then(()=>alert('Copied!'))" style="padding: 0.5rem 1.5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--gold); cursor: pointer; font-weight: 600;">Copy Address</button>
+    </div>
+    <div id="lottery-stats" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.5rem;">
+        <div style="font-size: 0.8rem; color: var(--muted);">POT</div>
+        <div id="lottery-pot" style="font-size: 1.5rem; font-weight: 700;">— SHIT</div>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.5rem;">
+        <div style="font-size: 0.8rem; color: var(--muted);">TICKETS</div>
+        <div id="lottery-tickets" style="font-size: 1.5rem; font-weight: 700;">—</div>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.5rem;">
+        <div style="font-size: 0.8rem; color: var(--muted);">BLOCKS TO DRAW</div>
+        <div id="lottery-blocks" style="font-size: 1.5rem; font-weight: 700;">—</div>
+      </div>
+    </div>
+  </section>
+  <script>
+    fetch('/lottery.json').then(r => r.json()).then(d => {
+      document.getElementById('lottery-pot').textContent = d.pot_shit.toLocaleString() + ' SHIT';
+      document.getElementById('lottery-tickets').textContent = d.tickets;
+      document.getElementById('lottery-blocks').textContent = d.blocks_to_draw;
+    }).catch(() => {});
+  </script>
+
+  <section style="padding: 2rem 1.5rem; max-width: 800px; margin: 0 auto; text-align: center;">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">SHIT Shooter</h2>
+    <p style="margin-bottom: 1rem; color: var(--muted);">Old school space shooter. You're the 💩, they're the ETH.</p>
+    <a href="/game.html" style="display: inline-block; padding: 0.75rem 2rem; background: var(--gold); border-radius: 8px; font-weight: 700; text-decoration: none; color: #000;">Play Now</a>
+  </section>
+
+  <section style="padding: 2rem 1.5rem; max-width: 800px; margin: 0 auto; text-align: center; background: #1a1a1a; border-radius: 12px;">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem; color: var(--gold);">Presale Live</h2>
+    <p style="margin-bottom: 1rem;">$0.000095 per SHIT. 24 monthly unlocks.</p>
+    <a href="/presale.html" style="display: inline-block; padding: 0.75rem 2rem; background: var(--gold); border-radius: 8px; font-weight: 700; text-decoration: none; color: #000;">Invest Now</a>
+  </section>
 </body>
 </html>

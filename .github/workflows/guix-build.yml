@@ -145,11 +145,11 @@ jobs:
           name: guix-artifacts-${{ matrix.build_target }}
           # Upload main release archives/installers, source tarball, and checksum file
           path: |
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*${{ matrix.build_target }}.tar.gz
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*-win64.zip
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*-win64-setup-unsigned.exe
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*${{ matrix.build_target }}-unsigned.zip
-            ${{ github.workspace }}/syscoin/guix-build*/output/dist-archive/syscoin-*.tar.gz
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*${{ matrix.build_target }}.tar.gz
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*-win64.zip
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*-win64-setup-unsigned.exe
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*${{ matrix.build_target }}-unsigned.zip
+            ${{ github.workspace }}/syscoin/guix-build*/output/dist-archive/shitcoin-*.tar.gz
             ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/SHA256SUMS.part
           if-no-files-found: error
 
@@ -158,9 +158,9 @@ jobs:
         with:
           # Update subject-path to match the uploaded files
           subject-path: |
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*${{ matrix.build_target }}.tar.gz
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*-win64.zip
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*-win64-setup-unsigned.exe
-            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/syscoin-*${{ matrix.build_target }}-unsigned.zip
-            ${{ github.workspace }}/syscoin/guix-build*/output/dist-archive/syscoin-*.tar.gz
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*${{ matrix.build_target }}.tar.gz
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*-win64.zip
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*-win64-setup-unsigned.exe
+            ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/shitcoin-*${{ matrix.build_target }}-unsigned.zip
+            ${{ github.workspace }}/syscoin/guix-build*/output/dist-archive/shitcoin-*.tar.gz
             ${{ github.workspace }}/syscoin/guix-build*/output/${{ matrix.build_target }}/SHA256SUMS.part

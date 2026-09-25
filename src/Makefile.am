@@ -431,7 +431,7 @@ libsyscoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
 
  # nevm
- nevm_libnevm_a_CPPFLAGS = $(AM_CPPFLAGS) $(SYSCOIN_INCLUDES)
+ nevm_libnevm_a_CPPFLAGS = $(AM_CPPFLAGS) $(SYSCOIN_INCLUDES) $(BOOST_CPPFLAGS)
  nevm_libnevm_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
  nevm_libnevm_a_SOURCES = \
   nevm/address.cpp \

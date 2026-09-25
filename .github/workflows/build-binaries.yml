@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos'
         run: |
-          brew install automake libtool pkg-config libevent boost sqlite \
+          brew install automake libtool pkgconf libevent boost sqlite \
             openssl@3 berkeley-db@5 miniupnpc zeromq
           echo "CPPFLAGS=-I$(brew --prefix berkeley-db@5)/include -I$(brew --prefix openssl@3)/include" >> "$GITHUB_ENV"
           echo "LDFLAGS=-L$(brew --prefix berkeley-db@5)/lib -L$(brew --prefix openssl@3)/lib" >> "$GITHUB_ENV"
@@ -49,15 +49,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libtool autotools-dev automake \
-            pkg-config bsdmainutils curl python3
+            pkg-config bsdmainutils curl python3 g++-mingw-w64-x86-64
           cd depends
           make HOST=x86_64-w64-mingw32 -j$(nproc)
 
       - name: Configure and build (Linux/macOS)
         if: matrix.os != 'windows'
         run: |
+          echo "=== autogen ==="
           ./autogen.sh
+          echo "=== configure ==="
           ./configure --without-gui --disable-tests --disable-bench
+          echo "=== make ==="
           make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
 
       - name: Configure and build (Windows)
@@ -116,7 +119,7 @@ jobs:
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos'
         run: |
-          brew install automake libtool pkg-config libevent boost sqlite \
+          brew install automake libtool pkgconf libevent boost sqlite \
             openssl@3 berkeley-db@5 miniupnpc zeromq qt@5
           echo "CPPFLAGS=-I$(brew --prefix berkeley-db@5)/include -I$(brew --prefix openssl@3)/include" >> "$GITHUB_ENV"
           echo "LDFLAGS=-L$(brew --prefix berkeley-db@5)/lib -L$(brew --prefix openssl@3)/lib" >> "$GITHUB_ENV"
@@ -128,15 +131,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libtool autotools-dev automake \
-            pkg-config bsdmainutils curl python3
+            pkg-config bsdmainutils curl python3 g++-mingw-w64-x86-64
           cd depends
           make HOST=x86_64-w64-mingw32 -j$(nproc)
 
       - name: Configure and build (Linux/macOS)
         if: matrix.os != 'windows'
         run: |
+          echo "=== autogen ==="
           ./autogen.sh
+          echo "=== configure ==="
           ./configure --with-gui=qt5 --disable-tests --disable-bench
+          echo "=== make ==="
           make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
 
       - name: Configure and build (Windows)

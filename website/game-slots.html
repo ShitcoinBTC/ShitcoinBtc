@@ -99,12 +99,12 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
   <div id="result"></div>
   <div id="paytable">
     <div>7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; = JACKPOT, 75% of the pool</div>
-    <div>any 3 of a kind = 10% of the pool</div>
+    <div>any 3 of a kind = 5% of the pool</div>
   </div>
 </div>
 <div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%;">
 <div style="font-size: 28px; margin-bottom: 10px;">Shity Slots</div>
-<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Pay <strong style="color:#f2a900;">20 SHIT</strong> for <strong style="color:#f2a900;">10 spins</strong>.<br>Three 7s = JACKPOT, 75% of the pool!<br>Any three of a kind = 10% of the pool.</div>
+<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Pay <strong style="color:#f2a900;">20 SHIT</strong> for <strong style="color:#f2a900;">7 spins</strong>.<br>Three 7s = JACKPOT, 75% of the pool!<br>Any three of a kind = 10% of the pool.</div>
 <div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>
 <div style="margin-bottom: 15px; font-size: 16px;">Pay one:</div>
 <div style="text-align: left; margin-bottom: 15px; font-size: 15px; line-height: 2;">
@@ -132,7 +132,7 @@ function startGame(){
   document.getElementById('gameover').style.display = 'none';
   document.getElementById('machine').style.display = 'block';
   document.getElementById('result').textContent = '';
-  spinsLeft = 10; spinning = false;
+  spinsLeft = 7; spinning = false;
   updateSpins();
 }
 
@@ -163,7 +163,7 @@ function evaluate(){
   if (r[0] === seven && r[1] === seven && r[2] === seven){
     winScreen('jackpot', 'JACKPOT! Three 7s! You win 75% of the pool!');
   } else if (r[0] === r[1] && r[1] === r[2]){
-    winScreen('threeoak', 'Three of a kind! You win 10% of the pool!');
+    winScreen('threeoak', 'Three of a kind! You win 5% of the pool!');
   } else if (spinsLeft > 0){
     res.textContent = 'No luck. Spin again!';
   } else {

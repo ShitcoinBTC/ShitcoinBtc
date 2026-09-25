@@ -8,14 +8,20 @@
 #include <support/lockedpool.h>
 #include <support/cleanse.h>
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <boost/pool/pool_alloc.hpp>
-
 //
-// Allocator that allocates memory in chunks from a pool, which in turn allocates larger chunks from secure memory
-// Memory is cleaned when freed as well. This allocator is NOT thread safe
+// Allocator that allocates from the process-wide locked (secure) memory pool.
+// Memory is cleansed when freed. This allocator is NOT thread safe (see
+// mt_pooled_secure_allocator for the thread-safe wrapper).
+//
+// Note: this was historically implemented on top of boost::pool, which was
+// removed from Boost in 1.89. The LockedPoolManager already chunks, pools and
+// reuses locked pages internally, so allocating from it directly preserves
+// the original semantics (secure pages + cleansing on free) without the
+// extra layer.
 //
 template <typename T>
 struct pooled_secure_allocator : public std::allocator<T> {
@@ -30,16 +36,22 @@ struct pooled_secure_allocator : public std::allocator<T> {
     typedef typename base::const_reference const_reference;
 #endif
     typedef typename base::value_type value_type;
+
+    // Chunk-size parameters are accepted for API compatibility but are no
+    // longer used: the locked pool manager handles chunking internally.
     pooled_secure_allocator(const size_type nrequested_size = 32,
                             const size_type nnext_size = 32,
-                            const size_type nmax_size = 0) noexcept :
-                            pool(nrequested_size, nnext_size, nmax_size){}
+                            const size_type nmax_size = 0) noexcept {}
     ~pooled_secure_allocator() noexcept {}
 
     T* allocate(std::size_t n, const void* hint = nullptr)
     {
-        size_t chunks = (n * sizeof(T) + pool.get_requested_size() - 1) / pool.get_requested_size();
-        return static_cast<T*>(pool.ordered_malloc(chunks));
+        const size_t bytes = n * sizeof(T);
+        void* p = LockedPoolManager::Instance().alloc(bytes ? bytes : 1);
+        if (!p) {
+            throw std::bad_alloc();
+        }
+        return static_cast<T*>(p);
     }
 
     void deallocate(T* p, std::size_t n)
@@ -47,29 +59,9 @@ struct pooled_secure_allocator : public std::allocator<T> {
         if (!p) {
             return;
         }
-
-        size_t chunks = (n * sizeof(T) + pool.get_requested_size() - 1) / pool.get_requested_size();
-        memory_cleanse(p, chunks * pool.get_requested_size());
-        pool.ordered_free(p, chunks);
+        memory_cleanse(p, n * sizeof(T));
+        LockedPoolManager::Instance().free(p);
     }
-
-public:
-    struct internal_secure_allocator {
-        typedef std::size_t size_type;
-        typedef std::ptrdiff_t difference_type;
-
-        static char* malloc(const size_type bytes)
-        {
-            return static_cast<char*>(LockedPoolManager::Instance().alloc(bytes));
-        }
-
-        static void free(char* const block)
-        {
-            LockedPoolManager::Instance().free(block);
-        }
-    };
-private:
-    boost::pool<internal_secure_allocator> pool;
 };
 
 #endif // SYSCOIN_SUPPORT_ALLOCATORS_POOLED_SECURE_H

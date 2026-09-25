@@ -868,16 +868,23 @@ async function claimPrize() {
     alert('Enter your SHIT address');
     return;
   }
+  if (!addr.toLowerCase().startsWith('shit1')) {
+    alert('That address does not look right. It should start with shit1.');
+    return;
+  }
   try {
-    const r = await fetch('http://77.42.74.252:5002/api/game/win', {
+    const r = await fetch('/api/game/win', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({player_address: addr})
     });
     const d = await r.json();
+    if (!r.ok || typeof d.prize_shit !== 'number') {
+      throw new Error((d && d.error) || 'claim rejected');
+    }
     alert(`You won ${d.prize_shit.toLocaleString()} SHIT! We'll send it to ${addr}`);
   } catch (e) {
-    alert('Prize claim submitted! We\'ll send your winnings to ' + addr);
+    alert('Claim failed: ' + (e.message || 'network error') + '. Your win is recorded in this browser, try again or contact us.');
   }
 }
 
@@ -898,7 +905,7 @@ function restart() {
 // Fetch pool amount
 async function updatePool() {
   try {
-    const r = await fetch('http://77.42.74.252:5002/api/game/pool');
+    const r = await fetch('/api/game/pool');
     const d = await r.json();
     document.getElementById('poolamt').textContent = d.pool_shit.toLocaleString();
   } catch (e) {
@@ -945,7 +952,7 @@ async function payWithPhantom() {
     const sig = await connection.sendRawTransaction(signed.serialize());
     alert('Paid! Tx: ' + sig.slice(0, 12) + '...');
     // Record payment in pool
-    fetch('http://77.42.74.252:5002/api/game/deposit', {
+    fetch('/api/game/deposit', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({amount_shit: 2, note: 'SOL entry ' + sig})
@@ -992,7 +999,7 @@ async function payWithCoinbase(chainId) {
       }]
     });
     alert('Paid! Tx: ' + txHash.slice(0, 12) + '...');
-    fetch('http://77.42.74.252:5002/api/game/deposit', {
+    fetch('/api/game/deposit', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({amount_shit: 2, note: 'ETH entry ' + txHash})

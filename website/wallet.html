@@ -223,11 +223,18 @@
     })
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
+        var body = $('result-body');
+        body.innerHTML = '';
+        var div = document.createElement('div');
         if (res.ok && res.d.txid) {
-          $('result-body').innerHTML = '<div class="ok">✅ Sent!<br><br>' + pendingSend.amtStr + ' SHIT is on its way.<br><span class="muted">It confirms in about a minute.</span></div>';
+          div.className = 'ok';
+          div.textContent = 'Sent! ' + pendingSend.amtStr + ' SHIT is on its way. It confirms in about a minute.';
         } else {
-          $('result-body').innerHTML = '<div class="err" style="display:block">❌ Send failed: ' + ((res.d && res.d.error) || 'unknown error') + '</div>';
+          div.className = 'err';
+          div.style.display = 'block';
+          div.textContent = 'Send failed: ' + ((res.d && res.d.error) || 'unknown error');
         }
+        body.appendChild(div);
         show('s-result');
       })
       .catch(function () {

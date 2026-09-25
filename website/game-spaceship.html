@@ -6,7 +6,8 @@
 <title>Shity Spaceship - Bitcoin vs Shitcoins</title>
 <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 <style>
-body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: monospace; }
+body { margin: 0; background: #000; overflow: hidden; touch-action: pan-y; font-family: monospace; }
+#game { touch-action: none; }
 canvas { display: block; margin: 0 auto; }
 #ui { position: fixed; top: 10px; left: 10px; color: #f2a900; font-size: 16px; z-index: 10; }
 #level { position: fixed; top: 10px; right: 10px; color: #f2a900; font-size: 16px; z-index: 10; }
@@ -83,7 +84,7 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 
 <div id="ui">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
 <div id="level">Level: <span id="lvl">1</span></div>
-<div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+<div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
 <div style="font-size: 28px; margin-bottom: 10px;">🚀 Shity Spaceship 🚀</div>
 <div style="font-size: 14px; color: #888; margin-bottom: 15px;">Beat all 25 levels, win 50% of the pool!</div>
 <div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>

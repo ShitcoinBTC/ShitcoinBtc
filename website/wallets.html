@@ -46,12 +46,13 @@
     cursor: pointer; padding: 10px; width: 100%; }
   .confirm-amt { font-size: 40px; font-weight: bold; color: #f2a900; text-align: center; margin: 16px 0 4px; }
   .spinner { text-align: center; padding: 30px; font-size: 17px; color: #999; }
-.pe{height:1.15em;width:1.15em;vertical-align:-0.18em;}</style>
+.pe{height:1.15em;width:1.15em;vertical-align:-0.18em;}
+.tabbtn.on{background:#f2a900;color:#000;border-color:#f2a900;font-weight:bold;}</style>
 </head>
 <body>
 <div id="app">
   <h1><img src="/img/poop-icon.png" class="pe" alt=""> Shitcoin Web Wallet</h1>
-  <div class="sub">Your SHIT, in your browser. Your secret words never leave this device.</div>
+  <div class="sub">Your SHIT and BTC, in your browser. Your secret words never leave this device.</div>
 
   <!-- START -->
   <div class="screen on" id="s-start">
@@ -62,7 +63,7 @@
   <!-- SHOW SEED -->
   <div class="screen" id="s-seed">
     <div class="warn">⚠️ <b>Write these 12 words down on paper, in order.</b><br>
-      Anyone with these words can take your SHIT. Never share them. If you lose them, your SHIT is gone forever.</div>
+      Anyone with these words can take your SHIT and your bitcoin. Never share them. If you lose them, they are gone forever.</div>
     <div class="words" id="seed-words"></div>
     <button class="big" id="btn-seed-done">I've written them down</button>
     <button class="linklike" id="btn-seed-back">Back</button>
@@ -79,6 +80,11 @@
 
   <!-- MAIN -->
   <div class="screen" id="s-main">
+    <div class="row" style="margin-bottom:6px">
+      <button class="small tabbtn on" id="tabbtn-shit">SHIT</button>
+      <button class="small tabbtn" id="tabbtn-btc">BTC</button>
+    </div>
+    <div id="tab-shit">
     <div class="card">
       <div class="label">YOUR ADDRESS (give this to receive SHIT)</div>
       <div class="row">
@@ -99,6 +105,30 @@
       <button class="big" id="btn-send">Send</button>
       <div class="muted center">Network fee: 0.0001 SHIT (fixed)</div>
     </div>
+    </div><!-- /tab-shit -->
+    <div id="tab-btc" style="display:none">
+      <div class="card">
+        <div class="label">YOUR BITCOIN ADDRESS (receiving is free)</div>
+        <div class="row">
+          <div class="addr grow" id="btc-addr">...</div>
+          <button class="small" id="btn-btc-copy">Copy</button>
+        </div>
+        <div class="center" style="margin-top:12px"><img id="btc-qr" width="180" height="180" alt="Bitcoin QR code"></div>
+      </div>
+      <div class="card center">
+        <div class="label">BTC BALANCE</div>
+        <div class="balance"><span id="btc-balance">...</span> <span style="font-size:18px">BTC</span></div>
+        <button class="small" id="btn-btc-refresh" style="margin-top:8px">Refresh</button>
+      </div>
+      <div class="card">
+        <div class="label">SEND BTC</div>
+        <input id="btc-send-to" placeholder="Send to BTC address (bc1...)" autocapitalize="off" autocomplete="off" spellcheck="false">
+        <input id="btc-send-amt" placeholder="Amount (BTC)" inputmode="decimal" autocomplete="off">
+        <button class="big" id="btn-btc-send">Send BTC</button>
+        <div class="muted center">Sending includes a 600-sat Shitcoin fee (about $0.50). Receiving is free.</div>
+        <div class="muted center" style="margin-top:6px">Bitcoin sends need your spending PIN. Your 12 words still control everything.</div>
+      </div>
+    </div><!-- /tab-btc -->
     <button class="linklike" id="btn-forget">Forget this wallet on this phone</button>
   </div>
 
@@ -123,10 +153,41 @@
     <button class="big" id="btn-result-done">Done</button>
   </div>
 
+  <!-- BTC CONFIRM -->
+  <div class="screen" id="s-btc-confirm">
+    <div class="label center">YOU ARE SENDING</div>
+    <div class="confirm-amt"><span id="bc-amt"></span> BTC</div>
+    <div class="card">
+      <div class="label">TO</div>
+      <div class="addr" id="bc-to"></div>
+      <div class="label" style="margin-top:10px">MINER FEE</div>
+      <div id="bc-minerfee"></div>
+      <div class="label" style="margin-top:10px">SHITCOIN FEE</div>
+      <div id="bc-ourfee"></div>
+      <div class="label" style="margin-top:10px">TOTAL LEAVING YOUR WALLET</div>
+      <div id="bc-total"></div>
+    </div>
+    <div class="err" id="btc-confirm-err"></div>
+    <button class="big" id="btn-btc-confirm">Confirm send</button>
+    <button class="linklike" id="btn-btc-confirm-back">Back</button>
+  </div>
+
+  <!-- PIN -->
+  <div class="screen" id="s-pin">
+    <div class="label center" id="pin-title">ENTER SPENDING PIN</div>
+    <div class="warn" id="pin-setup-note" style="display:none">Set a 6-digit spending PIN. You will need it every time you send bitcoin. If you forget it, your 12 secret words can always make a new one.</div>
+    <input id="pin-input" placeholder="6-digit PIN" inputmode="numeric" maxlength="6" type="password" autocomplete="off">
+    <input id="pin-input2" placeholder="Repeat PIN" inputmode="numeric" maxlength="6" type="password" autocomplete="off" style="display:none">
+    <div class="err" id="pin-err"></div>
+    <button class="big" id="btn-pin-ok">OK</button>
+    <button class="linklike" id="btn-pin-back">Back</button>
+  </div>
+
   <div class="screen" id="s-busy"><div class="spinner" id="busy-msg">Working...</div></div>
 </div>
 
 <script src="/wallet.bundle.js"></script>
+<script src="/btc.bundle.js"></script>
 <script>
 (function () {
   'use strict';

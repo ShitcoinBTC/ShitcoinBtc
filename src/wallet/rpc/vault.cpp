@@ -62,7 +62,6 @@
 namespace wallet {
 namespace {
 
-constexpr int64_t VAULT_YEAR_SECONDS{31536000};
 constexpr int64_t VAULT_MULT_SCALE{100000000};
 constexpr int BTC_EXPLORER_TIMEOUT_SECONDS{15};
 constexpr int64_t BTC_BALANCE_CACHE_SECONDS{600};
@@ -530,25 +529,51 @@ static int64_t VaultChainMTP(const CWallet& wallet)
     return GetTime() - 7200;
 }
 
-//! Vault tier from elapsed lock time: clamp(floor(elapsed_years), 1, 5),
-//! identical to the consensus tier schedule used by CheckVaultYield.
+//! Vault tier from elapsed lock time: highest tier whose duration threshold
+//! (30d, 6m, 1y, 5y) the elapsed time reaches; 0 below the shortest tier.
+//! Identical to the consensus tier schedule used by CheckVaultYield.
 static int VaultTierForElapsed(int64_t spendMTP, int64_t lockMTP)
 {
-    int tier = 1;
     const int64_t elapsed = spendMTP - lockMTP;
-    if (elapsed > 0) tier = (int)std::min<int64_t>(elapsed / VAULT_YEAR_SECONDS, 5);
-    return std::clamp(tier, 1, 5);
+    const auto& secs = Params().GetConsensus().nVaultTierSecs;
+    for (int i = 3; i >= 0; --i) {
+        if (elapsed >= secs[i]) return i + 1;
+    }
+    return 0;
 }
 
 //! Yield entitlement in sats: principal * (mult[tier-1] - 1e8) / 1e8, floored.
 //! Integer-only (__int128 multiply, never float), identical to the consensus formula.
+//! Tier 0 (below shortest lock): no yield.
 static CAmount VaultEntitlement(CAmount principal, int64_t spendMTP, int64_t lockMTP)
 {
     const int tier = VaultTierForElapsed(spendMTP, lockMTP);
+    if (tier <= 0) return 0;
     const int64_t mult = Params().GetConsensus().nVaultTierMult[tier - 1];
     const __int128 entitlement = (__int128)principal * (mult - VAULT_MULT_SCALE) / VAULT_MULT_SCALE;
     assert(entitlement >= 0);
     return (CAmount)entitlement;
+}
+
+//! Parse a vault lock duration label ("30d", "6m", "1y", "5y") to seconds.
+static int64_t ParseVaultDuration(const std::string& label)
+{
+    if (label == "30d") return 2592000;
+    if (label == "6m") return 15768000;
+    if (label == "1y") return 31536000;
+    if (label == "5y") return 157680000;
+    throw JSONRPCError(RPC_INVALID_PARAMETER,
+        "duration must be one of \"30d\", \"6m\", \"1y\", \"5y\"");
+}
+
+//! Duration seconds back to its canonical label (for display/records).
+static std::string VaultDurationLabel(int64_t secs)
+{
+    if (secs == 2592000) return "30d";
+    if (secs == 15768000) return "6m";
+    if (secs == 31536000) return "1y";
+    if (secs == 157680000) return "5y";
+    return std::to_string(secs) + "s";
 }
 
 //! A fresh compressed pubkey owned by the wallet, with its address.
@@ -630,9 +655,10 @@ static CKey GetVaultPrivKey(CWallet& wallet, const CPubKey& pubkey)
 RPCHelpMan vaultlock()
 {
     return RPCHelpMan{"vaultlock",
-        "\nLock SHIT into a native vault timelock for 1-5 years.\n"
+        "\nLock SHIT into a native vault timelock.\n"
         "Creates a P2WSH output paying to \"<locktime> CHECKLOCKTIMEVERIFY DROP <pubkey> CHECKSIG\"\n"
-        "where <pubkey> is a fresh key owned by this wallet and <locktime> is now + years.\n"
+        "where <pubkey> is a fresh key owned by this wallet and <locktime> is now + duration.\n"
+        "Durations: \"30d\" (2% APY), \"6m\" (3% APY), \"1y\" (4% APY), \"5y\" (15% APY).\n"
         "Yield accrues per the consensus vault tiers and is minted when the lock is\n"
         "claimed with vaultclaim after maturity.\n"
         "\n"
@@ -645,7 +671,7 @@ RPCHelpMan vaultlock()
         HELP_REQUIRING_PASSPHRASE,
         {
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO, "The amount in SHIT to lock."},
-            {"years", RPCArg::Type::NUM, RPCArg::Optional::NO, "Lock duration in years, 1-5."},
+            {"duration", RPCArg::Type::STR, RPCArg::Optional::NO, "Lock duration: \"30d\", \"6m\", \"1y\" or \"5y\"."},
             {"btc_address", RPCArg::Type::STR, RPCArg::Optional::NO, "Bitcoin P2PKH address proving the BTC co-hold."},
             {"btc_sig", RPCArg::Type::STR, RPCArg::Optional::NO, "Base64 compact Bitcoin signature over \"shitcoin-vault:<vault owner address>\"."},
         },
@@ -659,8 +685,8 @@ RPCHelpMan vaultlock()
             },
         },
         RPCExamples{
-            HelpExampleCli("vaultlock", "100 2 \"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa\" \"H...\"") +
-            HelpExampleRpc("vaultlock", "100, 2, \"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa\", \"H...\"")
+            HelpExampleCli("vaultlock", "100 \"1y\" \"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa\" \"H...\"") +
+            HelpExampleRpc("vaultlock", "100, \"1y\", \"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa\", \"H...\"")
         },
         [&](const RPCHelpMan& self, const node::JSONRPCRequest& request) -> UniValue
         {
@@ -677,10 +703,7 @@ RPCHelpMan vaultlock()
             if (!MoneyRange(amount) || amount <= 0) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
             }
-            const int64_t years = request.params[1].getInt<int64_t>();
-            if (years < 1 || years > 5) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "years must be between 1 and 5");
-            }
+            const int64_t durationSecs = ParseVaultDuration(request.params[1].get_str());
             const std::string btcAddress = request.params[2].get_str();
             const std::string btcSig = request.params[3].get_str();
 
@@ -696,10 +719,10 @@ RPCHelpMan vaultlock()
 
             // Build the vault output: P2WSH of <locktime> CLTV DROP <pubkey> CHECKSIG.
             const int64_t now = GetTime();
-            if (now + years * VAULT_YEAR_SECONDS > (int64_t)std::numeric_limits<uint32_t>::max()) {
+            if (now + durationSecs > (int64_t)std::numeric_limits<uint32_t>::max()) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "computed locktime out of range");
             }
-            const uint32_t nLockTime = (uint32_t)(now + years * VAULT_YEAR_SECONDS);
+            const uint32_t nLockTime = (uint32_t)(now + durationSecs);
             if (nLockTime < VAULT_MIN_LOCKTIME) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR, "computed locktime below VAULT_MIN_LOCKTIME");
             }
@@ -740,7 +763,7 @@ RPCHelpMan vaultlock()
             rec.pushKV("pubkey_hex", HexStr(Span<const uint8_t>(vaultPubKey.data(), vaultPubKey.size())));
             rec.pushKV("witness_hex", HexStr(Span<const uint8_t>(witnessScript.data(), witnessScript.size())));
             rec.pushKV("amount_sats", amount);
-            rec.pushKV("years", years);
+            rec.pushKV("duration_secs", durationSecs);
             rec.pushKV("btc_address", btcAddress);
             rec.pushKV("claimed", false);
             records.push_back(rec);
@@ -812,7 +835,7 @@ RPCHelpMan vaultclaim()
 
             for (size_t i = 0; i < records.size(); ++i) {
                 const UniValue& rec = records[i];
-                for (const char* key : {"txid", "vout", "locktime", "amount_sats", "years", "witness_hex", "pubkey_hex", "btc_address", "claimed"}) {
+                for (const char* key : {"txid", "vout", "locktime", "amount_sats", "duration_secs", "witness_hex", "pubkey_hex", "btc_address", "claimed"}) {
                     if (!rec.exists(key)) {
                         throw JSONRPCError(RPC_MISC_ERROR, strprintf("vault: lock record is missing '%s'", key));
                     }
@@ -823,13 +846,13 @@ RPCHelpMan vaultclaim()
                 const uint32_t vout = (uint32_t)rec.find_value("vout").getInt<int64_t>();
                 const uint32_t locktime = (uint32_t)rec.find_value("locktime").getInt<int64_t>();
                 const CAmount principal = rec.find_value("amount_sats").getInt<CAmount>();
-                const int64_t years = rec.find_value("years").getInt<int64_t>();
+                const int64_t durationSecs = rec.find_value("duration_secs").getInt<int64_t>();
                 const std::string btcAddress = haveBtcAddr ? btcAddressParam : rec.find_value("btc_address").get_str();
                 const std::vector<unsigned char> witnessBytes = ParseHex(rec.find_value("witness_hex").get_str());
                 const std::vector<unsigned char> pubkeyBytes = ParseHex(rec.find_value("pubkey_hex").get_str());
 
                 if (locktime > spendMTP) continue; // not matured yet
-                if (!MoneyRange(principal) || principal <= 0 || years < 1 || years > 5) {
+                if (!MoneyRange(principal) || principal <= 0 || durationSecs <= 0) {
                     throw JSONRPCError(RPC_MISC_ERROR, strprintf("vault: corrupt lock record for %s", txid.GetHex()));
                 }
 
@@ -853,7 +876,7 @@ RPCHelpMan vaultclaim()
                 }
 
                 // Tier + entitlement, identical to the consensus formula.
-                const int64_t lockMTP = (int64_t)locktime - years * VAULT_YEAR_SECONDS;
+                const int64_t lockMTP = (int64_t)locktime - durationSecs;
                 const CAmount entitlement = VaultEntitlement(principal, spendMTP, lockMTP);
                 const CAmount payout = principal + entitlement;
                 if (!MoneyRange(payout)) {
@@ -924,11 +947,11 @@ RPCHelpMan vaultinfo()
                     {RPCResult::Type::STR_HEX, "txid", "The lock transaction id."},
                     {RPCResult::Type::NUM, "vout", "The vault output index."},
                     {RPCResult::Type::STR_AMOUNT, "amount", "Locked principal, in SHIT."},
-                    {RPCResult::Type::NUM, "years", "Lock duration in years."},
+                    {RPCResult::Type::STR, "duration", "Lock duration label (30d/6m/1y/5y)."},
                     {RPCResult::Type::NUM, "locktime", "Unix timelock of the vault script."},
                     {RPCResult::Type::STR, "unlock_time", "ISO-8601 UTC time when the lock matures."},
                     {RPCResult::Type::STR, "status", "One of \"locked\", \"matured\", \"claimed\"."},
-                    {RPCResult::Type::NUM, "tier", "Vault tier (1-5) for the elapsed lock time."},
+                    {RPCResult::Type::NUM, "tier", "Vault tier (1-4) for the elapsed lock time; 0 below 30d."},
                     {RPCResult::Type::NUM, "accrued_entitlement_sats", "Yield entitlement accrued so far, in sats."},
                 }},
             },
@@ -951,7 +974,7 @@ RPCHelpMan vaultinfo()
             UniValue result(UniValue::VARR);
             for (size_t i = 0; i < records.size(); ++i) {
                 const UniValue& rec = records[i];
-                for (const char* key : {"txid", "vout", "locktime", "amount_sats", "years", "claimed"}) {
+                for (const char* key : {"txid", "vout", "locktime", "amount_sats", "duration_secs", "claimed"}) {
                     if (!rec.exists(key)) {
                         throw JSONRPCError(RPC_MISC_ERROR, strprintf("vault: lock record is missing '%s'", key));
                     }
@@ -959,11 +982,11 @@ RPCHelpMan vaultinfo()
                 const std::string txid = rec.find_value("txid").get_str();
                 const int64_t vout = rec.find_value("vout").getInt<int64_t>();
                 const CAmount principal = rec.find_value("amount_sats").getInt<CAmount>();
-                const int64_t years = rec.find_value("years").getInt<int64_t>();
+                const int64_t durationSecs = rec.find_value("duration_secs").getInt<int64_t>();
                 const int64_t locktime = rec.find_value("locktime").getInt<int64_t>();
                 const bool claimed = rec.exists("claimed") && rec.find_value("claimed").get_bool();
 
-                const int64_t lockMTP = locktime - years * VAULT_YEAR_SECONDS;
+                const int64_t lockMTP = locktime - durationSecs;
                 const int tier = VaultTierForElapsed(nowMTP, lockMTP);
                 const CAmount accrued = VaultEntitlement(principal, nowMTP, lockMTP);
 
@@ -971,7 +994,7 @@ RPCHelpMan vaultinfo()
                 entry.pushKV("txid", txid);
                 entry.pushKV("vout", vout);
                 entry.pushKV("amount", ValueFromAmount(principal));
-                entry.pushKV("years", years);
+                entry.pushKV("duration", VaultDurationLabel(durationSecs));
                 entry.pushKV("locktime", locktime);
                 entry.pushKV("unlock_time", FormatISO8601DateTime(locktime));
                 entry.pushKV("status", claimed ? "claimed" : (locktime <= nowMTP ? "matured" : "locked"));

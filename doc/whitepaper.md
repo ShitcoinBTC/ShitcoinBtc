@@ -252,16 +252,15 @@ good tokenomics, and this is it.
 
 ### 7.4 Native Vault: lock it and forget it
 
-Not everyone wants to gamble. The native vault lets you lock SHIT for **1 to 5
-years** and earn yield while you wait — enforced by consensus, not by anyone's
+Not everyone wants to gamble. The native vault lets you lock SHIT for **30 days to
+5 years** and earn yield while you wait — enforced by consensus, not by anyone's
 promise:
 
 | Lock duration | APY |
 |---------------|-----|
+| 30 days | 2% |
+| 6 months | 3% |
 | 1 year | 4% |
-| 2 years | 6% |
-| 3 years | 9% |
-| 4 years | 12% |
 | 5 years | 15% |
 
 Here's the deal: `vaultlock` creates a P2WSH output with the witness script

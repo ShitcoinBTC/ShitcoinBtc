@@ -215,14 +215,16 @@ struct Params {
     int nVaultScheduleYears{75};
     /** Maximum vault yield mintable per schedule-year, in sats (47,600,000 SHIT). */
     CAmount nVaultYearlyYieldCap{47600000LL * COIN};
-    /** Native vault lock tiers: APY in basis points for 1, 2, 3, 4, 5 year locks. */
-    int nVaultTierAPYbps[5]{400, 600, 900, 1200, 1500};
+    /** Native vault lock tiers: durations in seconds (30d, 6m, 1y, 5y). */
+    int64_t nVaultTierSecs[4]{2592000, 15768000, 31536000, 157680000};
+    /** Native vault lock tiers: APY in basis points (2%, 3%, 4%, 15%). */
+    int nVaultTierAPYbps[4]{200, 300, 400, 1500};
     /**
      * Native vault payout multipliers in 1e8 fixed point: a lock redeemed at
      * tier t pays principal * nVaultTierMult[t] / 100000000, i.e. the yield
      * is principal * (mult - 1e8) / 1e8 (compounded APY, floored to the sat).
      */
-    int64_t nVaultTierMult[5]{104000000, 112360000, 129502900, 157351936, 201135718};
+    int64_t nVaultTierMult[4]{100162893, 101488915, 104000000, 201135718};
     /** Base mining subsidy; 2% annual decay over a 100-year tail sums to ~9.03B SHIT (43%). */
     CAmount nMiningSubsidyBase{19807185401LL}; // 198.07185401 SHIT (prior base x 43/45)
     /**

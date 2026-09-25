@@ -786,12 +786,16 @@ static bool CheckVaultYield(const CTransaction& tx, TxValidationState& state, co
                                  "vault lock confirmation height not on active chain");
         }
         const int64_t nLockMTP = pLockIndex->GetMedianTimePast();
-        // Whole years locked, mapped onto tiers 1..5 (clamped).
-        const int64_t nYearsLocked = (nSpendMTP - nLockMTP) / 31536000;
-        const int64_t nTier = std::clamp<int64_t>(nYearsLocked, 1, 5);
+        // Elapsed lock time, mapped onto tiers 1..4 by duration threshold
+        // (30d, 6m, 1y, 5y). Below the shortest tier: no yield.
+        const int64_t nElapsed = nSpendMTP - nLockMTP;
+        int64_t nTier = 0;
+        for (int i = 3; i >= 0; --i) {
+            if (nElapsed >= consensusParams.nVaultTierSecs[i]) { nTier = i + 1; break; }
+        }
 
         CAmount nEntitlement{0};
-        if (consensusParams.nVaultReserveTotal != 0) {
+        if (nTier > 0 && consensusParams.nVaultReserveTotal != 0) {
             const __int128 nMult = consensusParams.nVaultTierMult[nTier - 1];
             nEntitlement = (CAmount)(((__int128)nPrincipal * nMult) / 100000000 - nPrincipal);
             if (nEntitlement < 0 || !MoneyRange(nEntitlement)) {

@@ -77,6 +77,8 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 .nav-menu{position:relative;}
 .menu-btn{display:flex;align-items:center;gap:9px;border:1px solid #F5820B;color:#F5820B;background:transparent;padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;}
 .menu-btn:hover{background:rgba(245,130,11,.12);}
+.menu-btn{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.menu-drop a{cursor:pointer;}
 .menu-btn .bars{display:flex;flex-direction:column;gap:4px;}
 .menu-btn .bars span{display:block;width:18px;height:2px;background:#F5820B;border-radius:2px;}
 .menu-drop{display:none;position:absolute;right:0;top:calc(100% + 10px);min-width:250px;background:#1a1a1e;border:1px solid #2a2a30;border-radius:14px;padding:8px;box-shadow:0 18px 50px rgba(0,0,0,.55);}
@@ -113,7 +115,7 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
   </div>
 </div></nav>
 <script>
-(function(){var m=document.querySelector('nav.sitenav .nav-menu'),b=document.querySelector('nav.sitenav .menu-btn');if(!m||!b)return;function c(){m.classList.remove('open');b.setAttribute('aria-expanded','false');}b.addEventListener('click',function(e){e.stopPropagation();var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});m.addEventListener('click',function(e){if(e.target.closest('a'))c();});document.addEventListener('click',c);document.addEventListener('keydown',function(e){if(e.key==='Escape')c();});})();
+(function(){var m=document.querySelector('nav.sitenav .nav-menu'),b=document.querySelector('nav.sitenav .menu-btn');if(!m||!b)return;var lastTouch=0;function close(){m.classList.remove('open');b.setAttribute('aria-expanded','false');}function toggle(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');}b.addEventListener('click',function(e){if(Date.now()-lastTouch<600)return;e.stopPropagation();toggle();});b.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();lastTouch=Date.now();toggle();},{passive:false});m.addEventListener('click',function(e){if(e.target.closest('a'))close();});m.addEventListener('touchend',function(e){if(e.target.closest('a'))close();},{passive:true});document.addEventListener('click',close);document.addEventListener('touchend',function(e){if(!m.contains(e.target))close();},{passive:true});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
 </script>
 
 

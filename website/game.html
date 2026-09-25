@@ -396,6 +396,26 @@ function nextLevel() {
   }
 }
 
+// Load sprites
+const sprites = {
+  ship1: new Image(),
+  ship2: new Image(),
+  ship3: new Image(),
+  rock: new Image(),
+  bubble: new Image(),
+  monster: new Image(),
+  bossEth: new Image(),
+  bossSol: new Image()
+};
+sprites.ship1.src = '/game-assets/ship1.webp';
+sprites.ship2.src = '/game-assets/ship2.webp';
+sprites.ship3.src = '/game-assets/ship3.webp';
+sprites.rock.src = '/game-assets/enemy-rock.webp';
+sprites.bubble.src = '/game-assets/enemy-bubble.webp';
+sprites.monster.src = '/game-assets/enemy-monster.webp';
+sprites.bossEth.src = '/game-assets/boss-eth.webp';
+sprites.bossSol.src = '/game-assets/boss-sol.webp';
+
 function draw() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -410,20 +430,24 @@ function draw() {
   if (!gameRunning && document.getElementById('levelup').style.display === 'block') return;
   if (!gameRunning) return;
   
-  // Player: Bitcoin orange spaceship with Bitcoin logo
-  // Ship body (bitcoin orange)
-  ctx.fillStyle = '#F7931A';
-  ctx.beginPath();
-  ctx.moveTo(player.x + player.w/2, player.y);
-  ctx.lineTo(player.x + player.w, player.y + player.h);
-  ctx.lineTo(player.x, player.y + player.h);
-  ctx.closePath();
-  ctx.fill();
-  // Bitcoin logo (white)
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('₿', player.x + player.w/2, player.y + player.h - 6);
+  // Player: Mr. Shitoshi spaceship sprite (changes with level)
+  const shipSprite = level <= 8 ? sprites.ship1 : (level <= 16 ? sprites.ship2 : sprites.ship3);
+  if (shipSprite.complete && shipSprite.naturalWidth > 0) {
+    ctx.drawImage(shipSprite, player.x, player.y, player.w, player.h);
+  } else {
+    // Fallback: Bitcoin orange ship
+    ctx.fillStyle = '#F7931A';
+    ctx.beginPath();
+    ctx.moveTo(player.x + player.w/2, player.y);
+    ctx.lineTo(player.x + player.w, player.y + player.h);
+    ctx.lineTo(player.x, player.y + player.h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('₿', player.x + player.w/2, player.y + player.h - 6);
+  }
   
   // Shield bubble
   if (shield) {
@@ -520,71 +544,59 @@ function draw() {
     ctx.fillText(icon, p.x + p.w/2, p.y + p.h/2 + 6);
   }
   
-  // Enemies
+  // Enemies: sprite images
   for (let e of enemies) {
     const color = e.color || '#627eea';
-    if (e.type === 'rock') {
-      // Rock (asteroid) with chain logo
-      ctx.fillStyle = '#555';
-      ctx.beginPath();
-      ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillStyle = color;
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h/2 + 4);
-    } else if (e.type === 'bubble') {
-      // Bubble with chain logo
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
-      ctx.stroke();
-      ctx.fillStyle = color;
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h/2 + 4);
+    let sprite = null;
+    if (e.type === 'rock') sprite = sprites.rock;
+    else if (e.type === 'bubble') sprite = sprites.bubble;
+    else sprite = sprites.monster;
+    
+    if (sprite.complete && sprite.naturalWidth > 0) {
+      ctx.drawImage(sprite, e.x, e.y, e.w, e.h);
     } else {
-      // Diamond with chain logo
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(e.x + e.w/2, e.y);
-      ctx.lineTo(e.x + e.w, e.y + e.h/2);
-      ctx.lineTo(e.x + e.w/2, e.y + e.h);
-      ctx.lineTo(e.x, e.y + e.h/2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 10px sans-serif';
-      ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h/2 + 3);
+      // Fallback to canvas drawing
+      if (e.type === 'rock') {
+        ctx.fillStyle = '#555';
+        ctx.beginPath();
+        ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
+        ctx.fill();
+      } else if (e.type === 'bubble') {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(e.x + e.w/2, e.y);
+        ctx.lineTo(e.x + e.w, e.y + e.h/2);
+        ctx.lineTo(e.x + e.w/2, e.y + e.h);
+        ctx.lineTo(e.x, e.y + e.h/2);
+        ctx.closePath();
+        ctx.fill();
+      }
     }
+    // Chain label
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h + 12);
   }
   
-  // Boss: Monster with chain logo (different color per level)
+  // Boss: sprite image (alternates ETH/SOL bosses by level)
   if (boss) {
-    const color = boss.color;
-    // Monster body
-    ctx.fillStyle = color;
-    // Monster shape (rounded)
-    ctx.beginPath();
-    ctx.roundRect(boss.x, boss.y, boss.w, boss.h, 20);
-    ctx.fill();
-    // Spikes
-    ctx.fillStyle = color;
-    for (let s = 0; s < 5; s++) {
-      const sx = boss.x + 15 + s * 30;
+    const bossSprite = (level % 2 === 0) ? sprites.bossEth : sprites.bossSol;
+    if (bossSprite.complete && bossSprite.naturalWidth > 0) {
+      ctx.drawImage(bossSprite, boss.x, boss.y, boss.w, boss.h);
+    } else {
+      const color = boss.color;
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.moveTo(sx, boss.y);
-      ctx.lineTo(sx + 10, boss.y - 15);
-      ctx.lineTo(sx + 20, boss.y);
-      ctx.closePath();
+      ctx.roundRect(boss.x, boss.y, boss.w, boss.h, 20);
       ctx.fill();
     }
-    // Eyes
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(boss.x + 20, boss.y + 25, 30, 30);
-    ctx.fillRect(boss.x + boss.w - 50, boss.y + 25, 30, 30);
-    ctx.fillStyle = '#f00';
-    ctx.fillRect(boss.x + 28, boss.y + 33, 14, 14);
-    ctx.fillRect(boss.x + boss.w - 42, boss.y + 33, 14, 14);
     // Chain logo
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 20px sans-serif';

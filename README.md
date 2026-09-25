@@ -10,33 +10,27 @@ Shitcoin integration/staging tree
 
 Read the [Shitcoin whitepaper](doc/whitepaper.md) ([PDF](doc/whitepaper.pdf)) — merged mining with Bitcoin, the UTXO↔NEVM bridge (Shitbridge), ShitSwap DEX, and the ShitLottery (90% to the winner, 10% burned). NEVM smart contracts live in [contracts/](contracts/).
 
-[![Build Status](https://travis-ci.org/syscoin/syscoin.svg?branch=master)](https://travis-ci.org/syscoin/syscoin)
+[![Build binaries](https://github.com/ShitcoinBTC/ShitcoinBtc/actions/workflows/build-binaries.yml/badge.svg)](https://github.com/ShitcoinBTC/ShitcoinBtc/actions/workflows/build-binaries.yml)
 
-For an immediately usable, binary version of the Shit Core software, see
-https://syscoincore.org/en/download/.
+For an immediately usable, binary version of the Shitcoin Core software, see the
+[releases page](https://github.com/ShitcoinBTC/ShitcoinBtc/releases).
 
-Further information about Shit Core is available in the [doc folder](/doc).
+Further information about Shitcoin Core is available in the [doc folder](/doc).
 
-What is Shit Core?
+What is Shitcoin Core?
 ----------------
 
-Shit Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. shitcoin uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Shit Core is the name of open source software which enables the use of this currency.
+Shitcoin Core is an experimental digital currency that enables instant payments to anyone, anywhere in the world. SHIT uses peer-to-peer technology to operate with no central authority: managing transactions and issuing money are carried out collectively by the network. Shitcoin Core is the name of open source software which enables the use of this currency.
 
-For more information, as well as an immediately useable, binary version of the shit Core software, see https://syscoin.org/, or read the [original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
+For more information, as well as an immediately usable, binary version of the Shitcoin Core software, see https://shitcoinbtc.xyz/.
 
-shitcoin is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology.
+Shitcoin is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology.
 
-Hybrid layer 2 PoW/PoS consensus with bonded validator system (masternodes) ZDAG technology for point-of-sale speeds and probabilistic confirmations useful for microtransactions Trustless sidechain access to [NEVM](https://github.com/syscoin/go-ethereum) and back through a custom permissionless/trustless sidechain technology (Shitbridge) https://github.com/syscoin/sysethereum Decentralized governance (blockchain pays for work via proposals and masternode votes) Digital asset creation and management. ZDAG is open-source and developed over the course of 12 months by [Blockchain Foundry Inc](https://www.blockchainfoundry.co/), with external audit done over 6 months by [Whiteblock](https://whiteblock.io). [Performance report can be found here](https://syscoin.org/tps_whiteblock_syscoin_report.pdf).
+Hybrid layer 2 PoW/PoS consensus with bonded validator system (masternodes). Trustless sidechain access to the NEVM and back through a custom permissionless/trustless sidechain technology (Shitbridge). Decentralized governance (blockchain pays for work via proposals and masternode votes). Digital asset creation and management.
 
-Governance formula: We have implemented a % decline schedule — starting the first month with 1500000 SYS and ending on the 24th month with 196708 SYS. After that period, the superblock starts with 151767 SYS a month and will decline 5% every year. Read more about it here: https://medium.com/@syscoin/syscoin-4-0-rewards-specifications-a3dc01d85adf.
+Interoperability between UTXO assets and the SHIT-20 NEVM account model through a trustless, zero-custodian, zero-counterparty internal bridge (Shitbridge).
 
-Interoptibility between UTXO assets and SHIT-20 NEVM account model through a trust-less, zero custodian, zero counterparty internal bridge (Shitbridge). Documentation can be found [here](https://github.com/syscoin/sysethereum-docs).
-
-For more information, as well as an immediately useable, binary version of
-the Shit Core software, see https://syscoin.org/, or read the
-[original whitepaper](https://syscoin.org/zdag_syscoin_whitepaper.pdf).
-
-Shitcoin is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology. It enables turing complete smart contracts running in an [NEVM (Network-enhanced Virtual Machine)](https://github.com/syscoin/go-ethereum) to leverage bitcoin security through merged-mining. Scaling the technology will happen on layer 2 (zkRollups for NEVM and Lightning Networks for UTXO assets).
+Shitcoin is a merge-minable SHA256 coin which provides an array of useful services which leverage the bitcoin protocol and blockchain technology. It enables turing complete smart contracts running in the NEVM (Network-enhanced Virtual Machine) to leverage bitcoin security through merged-mining. Scaling the technology will happen on layer 2 (zkRollups for NEVM and Lightning Networks for UTXO assets).
 
 - Block time: 30 seconds target
 - Halving interval: 1051200 (~1 year)
@@ -50,10 +44,10 @@ Shitcoin is a merge-minable SHA256 coin which provides an array of useful servic
     - 25 percent to miner
     - 75 percent to masternode
 - 50 percent of the transaction fees paid to masternode
-- Masternode minimum subsidy(before seniority): 5.275 shitcoin core (can not go below this amount even accounting for deflation)
-- NEVM subsidy (EIP1559): 10.55 Syscoins (static, not deflating)
+- Masternode minimum subsidy (before seniority): 5.275 SHIT (can not go below this amount even accounting for deflation)
+- NEVM subsidy (EIP1559): 10.55 SHIT (static, not deflating)
 - SHA256 Proof of Work
-- Mineable either exclusively or via merge-mining any SHA256 PoW coin
+- Merge-mined with Bitcoin — merge-mining is mandatory from block 1 (standalone mining is rejected by consensus)
 - Masternode collateral requirement: 100000 
 - Masternode seniority: 35 percent increase after 1051200 blocks (~1 year), 100 percent increase after 2628000 blocks (~2.5 years)
 - Governance proposals payout schedule: every 17520 blocks (~1 month)
@@ -61,25 +55,20 @@ Shitcoin is a merge-minable SHA256 coin which provides an array of useful servic
 - Governance funding gets 5% deflation per round (superblock). See formula below
 - Codebase based off of latest Bitcoin Core (https://github.com/bitcoin/bitcoin)
 
-For more information read the Shity whitepaper.
+For more information read the Shitcoin whitepaper.
 
 License
 -------
 
-Shit Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
+Shitcoin Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
 information or see https://opensource.org/licenses/MIT.
 
 Development Process
 -------------------
 
 The `master` branch is regularly built (see `doc/build-*.md` for instructions) and tested, but it is not guaranteed to be
-completely stable. [Tags](https://github.com/syscoin/syscoin/tags) are created
-regularly from release branches to indicate new official, stable release versions of Shit Core.
-
-The https://github.com/syscoin-core/gui repository is used exclusively for the
-development of the GUI. Its master branch is identical in all monotree
-repositories. Release branches and tags do not exist, so please do not fork
-that repository unless it is for development reasons.
+completely stable. [Tags](https://github.com/ShitcoinBTC/ShitcoinBtc/tags) are created
+regularly from release branches to indicate new official, stable release versions of Shitcoin Core.
 
 The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md)
 and useful hints for developers can be found in [doc/developer-notes.md](doc/developer-notes.md).
@@ -116,11 +105,6 @@ not straightforward.
 Translations
 ------------
 
-Changes to translations as well as new translations can be submitted to
-[Shit Core's Transifex page](https://www.transifex.com/syscoin/syscoin/).
-
-Translations are periodically pulled from Transifex and merged into the git repository. See the
-[translation process](doc/translation_process.md) for details on how this works.
-
-**Important**: We do not accept translation changes as GitHub pull requests because the next
-pull from Transifex would automatically overwrite them again.
+Changes to translations as well as new translations can be submitted as
+GitHub pull requests. See the [translation process](doc/translation_process.md)
+for details on how this works.

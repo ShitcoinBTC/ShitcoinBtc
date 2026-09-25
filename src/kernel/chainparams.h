@@ -162,7 +162,7 @@ public:
     };
     // SYSCOIN
     struct MainNetOptions {
-        std::string bech32_hrp{"sys"};
+        std::string bech32_hrp{"shit"};
     };
     static std::unique_ptr<const CChainParams> RegTest(const RegTestOptions& options);
     static std::unique_ptr<const CChainParams> SigNet(const SigNetOptions& options);

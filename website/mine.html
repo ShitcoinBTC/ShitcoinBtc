@@ -348,14 +348,22 @@ function submitShare(nonce) {
   M.submitting = true;
   fetch('/api/mine/submit', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ job_id: M.job.job_id, nonce: nonce })
+    body: JSON.stringify({ job_id: M.job.job_id, nonce: nonce,
+                           address: addrInput.value.trim() })
   }).then(function (r) { return r.json(); }).then(function (res) {
+    M.submitting = false;
     if (res && res.ok) {
       M.blocks++;
       M.earned += M.job.subsidy_shit;
       updateStats(); save();
     }
-    if (M.mining) fetchWork();
+    if (res && res.next_job) {
+      // Fresh template piggybacked on the response: swap instantly,
+      // no idle round trip, no extra /work call.
+      startWorkers(res.next_job);
+    } else if (M.mining && (!res || res.reason !== 'bad-share')) {
+      fetchWork();
+    }
   }).catch(function () {
     M.submitting = false;
     if (M.mining) setTimeout(fetchWork, 5000);

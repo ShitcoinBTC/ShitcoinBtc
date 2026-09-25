@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Shity Spaceship - Bitcoin vs Shitcoins</title>
+<title>Shity Street - Dodge the Cars</title>
 <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 <style>
 body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: monospace; }
@@ -77,15 +77,11 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 <script>
 (function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
 </script>
-
-
-
-
-<div id="ui">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
-<div id="level">Level: <span id="lvl">1</span></div>
+<div id="ui">Time: <span id="clock">1:00</span> &nbsp;|&nbsp; Lives: <span id="livesn">3</span> &nbsp;|&nbsp; Cars dodged: <span id="dodged">0</span></div>
+<canvas id="game"></canvas>
 <div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%;">
-<div style="font-size: 28px; margin-bottom: 10px;">🚀 Shity Spaceship 🚀</div>
-<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Beat all 25 levels, win 50% of the pool!</div>
+<div style="font-size: 28px; margin-bottom: 10px;">Shity Street</div>
+<div style="font-size: 14px; color: #888; margin-bottom: 15px;">A dog and Mr. Shitoshi take on the street.<br>Dodge the cars for 60 seconds to win <strong style="color:#f2a900;">50% of the pool</strong>!<br>3 lives. The cars keep getting faster.</div>
 <div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>
 <div style="margin-bottom: 15px; font-size: 16px;">Pay one:</div>
 <div style="text-align: left; margin-bottom: 15px; font-size: 15px; line-height: 2;">
@@ -97,953 +93,269 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 </div>
 <button onclick="startGame()" style="font-size: 20px; padding: 15px 30px;">I Paid - Start Game</button>
 </div>
-<div id="gameover"><div><img src="/img/poop-icon.png" class="pe" alt=""> GAME OVER <img src="/img/poop-icon.png" class="pe" alt=""></div><div>Score: <span id="finalscore">0</span></div><div>Level: <span id="finallvl">1</span></div><button onclick="restart()">Play Again</button></div>
-<div id="levelup"><div>LEVEL <span id="newlvl">2</span>!</div><button onclick="nextLevel()">Continue</button></div>
-<canvas id="game"></canvas>
+<div id="gameover"></div>
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const poopImg = new Image();
-poopImg.src = '/img/poop-icon.png';
-function drawPoop(x, y, s) {
-  // Bitcoin-orange poop bullet (replaces fillText poop emoji)
-  if (poopImg.complete && poopImg.naturalWidth) ctx.drawImage(poopImg, x - s/2, y - s, s, s);
-  else ctx.fillText('\U0001F4A9', x, y);
-}
-canvas.width = Math.min(window.innerWidth, 700);
-canvas.height = Math.min(window.innerHeight, 900);
+var canvas = document.getElementById('game');
+var ctx = canvas.getContext('2d');
+function sizeCanvas(){ canvas.width = Math.min(window.innerWidth, 700); canvas.height = window.innerHeight - 60; }
+sizeCanvas(); window.addEventListener('resize', sizeCanvas);
 
-let player, bullets, enemies, boss, powerups, score, lives, level, gameRunning, keys = {}, enemyTimer, laser, shield, laserTimer, laserStacks, shieldTimer;
-let zombieMode = false, zombieBosses = [], enemyBullets = [], zombieBombs = [], pendingZombie = false, zombieDone = false;
+var poopImg = new Image(); poopImg.src = '/img/poop-icon.png';
 
-// Chain logos (colors) - 25 bosses, 25 chains
-const CHAINS = [
-  {name: 'ETH', color: '#627eea'},
-  {name: 'SOL', color: '#9945FF'},
-  {name: 'AVAX', color: '#E84142'},
-  {name: 'BASE', color: '#0052FF'},
-  {name: 'BNB', color: '#F0B90B'},
-  {name: 'MATIC', color: '#8247E5'},
-  {name: 'ARB', color: '#28A0F0'},
-  {name: 'OP', color: '#FF0420'},
-  {name: 'FTM', color: '#13b5ec'},
-  {name: 'ONE', color: '#00DDAA'},
-  {name: 'CELO', color: '#FBCC5C'},
-  {name: 'MOVR', color: '#53CBC9'},
-  {name: 'GLMR', color: '#F5B700'},
-  {name: 'KAVA', color: '#FF433E'},
-  {name: 'CRO', color: '#002D74'},
-  {name: 'FUSE', color: '#B5F36A'},
-  {name: 'METIS', color: '#00DACC'},
-  {name: 'BOBA', color: '#CBFB45'},
-  {name: 'SYS', color: '#0088cc'},
-  {name: 'XDAI', color: '#48B9A9'},
-  {name: 'EWT', color: '#A566FF'},
-  {name: 'RSK', color: '#00B520'},
-  {name: 'TLOS', color: '#571AFF'},
-  {name: 'KLAY', color: '#FF0420'},
-  {name: 'AURORA', color: '#78D64B'}
-];
-const MAX_LEVEL = 25;
+var GAME_SECS = 60, LANES = 4;
+var dog, cars, elapsed, spawnTimer, lives, dodged, gameRunning, keys, raf, invuln;
+var CAR_COLORS = ['#c0392b', '#2980b9', '#f1c40f', '#ecf0f1', '#8e44ad'];
 
-function init() {
-  score = 0;
-  lives = 3;
-  level = 1;
-  laser = false;
-  shield = false;
-  laserTimer = 0;
-  laserStacks = 0;
-  shieldTimer = 0;
-  // Ship grows with level
-  const shipW = 50 + (level - 1) * 2;
-  const shipH = 40 + (level - 1) * 1.5;
-  player = { x: canvas.width/2, y: canvas.height-80, w: Math.min(shipW, 100), h: Math.min(shipH, 80), speed: 6 };
-  bullets = [];
-  enemies = [];
-  powerups = [];
-  boss = null;
-  zombieMode = false;
-  zombieBosses = [];
-  enemyBullets = [];
-  zombieBombs = [];
-  pendingZombie = false;
-  zombieDone = false;
-  gameRunning = true;
-  enemyTimer = 0;
+function roadTop(){ return 70; }
+function roadBottom(){ return canvas.height - 50; }
+function laneY(i){ return roadTop() + (roadBottom() - roadTop()) * (i + 0.5) / LANES; }
+function carSpeed(){ return 240 + elapsed * 9; }          // faster and faster: 240 -> 780 px/s
+function spawnGap(){ return Math.max(0.9, 2.4 - elapsed * 0.025); }
+
+function init(){
+  dog = { x: 90, y: (roadTop()+roadBottom())/2, w: 76, h: 46, speed: 380, dir: 1, legPhase: 0 };
+  cars = []; elapsed = 0; spawnTimer = 1.4; lives = 3; dodged = 0; invuln = 0; keys = {};
+  updateHUD();
   document.getElementById('gameover').style.display = 'none';
-  document.getElementById('levelup').style.display = 'none';
-  updateUI();
 }
 
-function getWeapon() {
-  // Weapon upgrades: 1 to 8 bullets over 25 levels
-  let tier, count;
-  if (level <= 3) { tier = 1; count = 1; }
-  else if (level <= 6) { tier = 2; count = 2; }
-  else if (level <= 9) { tier = 3; count = 3; }
-  else if (level <= 12) { tier = 4; count = 4; }
-  else if (level <= 15) { tier = 5; count = 5; }
-  else if (level <= 18) { tier = 6; count = 6; }
-  else if (level <= 21) { tier = 7; count = 7; }
-  else { tier = 8; count = 8; }
-  
-  return {
-    count: count,
-    damage: 1 + Math.floor((level - 1) / 6), // 1-5 damage
-    size: 14 + tier * 2,
-    tier: tier
-  };
+function updateHUD(){
+  var left = Math.max(0, GAME_SECS - elapsed);
+  document.getElementById('clock').textContent = '0:' + (left < 10 ? '0' : '') + Math.ceil(left);
+  document.getElementById('livesn').textContent = lives;
+  document.getElementById('dodged').textContent = dodged;
 }
 
-function updateUI() {
-  document.getElementById('score').textContent = score;
-  document.getElementById('lives').textContent = lives;
-  document.getElementById('lvl').textContent = zombieMode ? '🧟 ZOMBIE' : level;
+function spawnCar(){
+  var lane = Math.floor(Math.random() * LANES);
+  var dir = (lane % 2 === 0) ? 1 : -1;
+  // don't stack cars at the spawn edge of the same lane
+  for (var i = 0; i < cars.length; i++){
+    var c = cars[i];
+    if (c.lane === lane && ((dir === 1 && c.x < 160) || (dir === -1 && c.x > canvas.width - 160))) return;
+  }
+  cars.push({
+    lane: lane, dir: dir,
+    x: dir === 1 ? -140 : canvas.width + 140,
+    y: laneY(lane),
+    w: 112, h: 44,
+    speed: carSpeed() * (0.9 + Math.random() * 0.25),
+    color: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)]
+  });
 }
 
-function spawnEnemy() {
-  enemyTimer++;
-  
-  // SECRET ZOMBIE LEVEL: the pot level
-  if (zombieMode) {
-    spawnZombieStuff();
-    return;
-  }
-  
-  // Spawn powerup bubbles occasionally (every ~15 seconds)
-  if (enemyTimer % 900 === 0 && !boss) {
-    const types = ['life', 'laser', 'shield', 'bomb'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    powerups.push({
-      x: Math.random() * (canvas.width - 40),
-      y: -40, w: 35, h: 35,
-      speed: 1, type: type
-    });
-  }
-  
-  const spawnRate = Math.max(30, 140 - level * 4);
-  
-  // Boss at end of each level (after enough enemies)
-  // Levels 1-10: 1 min each, levels 11+: 2.5 mins each
-  const levelTicks = level <= 10 ? 3600 : 9000;
-  if (!boss && enemyTimer > levelTicks) {
-    const chain = CHAINS[(level - 1) % CHAINS.length];
-    // Harder bosses: more HP, but possible with upgraded weapons
-    const bossHp = 30 + level * 12;
-    boss = {
-      x: canvas.width/2 - 75, y: -150, w: 150 + level*2, h: 120 + level*1.5,
-      speed: 0.5 + level * 0.05, chain: chain.name, color: chain.color,
-      hp: bossHp, maxHp: bossHp,
-      type: 'boss'
-    };
-    return;
-  }
-  
-  if (boss) return; // No regular enemies during boss
-  
-  if (enemyTimer % spawnRate === 0) {
-    const type = Math.random();
-    let enemy;
-    const chainIdx = Math.floor(Math.random() * Math.min(level + 2, CHAINS.length));
-    const chain = CHAINS[chainIdx];
-    
-    if (level <= 5) {
-      // Early levels: rocks and bubbles
-      const etype = type < 0.5 ? 'rock' : 'bubble';
-      enemy = { 
-        x: Math.random()*(canvas.width-40), y: -40, w: 40, h: 40, 
-        speed: 1 + level*0.2 + Math.random()*1.5, 
-        type: etype, chain: chain.name, color: chain.color, 
-        hp: 1 + Math.floor(level/4) 
-      };
-    } else {
-      // Later levels: faster, tougher, mixed
-      const etype = type < 0.33 ? 'rock' : (type < 0.66 ? 'bubble' : 'diamond');
-      enemy = { 
-        x: Math.random()*(canvas.width-40), y: -40, w: 40, h: 40, 
-        speed: 1.5 + level*0.25 + Math.random()*2, 
-        type: etype, chain: chain.name, color: chain.color, 
-        hp: 1 + Math.floor(level/3) 
-      };
-    }
-    enemies.push(enemy);
-  }
+function hit(a, b){
+  return Math.abs(a.x - b.x) < (a.w + b.w) / 2 * 0.72 &&
+         Math.abs(a.y - b.y) < (a.h + b.h) / 2 * 0.72;
 }
 
-// SECRET ZOMBIE LEVEL (pot level): two zombie monsters that shoot back, raining bombs, 5 minutes
-function makeZombieBoss(x) {
-  const hp = 400;
-  return { x: x, y: -160, w: 130, h: 140, speed: 0.8, hp: hp, maxHp: hp, type: 'zombie' };
-}
-
-function spawnZombieStuff() {
-  // Spawn the two zombie monsters once
-  if (zombieBosses.length === 0 && enemyTimer === 1) {
-    zombieBosses.push(makeZombieBoss(canvas.width * 0.15));
-    zombieBosses.push(makeZombieBoss(canvas.width * 0.60));
-  }
-  // Zombies shoot back: aimed shots every ~1.2s
-  if (enemyTimer % 72 === 0) {
-    for (let zb of zombieBosses) {
-      if (zb.y < 0) continue;
-      const sx = zb.x + zb.w / 2, sy = zb.y + zb.h;
-      const dx = (player.x + player.w / 2) - sx, dy = (player.y + player.h / 2) - sy;
-      const d = Math.hypot(dx, dy) || 1;
-      enemyBullets.push({ x: sx - 5, y: sy, w: 10, h: 14, vx: dx / d * 3.2, vy: dy / d * 3.2 });
+function update(dt){
+  elapsed += dt;
+  if (elapsed >= GAME_SECS){ winGame(); return; }
+  if (invuln > 0) invuln -= dt;
+  // spawn cars, faster and faster
+  spawnTimer -= dt;
+  if (spawnTimer <= 0){ spawnCar(); spawnTimer = spawnGap(); }
+  // move cars
+  for (var i = cars.length - 1; i >= 0; i--){
+    var c = cars[i];
+    c.x += c.dir * c.speed * dt;
+    if ((c.dir === 1 && c.x - c.w/2 > canvas.width + 20) ||
+        (c.dir === -1 && c.x + c.w/2 < -20)){
+      cars.splice(i, 1); dodged++;
     }
   }
-  // Bombs rain every ~3s
-  if (enemyTimer % 180 === 0) {
-    zombieBombs.push({ x: Math.random() * (canvas.width - 36), y: -36, w: 36, h: 36, speed: 2 + Math.random() * 1.5 });
-  }
-  // Occasional powerup (every ~20s)
-  if (enemyTimer % 1200 === 0) {
-    const types = ['life', 'shield', 'bomb'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    powerups.push({ x: Math.random() * (canvas.width - 40), y: -40, w: 35, h: 35, speed: 1, type: type });
-  }
-  // Survive 5 minutes (18000 ticks) to clear the pot level
-  if (enemyTimer >= 18000) {
-    endZombieLevel();
-  }
-}
-
-function endZombieLevel() {
-  zombieMode = false;
-  zombieDone = true;
-  zombieBosses = [];
-  enemyBullets = [];
-  zombieBombs = [];
-  score += 5000; // pot level bonus
-  updateUI();
-  levelComplete(); // continues to level 11
-}
-
-function update() {
-  if (!gameRunning) return;
-  
-  if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
-  if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
-  
-  for (let i = bullets.length - 1; i >= 0; i--) {
-    bullets[i].y -= 8;
-    if (bullets[i].y < 0) bullets.splice(i, 1);
-  }
-  
-  spawnEnemy();
-  
-  // Powerups
-  for (let i = powerups.length - 1; i >= 0; i--) {
-    powerups[i].y += powerups[i].speed;
-    powerups[i].x += Math.sin(powerups[i].y * 0.03) * 1.5; // wobble
-    
-    if (powerups[i].y > canvas.height) {
-      powerups.splice(i, 1);
-      continue;
-    }
-    
-    // Collect
-    if (checkCollision(powerups[i], player)) {
-      const type = powerups[i].type;
-      powerups.splice(i, 1);
-      if (type === 'life') {
-        lives++;
-        score += 50;
-      } else if (type === 'laser') {
-        // GOD TIER LASER: 15s base, 25s double, 35s triple
-        if (laser) {
-          laserStacks = Math.min(3, laserStacks + 1);
-        } else {
-          laser = true;
-          laserStacks = 1;
-        }
-        // Set duration based on stacks
-        if (laserStacks === 1) laserTimer = 900; // 15s
-        else if (laserStacks === 2) laserTimer = 1500; // 25s
-        else laserTimer = 2100; // 35s
-      } else if (type === 'shield') {
-        shield = true;
-        shieldTimer = 600;
-      } else if (type === 'bomb') {
-        // Destroy all enemies
-        for (let e of enemies) score += 10 * level;
-        enemies = [];
-        if (boss) {
-          boss.hp -= 50; // Big damage to boss
-          if (boss.hp <= 0) {
-            onBossDefeated();
-          }
-        }
-        // Bomb also hurts zombie bosses
-        for (let i = zombieBosses.length - 1; i >= 0; i--) {
-          zombieBosses[i].hp -= 50;
-          if (zombieBosses[i].hp <= 0) {
-            zombieBosses.splice(i, 1);
-            score += 500;
-            updateUI();
-          }
-        }
-      }
-      updateUI();
-    }
-  }
-  
-  // Timers
-  if (laser) {
-    laserTimer--;
-    if (laserTimer <= 0) {
-      laser = false;
-      laserStacks = 0;
-      // Back to base weapon of this level
-    }
-  }
-  if (shield) {
-    shieldTimer--;
-    if (shieldTimer <= 0) shield = false;
-  }
-  
-  // Laser: destroys everything in its path
-  if (laser) {
-    const laserX = player.x + player.w/2;
-    const laserW = 20 + laserStacks * 10;
-    
-    // Kill enemies touching laser
-    for (let i = enemies.length - 1; i >= 0; i--) {
-      if (enemies[i].x < laserX + laserW/2 && enemies[i].x + enemies[i].w > laserX - laserW/2) {
-        enemies.splice(i, 1);
-        score += 10 * level;
-      }
-    }
-    updateUI();
-    
-    // Damage boss
-    if (boss && boss.x < laserX + laserW/2 && boss.x + boss.w > laserX - laserW/2) {
-      boss.hp -= 2; // 2 damage per frame = 120/sec
-      if (boss.hp <= 0) {
-        onBossDefeated();
-      }
-    }
-  }
-  
-  // Update enemies
-  for (let i = enemies.length - 1; i >= 0; i--) {
-    enemies[i].y += enemies[i].speed;
-    
-    // Bubble wobble
-    if (enemies[i].type === 'bubble') {
-      enemies[i].x += Math.sin(enemies[i].y * 0.05) * 2;
-    }
-    
-    // Collision with player (shield protects)
-    if (checkCollision(enemies[i], player)) {
-      enemies.splice(i, 1);
-      if (!shield) {
-        lives--;
-        updateUI();
-        if (lives <= 0) gameOver();
-      }
-      continue;
-    }
-    
-    if (enemies[i].y > canvas.height) { enemies.splice(i, 1); continue; }
-    
-    // Bullet collision
-    for (let j = bullets.length - 1; j >= 0; j--) {
-      if (checkCollision(bullets[j], enemies[i])) {
-        const dmg = bullets[j].damage || 1;
-        bullets.splice(j, 1);
-        enemies[i].hp -= dmg;
-        if (enemies[i].hp <= 0) {
-          enemies.splice(i, 1);
-          score += 10 * level;
-          updateUI();
-        }
+  // dog movement: keys
+  var moved = false;
+  if (keys['left']){ dog.x -= dog.speed * dt; dog.dir = -1; moved = true; }
+  if (keys['right']){ dog.x += dog.speed * dt; dog.dir = 1; moved = true; }
+  if (keys['up']){ dog.y -= dog.speed * dt; moved = true; }
+  if (keys['down']){ dog.y += dog.speed * dt; moved = true; }
+  if (moved) dog.legPhase += dt * 11;
+  dog.x = Math.max(40, Math.min(canvas.width - 40, dog.x));
+  dog.y = Math.max(roadTop() + 24, Math.min(roadBottom() - 24, dog.y));
+  // collisions
+  if (invuln <= 0){
+    for (var j = 0; j < cars.length; j++){
+      if (hit(dog, cars[j])){
+        lives--; invuln = 2;
+        if (lives <= 0){ loseGame(); return; }
         break;
       }
     }
   }
-  
-  // Boss
-  if (boss) {
-    if (boss.y < 50) boss.y += boss.speed;
-    else {
-      // Boss moves side to side
-      boss.x += Math.sin(Date.now() * 0.001) * 2;
-    }
-    
-    // Boss collision with player
-    if (checkCollision(boss, player)) {
-      lives = 0;
-      updateUI();
-      gameOver();
-      return;
-    }
-    
-    // Bullet collision with boss
-    for (let j = bullets.length - 1; j >= 0; j--) {
-      if (checkCollision(bullets[j], boss)) {
-        const dmg = bullets[j].damage || 1;
-        bullets.splice(j, 1);
-        boss.hp -= dmg;
-        if (boss.hp <= 0) {
-          onBossDefeated();
-        }
-        break;
-      }
-    }
-  }
-
-  // SECRET ZOMBIE LEVEL entities
-  if (zombieMode) {
-    // Zombie bosses drift down then sway side to side
-    for (let i = zombieBosses.length - 1; i >= 0; i--) {
-      const zb = zombieBosses[i];
-      if (zb.y < 40 + (i * 60)) zb.y += zb.speed;
-      else zb.x += Math.sin(Date.now() * 0.001 + i * 2) * 2.5;
-      if (zb.x < 0) zb.x = 0;
-      if (zb.x + zb.w > canvas.width) zb.x = canvas.width - zb.w;
-      // Touching a zombie = death
-      if (checkCollision(zb, player)) {
-        lives = 0;
-        updateUI();
-        gameOver();
-        return;
-      }
-      // Player bullets damage zombies
-      for (let j = bullets.length - 1; j >= 0; j--) {
-        if (checkCollision(bullets[j], zb)) {
-          const dmg = bullets[j].damage || 1;
-          bullets.splice(j, 1);
-          zb.hp -= dmg;
-          if (zb.hp <= 0) {
-            zombieBosses.splice(i, 1);
-            score += 500;
-            updateUI();
-          }
-          break;
-        }
-      }
-    }
-    // Laser melts zombies too
-    if (laser) {
-      const laserX = player.x + player.w / 2;
-      const laserW = 20 + laserStacks * 10;
-      for (let i = zombieBosses.length - 1; i >= 0; i--) {
-        const zb = zombieBosses[i];
-        if (zb.x < laserX + laserW / 2 && zb.x + zb.w > laserX - laserW / 2) {
-          zb.hp -= 2;
-          if (zb.hp <= 0) {
-            zombieBosses.splice(i, 1);
-            score += 500;
-            updateUI();
-          }
-        }
-      }
-    }
-    // Both zombies dead = cleared early
-    if (zombieBosses.length === 0 && enemyTimer > 10) {
-      endZombieLevel();
-      return;
-    }
-    // Zombie shots (shield blocks)
-    for (let i = enemyBullets.length - 1; i >= 0; i--) {
-      const b = enemyBullets[i];
-      b.x += b.vx;
-      b.y += b.vy;
-      if (b.y > canvas.height || b.x < -20 || b.x > canvas.width + 20) {
-        enemyBullets.splice(i, 1);
-        continue;
-      }
-      if (checkCollision(b, player)) {
-        enemyBullets.splice(i, 1);
-        if (!shield) {
-          lives--;
-          updateUI();
-          if (lives <= 0) { gameOver(); return; }
-        }
-      }
-    }
-    // Falling bombs: shoot them or dodge them (shield blocks)
-    for (let i = zombieBombs.length - 1; i >= 0; i--) {
-      const bm = zombieBombs[i];
-      bm.y += bm.speed;
-      if (bm.y > canvas.height) {
-        zombieBombs.splice(i, 1);
-        continue;
-      }
-      if (checkCollision(bm, player)) {
-        zombieBombs.splice(i, 1);
-        if (!shield) {
-          lives--;
-          updateUI();
-          if (lives <= 0) { gameOver(); return; }
-        }
-        continue;
-      }
-      for (let j = bullets.length - 1; j >= 0; j--) {
-        if (checkCollision(bullets[j], bm)) {
-          bullets.splice(j, 1);
-          zombieBombs.splice(i, 1);
-          score += 25;
-          updateUI();
-          break;
-        }
-      }
-    }
-  }
+  updateHUD();
 }
 
-function checkCollision(a, b) {
-  return a.x < b.x + b.w && a.x + (a.w||4) > b.x &&
-         a.y < b.y + b.h && a.y + (a.h||10) > b.y;
+function drawDog(d){
+  ctx.save();
+  ctx.translate(d.x, d.y);
+  ctx.scale(d.dir, 1);
+  var trot = Math.sin(d.legPhase) * 4;
+  ctx.strokeStyle = '#7a4f26'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-30, -12);
+  ctx.quadraticCurveTo(-42, -22 + trot, -38, -30 + trot); ctx.stroke();
+  ctx.fillStyle = '#7a4f26';
+  ctx.fillRect(-22, 8, 9, 16 + trot); ctx.fillRect(-8, 8, 9, 16 - trot);
+  ctx.fillRect(8, 8, 9, 16 + trot); ctx.fillRect(22, 8, 9, 16 - trot);
+  ctx.fillStyle = '#9c6b3c';
+  ctx.beginPath(); ctx.ellipse(0, 0, 32, 15, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(28, -12, 14, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#b3814e';
+  ctx.beginPath(); ctx.ellipse(40, -8, 9, 6, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(47, -9, 3, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#7a4f26';
+  ctx.beginPath(); ctx.ellipse(22, -20, 6, 10, 0.4, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(32, -15, 2.6, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  // mr shitoshi rides on the dog's back
+  ctx.drawImage(poopImg, d.x - 16, d.y - 44, 32, 32);
 }
 
-function onBossDefeated() {
-  score += 100 * level;
-  boss = null;
-  updateUI();
-  if (level === 10 && !zombieDone) {
-    // Unlock the SECRET ZOMBIE LEVEL (pot level)
-    pendingZombie = true;
-    gameRunning = false;
-    document.getElementById('levelup').innerHTML = '<div>🧟 SECRET ZOMBIE LEVEL 🧟</div><div style="font-size:16px;margin:12px 0;line-height:1.6;">THE POT LEVEL<br>Two zombie monsters. They shoot back.<br>Bombs rain from above.<br>Survive 5 minutes.</div><button onclick="nextLevel()">Enter if you dare</button>';
-    document.getElementById('levelup').style.display = 'block';
-    return;
-  }
-  if (level >= MAX_LEVEL) gameWin();
-  else levelComplete();
+function drawCar(c){
+  ctx.save();
+  ctx.translate(c.x, c.y);
+  ctx.scale(c.dir, 1);
+  // body
+  ctx.fillStyle = c.color;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-c.w/2, -c.h/2, c.w, c.h - 12, 10); else ctx.rect(-c.w/2, -c.h/2, c.w, c.h - 12);
+  ctx.fill();
+  // cabin + windows
+  ctx.fillStyle = '#2c3e50';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(-c.w/2 + 22, -c.h/2 - 14, c.w - 52, 22, 8); else ctx.rect(-c.w/2 + 22, -c.h/2 - 14, c.w - 52, 22);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(180,220,255,0.75)';
+  ctx.fillRect(-c.w/2 + 28, -c.h/2 - 10, (c.w - 64) / 2 - 3, 14);
+  ctx.fillRect(-c.w/2 + 28 + (c.w - 64) / 2 + 3, -c.h/2 - 10, (c.w - 64) / 2 - 3, 14);
+  // wheels
+  ctx.fillStyle = '#111';
+  ctx.beginPath(); ctx.arc(-c.w/2 + 24, c.h/2 - 12, 13, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(c.w/2 - 24, c.h/2 - 12, 13, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#888';
+  ctx.beginPath(); ctx.arc(-c.w/2 + 24, c.h/2 - 12, 5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(c.w/2 - 24, c.h/2 - 12, 5, 0, Math.PI*2); ctx.fill();
+  // headlight
+  ctx.fillStyle = '#ffe27a';
+  ctx.fillRect(c.w/2 - 6, -c.h/2 + 8, 6, 10);
+  ctx.restore();
 }
 
-function levelComplete() {
-  gameRunning = false;
-  document.getElementById('levelup').innerHTML = '<div>LEVEL <span id="newlvl">' + (level + 1) + '</span>!</div><button onclick="nextLevel()">Continue</button>';
-  document.getElementById('levelup').style.display = 'block';
+function draw(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // sidewalks
+  ctx.fillStyle = '#1c1c20';
+  ctx.fillRect(0, 0, canvas.width, roadTop());
+  ctx.fillRect(0, roadBottom(), canvas.width, canvas.height - roadBottom());
+  // asphalt
+  ctx.fillStyle = '#26262b';
+  ctx.fillRect(0, roadTop(), canvas.width, roadBottom() - roadTop());
+  // lane dashes
+  ctx.strokeStyle = '#f2a900'; ctx.lineWidth = 3; ctx.setLineDash([24, 20]);
+  for (var i = 1; i < LANES; i++){
+    var y = roadTop() + (roadBottom() - roadTop()) * i / LANES;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // curbs
+  ctx.fillStyle = '#F5820B';
+  ctx.fillRect(0, roadTop() - 4, canvas.width, 4);
+  ctx.fillRect(0, roadBottom(), canvas.width, 4);
+  // cars
+  for (var i = 0; i < cars.length; i++) drawCar(cars[i]);
+  // dog (blink while invulnerable)
+  if (invuln <= 0 || Math.floor(invuln * 8) % 2 === 0) drawDog(dog);
 }
 
-function nextLevel() {
-  document.getElementById('levelup').style.display = 'none';
-  // Enter the secret zombie level (pot level)
-  if (pendingZombie) {
-    pendingZombie = false;
-    zombieMode = true;
-    enemies = [];
-    powerups = [];
-    boss = null;
-    zombieBosses = [];
-    enemyBullets = [];
-    zombieBombs = [];
-    enemyTimer = 0;
-    gameRunning = true;
-    updateUI();
-    return;
-  }
-  level++;
-  enemies = [];
-  powerups = [];
-  boss = null;
-  enemyTimer = 0;
-  // Grow ship
-  const shipW = 50 + (level - 1) * 2;
-  const shipH = 40 + (level - 1) * 1.5;
-  player.w = Math.min(shipW, 100);
-  player.h = Math.min(shipH, 80);
-  player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
-  gameRunning = true;
-  updateUI();
-  // Show weapon upgrade message
-  const w = getWeapon();
-  const thresholds = [4, 7, 10, 13, 16, 19, 22];
-  if (thresholds.includes(level)) {
-    setTimeout(() => alert(`Weapon upgraded! ${w.count} bullets, ${w.damage} damage!`), 100);
-  }
-}
-
-// Load sprites
-const sprites = {
-  ship1: new Image(),
-  ship2: new Image(),
-  ship3: new Image(),
-  rock: new Image(),
-  bubble: new Image(),
-  monster: new Image(),
-  bossEth: new Image(),
-  bossSol: new Image()
-};
-sprites.ship1.src = '/game-assets/ship1.webp';
-sprites.ship2.src = '/game-assets/ship2.webp';
-sprites.ship3.src = '/game-assets/ship3.webp';
-sprites.rock.src = '/game-assets/enemy-rock.webp';
-sprites.bubble.src = '/game-assets/enemy-bubble.webp';
-sprites.monster.src = '/game-assets/enemy-monster.webp';
-sprites.bossEth.src = '/game-assets/boss-eth.webp';
-sprites.bossSol.src = '/game-assets/boss-sol.webp';
-
-function draw() {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Stars
-  ctx.fillStyle = '#fff';
-  for (let i = 0; i < 80; i++) {
-    const y = (Math.random() * canvas.height + Date.now()*0.05) % canvas.height;
-    ctx.fillRect(Math.random() * canvas.width, y, 1, 1);
-  }
-  
-  if (!gameRunning && document.getElementById('levelup').style.display === 'block') return;
+var lastT = 0;
+function loop(t){
   if (!gameRunning) return;
-  
-  // Player: Mr. Shitoshi spaceship sprite (changes with level)
-  const shipSprite = level <= 8 ? sprites.ship1 : (level <= 16 ? sprites.ship2 : sprites.ship3);
-  if (shipSprite.complete && shipSprite.naturalWidth > 0) {
-    ctx.drawImage(shipSprite, player.x, player.y, player.w, player.h);
-  } else {
-    // Fallback: Bitcoin orange ship
-    ctx.fillStyle = '#F7931A';
-    ctx.beginPath();
-    ctx.moveTo(player.x + player.w/2, player.y);
-    ctx.lineTo(player.x + player.w, player.y + player.h);
-    ctx.lineTo(player.x, player.y + player.h);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 22px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('₿', player.x + player.w/2, player.y + player.h - 6);
-  }
-  
-  // Shield bubble
-  if (shield) {
-    ctx.strokeStyle = '#00f';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(player.x + player.w/2, player.y + player.h/2, player.w/2 + 10, 0, Math.PI*2);
-    ctx.stroke();
-  }
-  
-  // Laser beam (god tier)
-  if (laser) {
-    const laserX = player.x + player.w/2;
-    const laserW = 20 + laserStacks * 10;
-    // Outer glow
-    ctx.fillStyle = `rgba(255, 0, 255, 0.3)`;
-    ctx.fillRect(laserX - laserW/2 - 5, 0, laserW + 10, player.y);
-    // Core beam
-    ctx.fillStyle = '#f0f';
-    ctx.fillRect(laserX - laserW/2, 0, laserW, player.y);
-    // White hot center
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(laserX - 3, 0, 6, player.y);
-    
-    // Timer display
-    ctx.fillStyle = '#f0f';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText(`LASER ${Math.ceil(laserTimer/60)}s x${laserStacks}`, laserX, player.y - 15);
-  }
-  
-  // Rapid fire indicator (removed, replaced by laser)
-  // Shield bubble
-  
-  // Bullets: shit coins (cooler each tier, 1-8)
-  for (let b of bullets) {
-    const tier = b.tier || 1;
-    ctx.font = `${b.size || 16}px serif`;
-    ctx.textAlign = 'center';
-    if (tier === 1) {
-      drawPoop(b.x, b.y, b.size || 16);
-    } else if (tier === 2) {
-      ctx.shadowColor = '#F7931A';
-      ctx.shadowBlur = 8;
-      drawPoop(b.x, b.y, b.size || 16);
-      ctx.shadowBlur = 0;
-    } else if (tier === 3) {
-      ctx.fillText('🔥', b.x, b.y - 8);
-      drawPoop(b.x, b.y, b.size || 16);
-    } else if (tier === 4) {
-      ctx.fillText('⚡', b.x, b.y - 8);
-      drawPoop(b.x, b.y, b.size || 16);
-    } else if (tier === 5) {
-      ctx.fillText('💥', b.x, b.y - 8);
-      drawPoop(b.x, b.y, b.size || 16);
-    } else if (tier === 6) {
-      ctx.shadowColor = '#ff0';
-      ctx.shadowBlur = 12;
-      drawPoop(b.x, b.y, b.size || 16);
-      ctx.shadowBlur = 0;
-    } else if (tier === 7) {
-      ctx.fillText('☄️', b.x, b.y - 8);
-      drawPoop(b.x, b.y, b.size || 16);
-    } else {
-      // Tier 8: Ultimate rainbow shit
-      ctx.fillText('🌈', b.x, b.y - 10);
-      ctx.shadowColor = '#f0f';
-      ctx.shadowBlur = 15;
-      drawPoop(b.x, b.y, b.size || 16);
-      ctx.shadowBlur = 0;
-    }
-  }
-  
-  // Powerups: bubbles with icons
-  for (let p of powerups) {
-    // Bubble
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(p.x + p.w/2, p.y + p.h/2, p.w/2, 0, Math.PI*2);
-    ctx.stroke();
-    // Shine
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.beginPath();
-    ctx.arc(p.x + p.w/2 - 5, p.y + p.h/2 - 5, 5, 0, Math.PI*2);
-    ctx.fill();
-    // Icon
-    ctx.font = '18px serif';
-    ctx.textAlign = 'center';
-    let icon = '';
-    if (p.type === 'life') icon = '❤️';
-    else if (p.type === 'laser') icon = '🔫';
-    else if (p.type === 'shield') icon = '🛡️';
-    else if (p.type === 'bomb') icon = '💣';
-    ctx.fillText(icon, p.x + p.w/2, p.y + p.h/2 + 6);
-  }
-  
-  // Enemies: sprite images
-  for (let e of enemies) {
-    const color = e.color || '#627eea';
-    let sprite = null;
-    if (e.type === 'rock') sprite = sprites.rock;
-    else if (e.type === 'bubble') sprite = sprites.bubble;
-    else sprite = sprites.monster;
-    
-    if (sprite.complete && sprite.naturalWidth > 0) {
-      ctx.drawImage(sprite, e.x, e.y, e.w, e.h);
-    } else {
-      // Fallback to canvas drawing
-      if (e.type === 'rock') {
-        ctx.fillStyle = '#555';
-        ctx.beginPath();
-        ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
-        ctx.fill();
-      } else if (e.type === 'bubble') {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(e.x + e.w/2, e.y + e.h/2, e.w/2, 0, Math.PI*2);
-        ctx.stroke();
-      } else {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(e.x + e.w/2, e.y);
-        ctx.lineTo(e.x + e.w, e.y + e.h/2);
-        ctx.lineTo(e.x + e.w/2, e.y + e.h);
-        ctx.lineTo(e.x, e.y + e.h/2);
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
-    // Chain label
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(e.chain, e.x + e.w/2, e.y + e.h + 12);
-  }
-  
-  // Boss: sprite image (alternates ETH/SOL bosses by level)
-  if (boss) {
-    const bossSprite = (level % 2 === 0) ? sprites.bossEth : sprites.bossSol;
-    if (bossSprite.complete && bossSprite.naturalWidth > 0) {
-      ctx.drawImage(bossSprite, boss.x, boss.y, boss.w, boss.h);
-    } else {
-      const color = boss.color;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.roundRect(boss.x, boss.y, boss.w, boss.h, 20);
-      ctx.fill();
-    }
-    // Chain logo
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText(boss.chain, boss.x + boss.w/2, boss.y + boss.h/2 + 15);
-    // Level indicator
-    ctx.font = 'bold 12px sans-serif';
-    ctx.fillText('BOSS LVL ' + level, boss.x + boss.w/2, boss.y + boss.h - 10);
-    // HP bar
-    ctx.fillStyle = '#f00';
-    ctx.fillRect(boss.x, boss.y - 12, boss.w, 8);
-    ctx.fillStyle = '#0f0';
-    ctx.fillRect(boss.x, boss.y - 12, boss.w * (boss.hp / boss.maxHp), 8);
-  }
-
-  // SECRET ZOMBIE LEVEL: zombie bosses, their shots, falling bombs
-  if (zombieMode || zombieBosses.length) {
-    for (let zb of zombieBosses) {
-      ctx.font = '90px serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('🧟', zb.x + zb.w / 2, zb.y + zb.h - 20);
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.fillText('ZOMBIE', zb.x + zb.w / 2, zb.y + zb.h + 12);
-      // HP bar
-      ctx.fillStyle = '#f00';
-      ctx.fillRect(zb.x, zb.y - 12, zb.w, 8);
-      ctx.fillStyle = '#0f0';
-      ctx.fillRect(zb.x, zb.y - 12, zb.w * (zb.hp / zb.maxHp), 8);
-    }
-    // Zombie shots
-    ctx.fillStyle = '#ff0';
-    for (let b of enemyBullets) {
-      ctx.beginPath();
-      ctx.arc(b.x + b.w / 2, b.y + b.h / 2, 6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    // Falling bombs
-    ctx.font = '28px serif';
-    ctx.textAlign = 'center';
-    for (let bm of zombieBombs) {
-      ctx.fillText('💣', bm.x + bm.w / 2, bm.y + bm.h - 4);
-    }
-    // Survive timer
-    if (zombieMode) {
-      const left = Math.max(0, Math.ceil((18000 - enemyTimer) / 60));
-      ctx.fillStyle = '#f2a900';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('🧟 SURVIVE ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'), canvas.width / 2, 30);
-    }
-  }
+  var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+  lastT = t;
+  update(dt); draw();
+  raf = requestAnimationFrame(loop);
 }
 
-function gameWin() {
-  gameRunning = false;
-  // TODO: Get pool amount from API, calculate 50%
-  const poolPrize = "50% of pool"; // Placeholder
-  document.getElementById('gameover').innerHTML = 
-    '<div>🏆 BITCOIN WINS! 🏆</div>' +
-    '<div>Score: ' + score + '</div>' +
-    '<div>All 25 shitcoin bosses defeated!</div>' +
-    '<div style="font-size: 22px; margin: 15px 0;">You win ' + poolPrize + '!</div>' +
-    '<div style="font-size: 14px; margin-bottom: 15px;">Enter your SHIT address to claim:</div>' +
-    '<input type="text" id="winaddr" placeholder="shit1..." style="width: 100%; padding: 10px; font-size: 14px; margin-bottom: 10px; background: #222; color: #fff; border: 1px solid #444; border-radius: 6px;">' +
-    '<button onclick="claimPrize()">Claim Prize</button><br>' +
-    '<button onclick="restart()" style="margin-top: 10px;">Play Again</button>';
-  document.getElementById('gameover').style.display = 'block';
-}
-
-async function claimPrize() {
-  const addr = document.getElementById('winaddr').value.trim();
-  if (!addr) {
-    alert('Enter your SHIT address');
-    return;
-  }
-  if (!addr.toLowerCase().startsWith('shit1')) {
-    alert('That address does not look right. It should start with shit1.');
-    return;
-  }
-  try {
-    const r = await fetch('/api/game/win', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({player_address: addr})
-    });
-    const d = await r.json();
-    if (!r.ok || typeof d.prize_shit !== 'number') {
-      throw new Error((d && d.error) || 'claim rejected');
-    }
-    alert(`You won ${d.prize_shit.toLocaleString()} SHIT! We'll send it to ${addr}`);
-  } catch (e) {
-    alert('Claim failed: ' + (e.message || 'network error') + '. Your win is recorded in this browser, try again or contact us.');
-  }
-}
-
-function gameOver() {
-  gameRunning = false;
-  document.getElementById('finalscore').textContent = score;
-  document.getElementById('finallvl').textContent = level;
-  document.getElementById('gameover').style.display = 'block';
-}
-
-function restart() {
-  document.getElementById('gameover').style.display = 'none';
-  document.getElementById('levelup').style.display = 'none';
-  init();
-  gameRunning = true;
-}
-
-// Fetch pool amount
-async function updatePool() {
-  try {
-    const r = await fetch('/api/game/pool');
-    const d = await r.json();
-    document.getElementById('poolamt').textContent = d.pool_shit.toLocaleString();
-  } catch (e) {
-    // API not reachable, show 0
-  }
-}
-updatePool();
-setInterval(updatePool, 30000); // Update every 30s
-
-function copyAddr(addr) {
-  navigator.clipboard.writeText(addr);
-  alert('Address copied!');
-}
-
-function startGame() {
-  // Simple: user clicks "I Paid", game starts
-  // Backend tracks payments via addresses
+function startGame(){
   document.getElementById('payscreen').style.display = 'none';
-  init();
+  init(); gameRunning = true; lastT = 0;
+  raf = requestAnimationFrame(loop);
 }
 
+function endScreen(html){
+  gameRunning = false;
+  cancelAnimationFrame(raf);
+  var g = document.getElementById('gameover');
+  g.innerHTML = html; g.style.display = 'block';
+}
 
-init();
-// Don't start game loop until payment
-gameRunning = false;
-document.getElementById('payscreen').style.display = 'block';
-function shoot() {
+function loseGame(){
+  endScreen('<div style="font-size:22px;margin-bottom:10px;">The car got him!</div>'+
+    '<div style="font-size:15px;color:#999;margin-bottom:16px;">Dodged '+dodged+' cars.</div>'+
+    '<button onclick="startGame()" style="font-size:17px;padding:12px 26px;">Try Again</button>');
+}
+
+function winGame(){
+  endScreen('<div style="font-size:22px;margin-bottom:10px;">60 SECONDS! YOU MADE IT!</div>'+
+    '<div style="font-size:18px;margin:12px 0;">You win 50% of the pool!</div>'+
+    '<div style="font-size:15px;color:#999;margin-bottom:10px;">Dodged '+dodged+' cars.</div>'+
+    '<div style="font-size:14px;color:#999;margin-bottom:10px;">Enter your SHIT address to claim:</div>'+
+    '<input id="winaddr" placeholder="shit1..." style="width:90%;padding:10px;font-size:14px;margin-bottom:12px;background:#0d0d0f;border:1px solid #2a2a30;color:#f2a900;border-radius:8px;font-family:monospace;">'+
+    '<br><button onclick="claimPrize()" style="font-size:17px;padding:12px 26px;">Claim Prize</button>');
+}
+
+async function claimPrize(){
+  var addr = document.getElementById('winaddr').value.trim();
+  if (!addr){ alert('Enter your SHIT address'); return; }
+  if (!addr.toLowerCase().startsWith('shit1')){ alert('That address does not look right. It should start with shit1.'); return; }
+  try {
+    var r = await fetch('/api/game/win', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player_address: addr, game: 'spaceship'}) });
+    var d = await r.json();
+    if (!r.ok || typeof d.prize_shit !== 'number') throw new Error((d && d.error) || 'claim rejected');
+    alert('You won '+d.prize_shit.toLocaleString()+' SHIT! We will send it to '+addr);
+    document.getElementById('gameover').style.display = 'none';
+  } catch(e){ alert('Claim failed: '+e.message); }
+}
+
+function copyAddr(a){
+  if (navigator.clipboard) navigator.clipboard.writeText(a).catch(function(){});
+  var t = document.createElement('textarea'); t.value = a; document.body.appendChild(t); t.select();
+  try { document.execCommand('copy'); } catch(e){}
+  document.body.removeChild(t);
+}
+
+// controls: mouse / touch follow, keys
+function pointTo(x, y){
+  var r = canvas.getBoundingClientRect();
   if (!gameRunning) return;
-  const w = getWeapon();
-  const cx = player.x + player.w/2;
-  // Spread bullets
-  for (let i = 0; i < w.count; i++) {
-    const offset = (i - (w.count - 1) / 2) * 12;
-    bullets.push({ 
-      x: cx + offset, y: player.y, 
-      damage: w.damage, size: w.size, tier: w.tier 
-    });
-  }
+  dog.x = Math.max(40, Math.min(canvas.width - 40, x - r.left));
+  dog.y = Math.max(roadTop() + 24, Math.min(roadBottom() - 24, y - r.top));
+  if (x - r.left > dog.x + 4) dog.dir = 1; else if (x - r.left < dog.x - 4) dog.dir = -1;
 }
-
-document.addEventListener('keydown', e => {
-  keys[e.key] = true;
-  if (e.key === ' ') { shoot(); e.preventDefault(); }
+canvas.addEventListener('mousemove', function(e){ pointTo(e.clientX, e.clientY); });
+canvas.addEventListener('touchmove', function(e){ e.preventDefault(); var t = e.touches[0]; pointTo(t.clientX, t.clientY); }, {passive:false});
+canvas.addEventListener('touchstart', function(e){ var t = e.touches[0]; pointTo(t.clientX, t.clientY); }, {passive:true});
+window.addEventListener('keydown', function(e){
+  var k = e.key.toLowerCase();
+  if (k === 'arrowleft' || k === 'a') keys['left'] = true;
+  if (k === 'arrowright' || k === 'd') keys['right'] = true;
+  if (k === 'arrowup' || k === 'w') keys['up'] = true;
+  if (k === 'arrowdown' || k === 's') keys['down'] = true;
 });
-document.addEventListener('keyup', e => keys[e.key] = false);
-
-let touchX = null;
-canvas.addEventListener('touchstart', e => {
-  touchX = e.touches[0].clientX;
-  shoot();
-  e.preventDefault();
-}, {passive: false});
-canvas.addEventListener('touchmove', e => {
-  if (touchX !== null) {
-    let dx = e.touches[0].clientX - touchX;
-    player.x = Math.max(0, Math.min(canvas.width - player.w, player.x + dx));
-    touchX = e.touches[0].clientX;
-  }
-  e.preventDefault();
-}, {passive: false});
-canvas.addEventListener('touchend', () => touchX = null);
-canvas.addEventListener('mousemove', e => {
-  const rect = canvas.getBoundingClientRect();
-  player.x = Math.max(0, Math.min(canvas.width - player.w, e.clientX - rect.left - player.w/2));
+window.addEventListener('keyup', function(e){
+  var k = e.key.toLowerCase();
+  if (k === 'arrowleft' || k === 'a') keys['left'] = false;
+  if (k === 'arrowright' || k === 'd') keys['right'] = false;
+  if (k === 'arrowup' || k === 'w') keys['up'] = false;
+  if (k === 'arrowdown' || k === 's') keys['down'] = false;
 });
-canvas.addEventListener('click', shoot);
 
-// Game starts after payment (see startGame)
-// init() is called from startGame()
-function loop() { update(); draw(); requestAnimationFrame(loop); }
-loop();
+fetch('/api/game/pool').then(function(r){ return r.json(); }).then(function(d){
+  document.getElementById('poolamt').textContent = Number(d.pool_shit||0).toLocaleString();
+}).catch(function(){});
 </script>
 </body>
 </html>

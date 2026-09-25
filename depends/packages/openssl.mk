@@ -11,7 +11,7 @@ define $(package)_set_vars
   $(package)_config_opts=--prefix=$($($(package)_type)_prefix)
   $(package)_config_opts+=--openssldir=$($($(package)_type)_prefix)/etc/ssl
   $(package)_config_opts+=--libdir=lib
-  $(package)_config_opts+=no-shared no-tests
+  $(package)_config_opts+=no-shared no-tests no-capi
 endef
 
 define $(package)_config_cmds

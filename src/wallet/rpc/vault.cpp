@@ -44,19 +44,16 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <compat/compat.h>
 #include <cstdint>
 #include <cstring>
-#include <fcntl.h>
 #include <fstream>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <mutex>
-#include <netdb.h>
 #include <string>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <util/sock.h>
 #include <vector>
 
 namespace wallet {
@@ -116,7 +113,30 @@ static bool ParseExplorerUrl(const std::string& url, bool& use_tls, std::string&
     return !host.empty();
 }
 
-static bool WaitForSocket(int fd, bool for_write, TimePoint deadline)
+//! Portable socket close (closesocket on Windows, close elsewhere).
+static void VaultCloseSocket(SOCKET s)
+{
+#ifdef WIN32
+    closesocket(s);
+#else
+    close(s);
+#endif
+}
+
+//! Put a socket into non-blocking mode. Returns true on success.
+static bool VaultSetNonBlocking(SOCKET s)
+{
+#ifdef WIN32
+    u_long mode = 1;
+    return ioctlsocket(s, FIONBIO, &mode) == 0;
+#else
+    const int old_flags = fcntl(s, F_GETFL, 0);
+    if (old_flags < 0) return false;
+    return fcntl(s, F_SETFL, old_flags | O_NONBLOCK) == 0;
+#endif
+}
+
+static bool WaitForSocket(SOCKET fd, bool for_write, TimePoint deadline)
 {
     const auto now = SteadyClock::now();
     if (now >= deadline) return false;
@@ -127,50 +147,62 @@ static bool WaitForSocket(int fd, bool for_write, TimePoint deadline)
     struct timeval tv;
     tv.tv_sec = (long)(remain.count() / 1000000);
     tv.tv_usec = (long)(remain.count() % 1000000);
-    const int rc = select(fd + 1, for_write ? nullptr : &fds, for_write ? &fds : nullptr, nullptr, &tv);
+    // NB: the first select() argument is ignored on Windows.
+    const int rc = select((int)fd + 1, for_write ? nullptr : &fds, for_write ? &fds : nullptr, nullptr, &tv);
     return rc > 0;
 }
 
 //! Non-blocking connect with a deadline; tries each addrinfo result in turn.
-static int ConnectWithDeadline(const addrinfo* ai, TimePoint deadline, std::string& err)
+static SOCKET ConnectWithDeadline(const addrinfo* ai, TimePoint deadline, std::string& err)
 {
-    int last_errno = 0;
+    int last_err = 0;
     for (const addrinfo* p = ai; p != nullptr; p = p->ai_next) {
-        const int fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (fd < 0) {
-            last_errno = errno;
+        const SOCKET fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (fd == INVALID_SOCKET) {
+            last_err = WSAGetLastError();
             continue;
         }
-        const int old_flags = fcntl(fd, F_GETFL, 0);
-        if (old_flags >= 0) fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
-        int rc = connect(fd, p->ai_addr, p->ai_addrlen);
-        if (rc < 0 && errno != EINPROGRESS) {
-            last_errno = errno;
-            close(fd);
+        if (!VaultSetNonBlocking(fd)) {
+            last_err = WSAGetLastError();
+            VaultCloseSocket(fd);
+            continue;
+        }
+        int rc = connect(fd, p->ai_addr, (int)p->ai_addrlen);
+        if (rc < 0 && WSAGetLastError() != WSAEINPROGRESS) {
+            last_err = WSAGetLastError();
+            VaultCloseSocket(fd);
             continue;
         }
         if (rc < 0) {
             if (!WaitForSocket(fd, /*for_write=*/true, deadline)) {
-                last_errno = ETIMEDOUT;
-                close(fd);
+#ifdef WIN32
+                last_err = WSAETIMEDOUT;
+#else
+                last_err = ETIMEDOUT;
+#endif
+                VaultCloseSocket(fd);
                 continue;
             }
             int so_err = 0;
+#ifdef WIN32
+            int optlen = sizeof(so_err);
+#else
             socklen_t optlen = sizeof(so_err);
-            if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &so_err, &optlen) < 0 || so_err != 0) {
-                last_errno = (so_err != 0) ? so_err : errno;
-                close(fd);
+#endif
+            if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (sockopt_arg_type)&so_err, &optlen) != 0 || so_err != 0) {
+                last_err = (so_err != 0) ? so_err : WSAGetLastError();
+                VaultCloseSocket(fd);
                 continue;
             }
         }
         return fd; // connected; socket stays non-blocking
     }
-    err = strprintf("BTC explorer: connection failed: %s", strerror(last_errno));
-    return -1;
+    err = strprintf("BTC explorer: connection failed: %s", NetworkErrorString(last_err));
+    return INVALID_SOCKET;
 }
 
 //! Non-blocking TLS handshake with certificate chain and hostname verification. Fail closed.
-static bool TlsHandshake(int fd, const std::string& host, SSL_CTX*& ctx_out, SSL*& ssl_out, TimePoint deadline, std::string& err)
+static bool TlsHandshake(SOCKET fd, const std::string& host, SSL_CTX*& ctx_out, SSL*& ssl_out, TimePoint deadline, std::string& err)
 {
     ctx_out = nullptr;
     ssl_out = nullptr;
@@ -194,7 +226,7 @@ static bool TlsHandshake(int fd, const std::string& host, SSL_CTX*& ctx_out, SSL
     }
     // SNI, so hosts behind shared infrastructure present the right certificate.
     SSL_set_tlsext_host_name(ssl, host.c_str());
-    SSL_set_fd(ssl, fd);
+    SSL_set_fd(ssl, (int)fd);
     while (true) {
         const int rc = SSL_connect(ssl);
         if (rc == 1) break;
@@ -227,7 +259,7 @@ static bool TlsHandshake(int fd, const std::string& host, SSL_CTX*& ctx_out, SSL
     return true;
 }
 
-static bool SockSendAll(int fd, SSL* ssl, const std::string& data, TimePoint deadline, std::string& err)
+static bool SockSendAll(SOCKET fd, SSL* ssl, const std::string& data, TimePoint deadline, std::string& err)
 {
     size_t sent = 0;
     while (sent < data.size()) {
@@ -248,12 +280,13 @@ static bool SockSendAll(int fd, SSL* ssl, const std::string& data, TimePoint dea
                 return false;
             }
         } else {
-            rc = send(fd, data.data() + sent, data.size() - sent, MSG_NOSIGNAL);
-            if (rc < 0) {
-                if ((errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) && WaitForSocket(fd, /*for_write=*/true, deadline)) {
+            rc = send(fd, data.data() + sent, (int)(data.size() - sent), MSG_NOSIGNAL);
+            if (rc == SOCKET_ERROR) {
+                const int wsa_err = WSAGetLastError();
+                if ((wsa_err == WSAEWOULDBLOCK || wsa_err == WSAEINTR) && WaitForSocket(fd, /*for_write=*/true, deadline)) {
                     continue;
                 }
-                err = strprintf("BTC explorer: send failed: %s", strerror(errno));
+                err = strprintf("BTC explorer: send failed: %s", NetworkErrorString(wsa_err));
                 return false;
             }
         }
@@ -262,7 +295,7 @@ static bool SockSendAll(int fd, SSL* ssl, const std::string& data, TimePoint dea
     return true;
 }
 
-static bool SockRecvAll(int fd, SSL* ssl, std::string& out, TimePoint deadline, std::string& err)
+static bool SockRecvAll(SOCKET fd, SSL* ssl, std::string& out, TimePoint deadline, std::string& err)
 {
     out.clear();
     char buf[8192];
@@ -286,11 +319,12 @@ static bool SockRecvAll(int fd, SSL* ssl, std::string& out, TimePoint deadline, 
             }
         } else {
             rc = recv(fd, buf, sizeof(buf), 0);
-            if (rc < 0) {
-                if ((errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) && WaitForSocket(fd, /*for_write=*/false, deadline)) {
+            if (rc == SOCKET_ERROR) {
+                const int wsa_err = WSAGetLastError();
+                if ((wsa_err == WSAEWOULDBLOCK || wsa_err == WSAEINTR) && WaitForSocket(fd, /*for_write=*/false, deadline)) {
                     continue;
                 }
-                err = strprintf("BTC explorer: receive failed: %s", strerror(errno));
+                err = strprintf("BTC explorer: receive failed: %s", NetworkErrorString(wsa_err));
                 return false;
             }
             if (rc == 0) break; // EOF
@@ -324,14 +358,14 @@ static bool HttpGet(const std::string& url, std::string& body_out, std::string& 
         err = strprintf("BTC explorer: DNS resolution failed for %s", host);
         return false;
     }
-    const int fd = ConnectWithDeadline(ai, deadline, err);
+    const SOCKET fd = ConnectWithDeadline(ai, deadline, err);
     freeaddrinfo(ai);
-    if (fd < 0) return false;
+    if (fd == INVALID_SOCKET) return false;
 
     SSL_CTX* ctx = nullptr;
     SSL* ssl = nullptr;
     if (use_tls && !TlsHandshake(fd, host, ctx, ssl, deadline, err)) {
-        close(fd);
+        VaultCloseSocket(fd);
         return false;
     }
 
@@ -349,7 +383,7 @@ static bool HttpGet(const std::string& url, std::string& body_out, std::string& 
         SSL_free(ssl);
         SSL_CTX_free(ctx);
     }
-    close(fd);
+    VaultCloseSocket(fd);
     if (!ok) return false;
 
     // Minimal response validation: status 200 on the status line, then headers/body split.

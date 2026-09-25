@@ -63,6 +63,7 @@ QT_MOC_CPP = \
   qt/moc_optionsdialog.cpp \
   qt/moc_optionsmodel.cpp \
   qt/moc_overviewpage.cpp \
+  qt/moc_lotterypage.cpp \
   qt/moc_peertablemodel.cpp \
   qt/moc_peertablesortproxy.cpp \
   qt/moc_paymentserver.cpp \
@@ -101,6 +102,7 @@ QT_MOC = \
   qt/syscoinamountfield.moc \
   qt/intro.moc \
   qt/overviewpage.moc \
+  qt/lotterypage.moc \
   qt/rpcconsole.moc
 
 QT_QRC_CPP = qt/qrc_syscoin.cpp
@@ -266,6 +268,7 @@ SYSCOIN_QT_WALLET_CPP = \
   qt/masternodelist.cpp \
   qt/openuridialog.cpp \
   qt/overviewpage.cpp \
+  qt/lotterypage.cpp \
   qt/paymentserver.cpp \
   qt/psbtoperationsdialog.cpp \
   qt/qrimagewidget.cpp \

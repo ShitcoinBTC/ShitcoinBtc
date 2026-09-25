@@ -17,44 +17,30 @@ button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none;
 </head>
 <body>
 <style>
-/* ---- site tab nav v2 ---- */
-nav.sitenav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
-.sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
-.sitenav .brand img{border-radius:8px;}
-.sitenav .nav-links{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
-.sitenav .btn-nav{border:1px solid #F5820B;color:#F5820B;padding:6px 14px;border-radius:20px;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;transition:background .15s ease;}
-.sitenav .btn-nav:hover{background:rgba(245,130,11,.12);}
-.sitenav .btn-nav.active{background:#F5820B;border-color:#F5820B;color:#14100a;}
-.sitenav .nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:42px;height:42px;background:transparent;cursor:pointer;border:1px solid #F5820B;border-radius:12px;}
-.sitenav .nav-toggle span{display:block;width:20px;height:2px;background:#F5820B;border-radius:2px;}
-@media(max-width:900px){
-.sitenav{flex-wrap:wrap;}
-.sitenav .nav-toggle{display:flex;}
-.sitenav .nav-links{display:none;width:100%;flex-direction:column;align-items:stretch;margin-top:12px;}
-.sitenav .nav-links.open{display:flex;}
-.sitenav .btn-nav{text-align:center;}
-}
 </style>
 <style>
-/* ---- site tab nav v2 ---- */
-nav.sitenav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
+</style>
+<style>
+/* ---- site tab nav v3 ---- */
+nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;}
+.sitenav-inner{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1400px;margin:0 auto;}
 .sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
 .sitenav .brand img{border-radius:8px;}
-.sitenav .nav-links{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
-.sitenav .btn-nav{border:1px solid #F5820B;color:#F5820B;padding:6px 14px;border-radius:20px;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;transition:background .15s ease;}
+.sitenav .nav-links{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+.sitenav .btn-nav{border:1px solid #F5820B;color:#F5820B;padding:6px 11px;font-size:13.5px;border-radius:20px;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;transition:background .15s ease;background:transparent;}
 .sitenav .btn-nav:hover{background:rgba(245,130,11,.12);}
 .sitenav .btn-nav.active{background:#F5820B;border-color:#F5820B;color:#14100a;}
 .sitenav .nav-toggle{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:42px;height:42px;background:transparent;cursor:pointer;border:1px solid #F5820B;border-radius:12px;}
 .sitenav .nav-toggle span{display:block;width:20px;height:2px;background:#F5820B;border-radius:2px;}
 @media(max-width:900px){
-.sitenav{flex-wrap:wrap;}
+.sitenav-inner{flex-wrap:wrap;}
 .sitenav .nav-toggle{display:flex;}
 .sitenav .nav-links{display:none;width:100%;flex-direction:column;align-items:stretch;margin-top:12px;}
 .sitenav .nav-links.open{display:flex;}
 .sitenav .btn-nav{text-align:center;}
 }
 </style>
-<nav class="sitenav">
+<nav class="sitenav"><div class="sitenav-inner">
   <a class="brand" href="/">
     <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
     <span>SHITCOIN</span>
@@ -75,10 +61,11 @@ nav.sitenav{display:flex;justify-content:space-between;align-items:center;paddin
     <a class="btn-nav" href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
     <a class="btn-nav" href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
   </div>
-</nav>
+</div></nav>
 <script>
 (function(){var b=document.querySelector('nav.sitenav .nav-toggle'),l=document.querySelector('nav.sitenav .nav-links');if(!b||!l)return;function c(){l.classList.remove('open');b.setAttribute('aria-expanded','false');}b.addEventListener('click',function(e){e.stopPropagation();var o=l.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});l.addEventListener('click',function(e){if(e.target.closest('a'))c();});document.addEventListener('click',c);})();
 </script>
+
 
 
 <div id="ui">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>

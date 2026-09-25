@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Shity Slots</title>
+<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+<style>
+body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: monospace; }
+canvas { display: block; margin: 0 auto; }
+#ui { position: fixed; top: 10px; left: 10px; color: #f2a900; font-size: 16px; z-index: 10; }
+#level { position: fixed; top: 10px; right: 10px; color: #f2a900; font-size: 16px; z-index: 10; }
+#gameover, #levelup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 28px; display: none; text-align: center; background: rgba(0,0,0,0.9); padding: 30px; border-radius: 12px; z-index: 20; }
+button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+.pe{height:1.15em;width:1.15em;vertical-align:-0.18em;}
+</style>
+</head>
+<body>
+<style>
+</style>
+<style>
+</style>
+<style>
+</style>
+<style>
+/* ---- site nav v4: single dropdown ---- */
+nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative;z-index:60;}
+.sitenav-inner{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
+.sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
+.sitenav .brand img{border-radius:8px;}
+.nav-menu{position:relative;}
+.menu-btn{display:flex;align-items:center;gap:9px;border:1px solid #F5820B;color:#F5820B;background:transparent;padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;}
+.menu-btn:hover{background:rgba(245,130,11,.12);}
+.menu-btn{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.menu-drop a{cursor:pointer;}
+.menu-btn .bars{display:flex;flex-direction:column;gap:4px;}
+.menu-btn .bars span{display:block;width:18px;height:2px;background:#F5820B;border-radius:2px;}
+.menu-drop{display:none;position:absolute;right:0;top:calc(100% + 10px);min-width:250px;background:#1a1a1e;border:1px solid #2a2a30;border-radius:14px;padding:8px;box-shadow:0 18px 50px rgba(0,0,0,.55);}
+.menu-check{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.menu-check:checked ~ .menu-drop{display:block;}
+.menu-check:checked ~ .menu-btn{background:rgba(245,130,11,.14);}
+.menu-drop a{display:block;padding:11px 14px;border-radius:10px;color:#f2f0eb;text-decoration:none;font-size:15px;}
+.menu-drop a:hover{background:rgba(245,130,11,.12);}
+.menu-drop a.active{background:#F5820B;color:#14100a;font-weight:700;}
+.menu-drop hr{border:none;border-top:1px solid #2a2a30;margin:6px 4px;}
+</style>
+<nav class="sitenav"><div class="sitenav-inner">
+  <a class="brand" href="/">
+    <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
+    <span>SHITCOIN</span>
+  </a>
+  <div class="nav-menu">
+    <input type="checkbox" id="navmenu-toggle" class="menu-check" tabindex="-1" aria-hidden="true">
+    <label for="navmenu-toggle" class="menu-btn" aria-haspopup="true" aria-expanded="false">
+      <span class="bars"><span></span><span></span><span></span></span>
+      Menu
+    </label>
+    <div class="menu-drop">
+    <a class="active" href="/game">Shity Games</a>
+    <a class="" href="/lottery">Shity Lottery</a>
+    <a class="" href="/mine">Shity Mining</a>
+    <a class="" href="/presale">Shity Presale</a>
+    <a class="" href="/webwallet">Shity Web Wallet</a>
+    <a class="" href="/whitepaper">Shity Whitepaper</a>
+    <a class="" href="/bridge">Shity Bridge</a>
+    <a class="" href="/launchpad">Shity Launchpad</a>
+    <a class="" href="/node">Shity Node</a>
+    <a class="" href="/#wallets">Shity Wallets</a>
+    <hr>
+    <a href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
+    <a href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
+    <a href="https://github.com/ShitcoinBTC/ShitcoinBtc" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://explorer.shitcoinbtc.xyz" target="_blank" rel="noopener">Explorer</a>
+    </div>
+  </div>
+</div></nav>
+<script>
+(function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
+</script>
+<div id="ui">Spins left: <span id="spins">0</span></div>
+<style>
+#machine { display: none; text-align: center; margin-top: 8vh; }
+.reels { display: flex; justify-content: center; gap: 14px; margin-bottom: 26px; }
+.reel { width: 96px; height: 120px; background: #141416; border: 2px solid #2a2a30; border-radius: 12px;
+        font-size: 62px; line-height: 120px; }
+#spinbtn { font-size: 22px; padding: 14px 54px; background: #F5820B; color: #111; border: none;
+           border-radius: 12px; font-weight: bold; cursor: pointer; }
+#spinbtn:disabled { background: #4a4a50; color: #888; cursor: default; }
+#result { margin-top: 18px; font-size: 17px; color: #f2a900; min-height: 26px; }
+#paytable { margin: 22px auto 0; font-size: 13px; color: #888; max-width: 320px; line-height: 1.9; }
+</style>
+<div id="machine">
+  <div class="reels">
+    <div class="reel" id="reel0">&#x1FA99;</div>
+    <div class="reel" id="reel1">&#x1FA99;</div>
+    <div class="reel" id="reel2">&#x1FA99;</div>
+  </div>
+  <button id="spinbtn" onclick="spin()">SPIN</button>
+  <div id="result"></div>
+  <div id="paytable">
+    <div>7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; 7&#xFE0F;&#x20E3; = JACKPOT, 25% of the pool</div>
+    <div>any 3 of a kind = 10% of the pool</div>
+  </div>
+</div>
+<div id="payscreen" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 18px; text-align: center; background: rgba(0,0,0,0.95); padding: 30px; border-radius: 12px; z-index: 30; max-width: 90%;">
+<div style="font-size: 28px; margin-bottom: 10px;">Shity Slots</div>
+<div style="font-size: 14px; color: #888; margin-bottom: 15px;">Pay 2 SHIT for <strong style="color:#f2a900;">10 spins</strong>.<br>Three 7s = JACKPOT, 25% of the pool!<br>Any three of a kind = 10% of the pool.</div>
+<div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>
+<div style="margin-bottom: 15px; font-size: 16px;">Pay one:</div>
+<div style="text-align: left; margin-bottom: 15px; font-size: 15px; line-height: 2;">
+<div><img src="/img/poop-icon.png" class="pe" alt=""> <strong>2 SHIT</strong> <button onclick="copyAddr('shit1qdnqywhj3ws7lj7ev9u66tfushkfwufprrn0d59')" style="font-size: 12px; padding: 4px 8px;">Copy SHIT addr</button></div>
+<div>&#x25CE; <strong>0.001 SOL</strong> <button onclick="copyAddr('3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4')" style="font-size: 12px; padding: 4px 8px;">Copy SOL addr</button></div>
+<div>&#x39E; <strong>0.0000436 ETH</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy ETH addr</button></div>
+<div>&#x1F535; <strong>0.0000436 ETH on Base</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy Base addr</button></div>
+<div>&#x20BF; <strong>0.00000140 BTC</strong> (140 sats) <button onclick="copyAddr('3FPSdy4dtNpMJxEnrhXMBEm3akEUY3Z592')" style="font-size: 12px; padding: 4px 8px;">Copy BTC addr</button></div>
+</div>
+<button onclick="startGame()" style="font-size: 20px; padding: 15px 30px;">I Paid - Start Game</button>
+</div>
+<div id="gameover"></div>
+<script>
+var SYMBOLS = ['\u{1FA99}','\u{1FA99}','\u2B50','\u2B50','\u{1F514}','\u{1F514}','\u{1F48E}','7\uFE0F\u20E3'];
+var spinsLeft = 0, spinning = false;
+
+function randSym(){ return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]; }
+
+function updateSpins(){
+  document.getElementById('spins').textContent = spinsLeft;
+  document.getElementById('spinbtn').disabled = spinning || spinsLeft <= 0;
+}
+
+function startGame(){
+  document.getElementById('payscreen').style.display = 'none';
+  document.getElementById('gameover').style.display = 'none';
+  document.getElementById('machine').style.display = 'block';
+  document.getElementById('result').textContent = '';
+  spinsLeft = 10; spinning = false;
+  updateSpins();
+}
+
+function spin(){
+  if (spinning || spinsLeft <= 0) return;
+  spinning = true; spinsLeft--; updateSpins();
+  document.getElementById('result').textContent = '';
+  var reels = [document.getElementById('reel0'), document.getElementById('reel1'), document.getElementById('reel2')];
+  var stopped = [false, false, false];
+  var iv = setInterval(function(){
+    for (var i = 0; i < 3; i++) if (!stopped[i]) reels[i].textContent = randSym();
+  }, 80);
+  [1100, 1700, 2300].forEach(function(t, i){
+    setTimeout(function(){
+      stopped[i] = true;
+      reels[i].textContent = randSym();
+      if (i === 2){ clearInterval(iv); spinning = false; updateSpins(); evaluate(); }
+    }, t);
+  });
+}
+
+function evaluate(){
+  var r = [document.getElementById('reel0').textContent,
+           document.getElementById('reel1').textContent,
+           document.getElementById('reel2').textContent];
+  var seven = '7\uFE0F\u20E3';
+  var res = document.getElementById('result');
+  if (r[0] === seven && r[1] === seven && r[2] === seven){
+    winScreen('jackpot', 'JACKPOT! Three 7s! You win 25% of the pool!');
+  } else if (r[0] === r[1] && r[1] === r[2]){
+    winScreen('threeoak', 'Three of a kind! You win 10% of the pool!');
+  } else if (spinsLeft > 0){
+    res.textContent = 'No luck. Spin again!';
+  } else {
+    res.textContent = 'Out of spins.';
+    var g = document.getElementById('gameover');
+    g.innerHTML = '<div style="font-size:20px;margin-bottom:14px;">Out of spins!</div>'+
+      '<button onclick="repay()" style="font-size:17px;padding:12px 26px;">Pay 2 SHIT - Play Again</button>';
+    g.style.display = 'block';
+  }
+}
+
+function repay(){
+  document.getElementById('gameover').style.display = 'none';
+  document.getElementById('machine').style.display = 'none';
+  document.getElementById('payscreen').style.display = 'block';
+}
+
+function winScreen(tier, msg){
+  var g = document.getElementById('gameover');
+  g.innerHTML = '<div style="font-size:22px;margin-bottom:10px;">'+msg+'</div>'+
+    '<div style="font-size:14px;color:#999;margin-bottom:10px;">Enter your SHIT address to claim:</div>'+
+    '<input id="winaddr" placeholder="shit1..." style="width:90%;padding:10px;font-size:14px;margin-bottom:12px;background:#0d0d0f;border:1px solid #2a2a30;color:#f2a900;border-radius:8px;font-family:monospace;">'+
+    '<br><button onclick="claimWin(\''+tier+'\')" style="font-size:17px;padding:12px 26px;">Claim Prize</button>';
+  g.style.display = 'block';
+}
+
+async function claimWin(tier){
+  var addr = document.getElementById('winaddr').value.trim();
+  if (!addr){ alert('Enter your SHIT address'); return; }
+  try {
+    var r = await fetch('/api/game/win', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({player_address: addr, game: 'slots', tier: tier}) });
+    var d = await r.json();
+    if (!r.ok || typeof d.prize_shit !== 'number') throw new Error((d && d.error) || 'claim rejected');
+    alert('You won '+d.prize_shit.toLocaleString()+' SHIT! We will send it to '+addr);
+    document.getElementById('gameover').style.display = 'none';
+  } catch(e){ alert('Claim failed: '+e.message); }
+}
+
+function copyAddr(a){
+  if (navigator.clipboard) navigator.clipboard.writeText(a).catch(function(){});
+  var t = document.createElement('textarea'); t.value = a; document.body.appendChild(t); t.select();
+  try { document.execCommand('copy'); } catch(e){}
+  document.body.removeChild(t);
+}
+
+fetch('/api/game/pool').then(function(r){ return r.json(); }).then(function(d){
+  document.getElementById('poolamt').textContent = Number(d.pool_shit||0).toLocaleString();
+}).catch(function(){});
+</script>
+</body>
+</html>

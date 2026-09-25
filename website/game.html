@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Shity Spaceship - Bitcoin vs Shitcoins</title>
+<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 <style>
 body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: monospace; }
 canvas { display: block; margin: 0 auto; }
@@ -27,6 +28,12 @@ button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none;
 <div>Ξ <strong>0.0000436 ETH</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy ETH addr</button></div>
 <div>🔵 <strong>0.0000436 ETH on Base</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy Base addr</button></div>
 <div>₿ <strong>0.00000140 BTC</strong> (140 sats) <button onclick="copyAddr('3FPSdy4dtNpMJxEnrhXMBEm3akEUY3Z592')" style="font-size: 12px; padding: 4px 8px;">Copy BTC addr</button></div>
+</div>
+<div style="margin-bottom: 15px;">
+<div style="font-size: 14px; color: #888; margin-bottom: 8px;">Or pay instantly with your wallet:</div>
+<button onclick="payWithPhantom()" style="font-size: 14px; padding: 10px 16px; background: #9945FF; color: #fff;">👻 Pay 0.001 SOL with Phantom</button><br>
+<button onclick="payWithCoinbase('0x1')" style="font-size: 14px; padding: 10px 16px; background: #0052FF; color: #fff;">🔵 Pay ETH with Coinbase Wallet</button><br>
+<button onclick="payWithCoinbase('0x2105')" style="font-size: 14px; padding: 10px 16px; background: #0052FF; color: #fff;">🔵 Pay on Base with Coinbase Wallet</button>
 </div>
 <button onclick="startGame()" style="font-size: 20px; padding: 15px 30px;">I Paid - Start Game</button>
 </div>
@@ -684,6 +691,89 @@ function startGame() {
   // Backend tracks payments via addresses
   document.getElementById('payscreen').style.display = 'none';
   init();
+}
+
+// Pay 0.001 SOL with Phantom wallet
+async function payWithPhantom() {
+  try {
+    const provider = window.solana;
+    if (!provider || !provider.isPhantom) {
+      alert('Phantom wallet not found. Get it at phantom.app, then come back.');
+      window.open('https://phantom.app/', '_blank');
+      return;
+    }
+    await provider.connect();
+    const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+    const tx = new solanaWeb3.Transaction().add(
+      solanaWeb3.SystemProgram.transfer({
+        fromPubkey: provider.publicKey,
+        toPubkey: new solanaWeb3.PublicKey('3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4'),
+        lamports: 1000000 // 0.001 SOL
+      })
+    );
+    tx.feePayer = provider.publicKey;
+    const { blockhash } = await connection.getLatestBlockhash();
+    tx.recentBlockhash = blockhash;
+    const signed = await provider.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    alert('Paid! Tx: ' + sig.slice(0, 12) + '...');
+    // Record payment in pool
+    fetch('http://77.42.74.252:5002/api/game/deposit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({amount_shit: 2, note: 'SOL entry ' + sig})
+    }).catch(() => {});
+    startGame();
+  } catch (e) {
+    alert('Payment failed: ' + (e.message || e));
+  }
+}
+
+// Pay 0.0000436 ETH with Coinbase Wallet (or any injected EVM wallet)
+// chainId: '0x1' = Ethereum, '0x2105' = Base
+async function payWithCoinbase(chainId) {
+  try {
+    const provider = window.ethereum;
+    if (!provider) {
+      alert('No wallet found. Get Coinbase Wallet at coinbase.com/wallet, then come back.');
+      window.open('https://www.coinbase.com/wallet', '_blank');
+      return;
+    }
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    // Switch to the right network
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: chainId }]
+      });
+    } catch (switchErr) {
+      if (switchErr.code === 4902 && chainId === '0x2105') {
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{ chainId: '0x2105', chainName: 'Base', nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, rpcUrls: ['https://mainnet.base.org'], blockExplorerUrls: ['https://basescan.org'] }]
+        });
+      } else {
+        throw switchErr;
+      }
+    }
+    const txHash = await provider.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: accounts[0],
+        to: '0x67de87a2419522265f7d7b9f50f3810b3a2111d3',
+        value: '0x' + (43600000000000).toString(16) // 0.0000436 ETH in wei
+      }]
+    });
+    alert('Paid! Tx: ' + txHash.slice(0, 12) + '...');
+    fetch('http://77.42.74.252:5002/api/game/deposit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({amount_shit: 2, note: 'ETH entry ' + txHash})
+    }).catch(() => {});
+    startGame();
+  } catch (e) {
+    alert('Payment failed: ' + (e.message || e));
+  }
 }
 
 init();

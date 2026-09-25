@@ -37,7 +37,7 @@
 #include <QUrlQuery>
 
 const int SYSCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
-const QString SYSCOIN_IPC_PREFIX("syscoin:");
+const QString SYSCOIN_IPC_PREFIX("shitcoin:");
 
 //
 // Create a name that is unique for:
@@ -147,7 +147,7 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer)
         if (!uriServer->listen(name)) {
             // constructor is called early in init, so don't use "Q_EMIT message()" here
             QMessageBox::critical(nullptr, tr("Payment request error"),
-                tr("Cannot start syscoin: click-to-pay handler"));
+                tr("Cannot start shitcoin: click-to-pay handler"));
         }
         else {
             connect(uriServer, &QLocalServer::newConnection, this, &PaymentServer::handleURIConnection);
@@ -193,9 +193,9 @@ void PaymentServer::handleURIOrFile(const QString& s)
         return;
     }
 
-    if (s.startsWith("syscoin://", Qt::CaseInsensitive))
+    if (s.startsWith("shitcoin://", Qt::CaseInsensitive))
     {
-        Q_EMIT message(tr("URI handling"), tr("'syscoin://' is not a valid URI. Use 'syscoin:' instead."),
+        Q_EMIT message(tr("URI handling"), tr("'shitcoin://' is not a valid URI. Use 'shitcoin:' instead."),
             CClientUIInterface::MSG_ERROR);
     }
     else if (s.startsWith(SYSCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // syscoin: URI
@@ -225,7 +225,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
             }
             else
                 Q_EMIT message(tr("URI handling"),
-                    tr("URI cannot be parsed! This can be caused by an invalid Syscoin address or malformed URI parameters."),
+                    tr("URI cannot be parsed! This can be caused by an invalid Shitcoin address or malformed URI parameters."),
                     CClientUIInterface::ICON_WARNING);
 
             return;

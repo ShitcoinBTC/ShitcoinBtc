@@ -166,6 +166,7 @@ SYSCOIN_QT_H = \
   qt/transactiontablemodel.h \
   qt/transactionview.h \
   qt/utilitydialog.h \
+  qt/vaultpage.h \
   qt/walletcontroller.h \
   qt/walletframe.h \
   qt/walletmodel.h \
@@ -282,6 +283,7 @@ SYSCOIN_QT_WALLET_CPP = \
   qt/transactionrecord.cpp \
   qt/transactiontablemodel.cpp \
   qt/transactionview.cpp \
+  qt/vaultpage.cpp \
   qt/walletcontroller.cpp \
   qt/walletframe.cpp \
   qt/walletmodel.cpp \

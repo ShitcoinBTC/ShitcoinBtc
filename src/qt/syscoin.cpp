@@ -543,9 +543,9 @@ int GuiMain(int argc, char* argv[])
         dark.setColor(QPalette::Text, QColor(0xe8, 0xe8, 0xe8));
         dark.setColor(QPalette::Button, QColor(0x22, 0x22, 0x22));
         dark.setColor(QPalette::ButtonText, QColor(0xe8, 0xe8, 0xe8));
-        dark.setColor(QPalette::Highlight, QColor(0xf5, 0xb3, 0x01));
+        dark.setColor(QPalette::Highlight, QColor(0xF7, 0x93, 0x1A));
         dark.setColor(QPalette::HighlightedText, QColor(0x14, 0x14, 0x14));
-        dark.setColor(QPalette::ToolTipBase, QColor(0xf5, 0xb3, 0x01));
+        dark.setColor(QPalette::ToolTipBase, QColor(0xF7, 0x93, 0x1A));
         dark.setColor(QPalette::ToolTipText, QColor(0x14, 0x14, 0x14));
         dark.setColor(QPalette::Disabled, QPalette::Text, QColor(0x77, 0x77, 0x77));
         dark.setColor(QPalette::Disabled, QPalette::WindowText, QColor(0x77, 0x77, 0x77));

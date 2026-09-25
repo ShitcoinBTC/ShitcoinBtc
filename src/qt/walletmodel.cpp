@@ -604,7 +604,7 @@ QString WalletModel::signEVMTransaction(const QString& to, const QString& valueW
     params.chainId = chainId;
     auto result = m_wallet->signEVMTransaction(params);
     if (!result) {
-        error = QString::fromStdString(result.error().message.original);
+        error = QString::fromStdString(util::ErrorString(result).original);
         return {};
     }
     return QString::fromStdString(*result);

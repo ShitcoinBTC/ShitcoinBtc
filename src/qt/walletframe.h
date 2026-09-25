@@ -78,6 +78,8 @@ public Q_SLOTS:
     void gotoMasternodePage(); 
     /** SHITCOIN Switch to NEVM tokens page */
     void gotoTokensPage();
+    /** Switch to vault page */
+    void gotoVaultPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

@@ -1051,7 +1051,9 @@ dist_bin_SCRIPTS =
 # dist_bin_SCRIPTS += bin/darwin/arm64/sysgeth
 # endif
 if TARGET_X86_64_LINUX
+if HAVE_SYSGETH_LINUX_X86_64
 dist_bin_SCRIPTS += bin/linux/x86_64/sysgeth
+endif
 endif
 # if TARGET_ARM_LINUX
 # dist_bin_SCRIPTS += bin/linux/arm/sysgeth

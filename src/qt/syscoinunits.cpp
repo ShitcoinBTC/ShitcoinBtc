@@ -31,9 +31,9 @@ QList<SyscoinUnit> SyscoinUnits::availableUnits()
 QString SyscoinUnits::longName(Unit unit)
 {
     switch (unit) {
-    case Unit::SYS: return QString("SYS");
-    case Unit::mSYS: return QString("mSYS");
-    case Unit::uSYS: return QString::fromUtf8("µSYS (bits)");
+    case Unit::SYS: return QString("SHIT");
+    case Unit::mSYS: return QString("mSHIT");
+    case Unit::uSYS: return QString::fromUtf8("µSHIT (bits)");
     case Unit::SAT: return QString("Satoshi (sat)");
     } // no default case, so the compiler can warn about missing cases
     assert(false);
@@ -53,9 +53,9 @@ QString SyscoinUnits::shortName(Unit unit)
 QString SyscoinUnits::description(Unit unit)
 {
     switch (unit) {
-    case Unit::SYS: return QString("Syscoins");
-    case Unit::mSYS: return QString("Milli-Syscoins (1 / 1" THIN_SP_UTF8 "000)");
-    case Unit::uSYS: return QString("Micro-Syscoins (bits) (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+    case Unit::SYS: return QString("Shitcoins");
+    case Unit::mSYS: return QString("Milli-Shitcoins (1 / 1" THIN_SP_UTF8 "000)");
+    case Unit::uSYS: return QString("Micro-Shitcoins (bits) (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     case Unit::SAT: return QString("Satoshi (sat) (1 / 100" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     } // no default case, so the compiler can warn about missing cases
     assert(false);

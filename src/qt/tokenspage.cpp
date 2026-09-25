@@ -447,7 +447,7 @@ void TokensPage::fetchBalances()
         const QString contract = ti.contract;
         const int decimals = ti.decimals;
         const QString data = "0x70a08231" + encodeAddress32(evmAddress);
-        rpcCall("eth_call", {{{"to", contract}, {"data", data}}, "latest"},
+        rpcCall("eth_call", QJsonArray{QJsonObject{{"to", contract}, {"data", data}}, "latest"},
                 [this, contract, decimals](const QJsonValue& result, const QString& error) {
                     for (int row = 0; row < tokenTable->rowCount(); ++row) {
                         QTableWidgetItem* c = tokenTable->item(row, 1);
@@ -487,7 +487,7 @@ void TokensPage::fetchTokenMetadata(const QString& contract)
 {
     setStatus(tr("Reading token contract…"));
     setUiEnabled(false);
-    rpcCall("eth_call", {{{"to", contract}, {"data", "0x313ce567"}}, "latest"},
+    rpcCall("eth_call", QJsonArray{QJsonObject{{"to", contract}, {"data", "0x313ce567"}}, "latest"},
             [this, contract](const QJsonValue& result, const QString& error) {
                 int decimals = 18;
                 if (error.isEmpty()) {
@@ -495,7 +495,7 @@ void TokensPage::fetchTokenMetadata(const QString& contract)
                     int d = decodeAbiUint8(result.toString(), ok);
                     if (ok) decimals = d;
                 }
-                rpcCall("eth_call", {{{"to", contract}, {"data", "0x95d89b41"}}, "latest"},
+                rpcCall("eth_call", QJsonArray{QJsonObject{{"to", contract}, {"data", "0x95d89b41"}}, "latest"},
                         [this, contract, decimals](const QJsonValue& result2, const QString& error2) {
                             setUiEnabled(true);
                             QString symbol = tr("TKN");
@@ -596,7 +596,7 @@ void TokensPage::onSendClicked()
                             }
                             const QString gasPrice = intToDec(hexToInt(result2.toString()));
                             // 3. gas estimate
-                            QJsonObject txObj{{"from", evmAddress}, {"to", callTo}, {"value", "0x" + encodeUint256(valueWei)}};
+                            QJsonObject txObj{{"from", evmAddress}, {"to", callTo}, {"value", QString("0x" + encodeUint256(valueWei))}};
                             if (!isNative) txObj["data"] = dataHex;
                             rpcCall("eth_estimateGas", {txObj},
                                     [this, callTo, valueWei, dataHex, isNative, nonce, gasPrice](const QJsonValue& result3, const QString& error3) {

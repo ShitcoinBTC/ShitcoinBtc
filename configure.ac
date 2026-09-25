@@ -7,7 +7,7 @@ define(_CLIENT_VERSION_IS_RELEASE, true)
 define(_COPYRIGHT_YEAR, 2025)
 define(_COPYRIGHT_HOLDERS,[The %s developers])
 define(_COPYRIGHT_HOLDERS_SUBSTITUTION,[[Syscoin Core]])
-AC_INIT([Syscoin Core],m4_join([.], _CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MINOR, _CLIENT_VERSION_BUILD),[https://github.com/syscoin/syscoin/issues],[syscoin],[https://syscoin.org/])
+AC_INIT([Shitcoin],[m4_join([.], _CLIENT_VERSION_MAJOR, _CLIENT_VERSION_MINOR, _CLIENT_VERSION_BUILD)],[https://github.com/ShitcoinBTC/ShitcoinBtc/issues],[shitcoin],[https://shitcoinbtc.xyz/])
 AC_CONFIG_SRCDIR([src/validation.cpp])
 AC_CONFIG_HEADERS([src/config/syscoin-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -1470,6 +1470,9 @@ AM_CONDITIONAL([TARGET_ARM64], [test "$TARGET_ARCH" = "arm64"])
 AM_CONDITIONAL([TARGET_ARM], [test "$TARGET_ARCH" = "arm"])
 
 AM_CONDITIONAL([TARGET_X86_64_LINUX], [test "$TARGET_ARCH-$TARGET_OS" = "x86_64-linux"])
+# Ship the prebuilt sysgeth sidecar only when the binary is actually present;
+# an unconditional dist rule breaks the build for everyone when it is missing.
+AM_CONDITIONAL([HAVE_SYSGETH_LINUX_X86_64], [test -f "$srcdir/bin/linux/x86_64/sysgeth"])
 AM_CONDITIONAL([TARGET_ARM_LINUX], [test "$TARGET_ARCH-$TARGET_OS" = "arm-linux"])
 AM_CONDITIONAL([TARGET_AARCH64_LINUX], [test "$TARGET_ARCH-$TARGET_OS" = "aarch64-linux"])
 AM_CONDITIONAL([TARGET_X86_64_DARWIN], [test "$TARGET_ARCH-$TARGET_OS" = "x86_64-darwin"])

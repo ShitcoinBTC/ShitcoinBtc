@@ -29,6 +29,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <qt/vaultpage.h>
 // SYSCOIN 
 #include <QSettings>
 WalletView::WalletView(WalletModel* wallet_model, const PlatformStyle* _platformStyle, QWidget* parent)
@@ -79,6 +80,9 @@ WalletView::WalletView(WalletModel* wallet_model, const PlatformStyle* _platform
     tokensPage = new TokensPage(this);
     tokensPage->setWalletModel(walletModel);
     addWidget(tokensPage);
+    // SHITCOIN: vault tab (info panel, staking not live yet)
+    vaultPage = new VaultPage(this);
+    addWidget(vaultPage);
     // SYSCOIN
     QSettings settings;
     if (settings.value("fShowMasternodesTab").toBool()) {
@@ -181,6 +185,10 @@ void WalletView::gotoMasternodePage()
 void WalletView::gotoTokensPage()
 {
     setCurrentWidget(tokensPage);
+}
+void WalletView::gotoVaultPage()
+{
+    setCurrentWidget(vaultPage);
 }
 void WalletView::gotoReceiveCoinsPage()
 {

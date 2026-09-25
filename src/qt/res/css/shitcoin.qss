@@ -1,6 +1,7 @@
-/* Shitcoin Core - dark "gold rush" theme.
-   Works together with the dark QPalette set in GuiMain (which also
-   drives PlatformStyle::SingleColor() so toolbar icons recolor gold). */
+/* Shitcoin - dark theme, Bitcoin-orange (#F7931A) primary accent
+   sampled from the brand coin logo. Works together with the dark
+   QPalette set in GuiMain (which also drives PlatformStyle::SingleColor()
+   so toolbar icons recolor bitcoin-orange). */
 
 /* ---------- main surfaces ---------- */
 QMainWindow, QDialog {
@@ -20,13 +21,13 @@ QTabBar::tab {
     border-top-right-radius: 8px;
 }
 QTabBar::tab:selected {
-    background-color: #f5b301;
+    background-color: #F7931A;
     color: #141414;
     font-weight: bold;
 }
 QTabBar::tab:hover:!selected {
     background-color: #2c2c2c;
-    color: #f5b301;
+    color: #F7931A;
 }
 
 /* ---------- toolbar / menus ---------- */
@@ -47,7 +48,7 @@ QToolButton:hover {
     background-color: #262626;
 }
 QToolButton:checked, QToolButton:pressed {
-    background-color: #f5b301;
+    background-color: #F7931A;
     color: #141414;
 }
 QMenuBar {
@@ -56,7 +57,7 @@ QMenuBar {
 }
 QMenuBar::item:selected {
     background-color: #2a2a2a;
-    color: #f5b301;
+    color: #F7931A;
 }
 QMenu {
     background-color: #1e1e1e;
@@ -65,7 +66,7 @@ QMenu {
     padding: 4px;
 }
 QMenu::item:selected {
-    background-color: #f5b301;
+    background-color: #F7931A;
     color: #141414;
 }
 QMenu::separator {
@@ -76,7 +77,7 @@ QMenu::separator {
 
 /* ---------- buttons ---------- */
 QPushButton {
-    background-color: #f5b301;
+    background-color: #F7931A;
     color: #141414;
     border: none;
     border-radius: 8px;
@@ -84,10 +85,10 @@ QPushButton {
     font-weight: bold;
 }
 QPushButton:hover {
-    background-color: #ffc61a;
+    background-color: #FFA940;
 }
 QPushButton:pressed {
-    background-color: #d99e00;
+    background-color: #D67E14;
 }
 QPushButton:disabled {
     background-color: #333333;
@@ -95,10 +96,25 @@ QPushButton:disabled {
 }
 QPushButton[flat="true"] {
     background-color: transparent;
-    color: #f5b301;
+    color: #F7931A;
 }
 QPushButton[flat="true"]:hover {
     background-color: #262626;
+}
+
+/* ---------- status indicator buttons (out-of-sync warning icons) ---------- */
+/* Icon-only QPushButtons: keep transparent so the warning icon itself shows
+   instead of a solid orange square. */
+QPushButton#labelWalletStatus, QPushButton#labelTransactionsStatus {
+    background-color: transparent;
+    border: none;
+    padding: 4px;
+}
+QPushButton#labelWalletStatus:hover, QPushButton#labelTransactionsStatus:hover {
+    background-color: #262626;
+}
+QPushButton#labelWalletStatus:pressed, QPushButton#labelTransactionsStatus:pressed {
+    background-color: #1a1a1a;
 }
 
 /* ---------- inputs ---------- */
@@ -108,11 +124,11 @@ QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox, QDate
     border: 1px solid #3a3a3a;
     border-radius: 6px;
     padding: 7px;
-    selection-background-color: #f5b301;
+    selection-background-color: #F7931A;
     selection-color: #141414;
 }
 QLineEdit:focus, QTextEdit:focus, QComboBox:focus {
-    border: 1px solid #f5b301;
+    border: 1px solid #F7931A;
 }
 QComboBox::drop-down {
     border: none;
@@ -121,7 +137,7 @@ QComboBox::drop-down {
 QComboBox QAbstractItemView {
     background-color: #1e1e1e;
     color: #e8e8e8;
-    selection-background-color: #f5b301;
+    selection-background-color: #F7931A;
     selection-color: #141414;
     border: 1px solid #3a3a3a;
 }
@@ -134,7 +150,7 @@ QTableView, QTreeView, QListView {
     border: 1px solid #2c2c2c;
     border-radius: 6px;
     gridline-color: #262626;
-    selection-background-color: #f5b301;
+    selection-background-color: #F7931A;
     selection-color: #141414;
     outline: none;
 }
@@ -143,7 +159,7 @@ QTableView::item, QTreeView::item, QListView::item {
 }
 QHeaderView::section {
     background-color: #222222;
-    color: #f5b301;
+    color: #F7931A;
     border: none;
     padding: 8px;
     font-weight: bold;
@@ -164,7 +180,7 @@ QGroupBox {
     border-radius: 8px;
     margin-top: 14px;
     padding-top: 8px;
-    color: #f5b301;
+    color: #F7931A;
     font-weight: bold;
     background-color: #161616;
 }
@@ -189,9 +205,9 @@ QCheckBox::indicator:unchecked {
     background-color: #0d0d0d;
 }
 QCheckBox::indicator:checked {
-    border: 1px solid #f5b301;
+    border: 1px solid #F7931A;
     border-radius: 4px;
-    background-color: #f5b301;
+    background-color: #F7931A;
     image: none;
 }
 QRadioButton::indicator:unchecked {
@@ -200,9 +216,9 @@ QRadioButton::indicator:unchecked {
     background-color: #0d0d0d;
 }
 QRadioButton::indicator:checked {
-    border: 1px solid #f5b301;
+    border: 1px solid #F7931A;
     border-radius: 9px;
-    background-color: #f5b301;
+    background-color: #F7931A;
 }
 
 /* ---------- progress / sliders / scrollbars ---------- */
@@ -215,7 +231,7 @@ QProgressBar {
     height: 14px;
 }
 QProgressBar::chunk {
-    background-color: #f5b301;
+    background-color: #F7931A;
     border-radius: 6px;
 }
 QSlider::groove:horizontal {
@@ -227,7 +243,7 @@ QSlider::handle:horizontal {
     width: 16px;
     margin: -6px 0;
     border-radius: 8px;
-    background-color: #f5b301;
+    background-color: #F7931A;
 }
 QScrollBar:vertical {
     background-color: #101010;
@@ -241,7 +257,7 @@ QScrollBar::handle:vertical {
     margin: 2px;
 }
 QScrollBar::handle:vertical:hover {
-    background-color: #f5b301;
+    background-color: #F7931A;
 }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
@@ -260,7 +276,7 @@ QScrollBar::handle:horizontal {
     margin: 2px;
 }
 QScrollBar::handle:horizontal:hover {
-    background-color: #f5b301;
+    background-color: #F7931A;
 }
 
 /* ---------- status bar / tooltip / splitter ---------- */
@@ -272,7 +288,7 @@ QStatusBar::item {
     border: none;
 }
 QToolTip {
-    background-color: #f5b301;
+    background-color: #F7931A;
     color: #141414;
     border: none;
     padding: 5px;
@@ -282,7 +298,7 @@ QSplitter::handle {
     background-color: #2c2c2c;
 }
 QSplitter::handle:hover {
-    background-color: #f5b301;
+    background-color: #F7931A;
 }
 QFrame[frameShape="4"], QFrame[frameShape="5"] {
     color: #2c2c2c;

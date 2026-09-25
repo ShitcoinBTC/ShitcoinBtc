@@ -197,12 +197,14 @@ public:
         consensus.fStrictChainId = true;
         consensus.nLegacyBlocksBefore = 1;
         consensus.nSYSXAsset = 123456;
-        consensus.nNEVMChainID = 57;
+        consensus.nNEVMChainID = 20026; // Shitcoin NEVM: fresh chain ID (57 = Syscoin mainnet, avoid collision)
         consensus.vchSyscoinVaultManager = ParseHex("7904299b3D3dC1b03d1DdEb45E9fDF3576aCBd5f");
         consensus.vchTokenFreezeMethod = ParseHex("0b8914e27c9a6c88836bc5547f82ccf331142c761f84e9f1d36934a6a31eefad");
         consensus.nBridgeStartBlock = 348000;
-        consensus.nNEVMStartBlock = 1317500;
-        consensus.nNEVMStartTime = 1638791667;
+        // Shitcoin NEVM activation: flag height = live height (316 on 2026-09-24) + 30000 ≈ 10.4 days.
+        // Past this height every block MUST carry VERSION_NEVM + valid geth commitment ("nevm-version-expected").
+        consensus.nNEVMStartBlock = 30316;
+        consensus.nNEVMStartTime = 1791196200; // ≈ 2026-10-05 10:30 UTC, estimated flag time
         consensus.nPODAStartBlock = 1586000;
         consensus.nV19StartBlock = 1586000;
         consensus.nNexusStartBlock = 2010345;

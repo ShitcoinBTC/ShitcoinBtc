@@ -26,7 +26,7 @@ struct EVMTxParams {
     std::string nonce;      //!< decimal transaction count
     std::string gasPriceWei;//!< decimal wei per gas
     std::string gasLimit;   //!< decimal gas limit
-    uint64_t chainId{0};    //!< EIP-155 chain id (57 on Shitcoin NEVM mainnet)
+    uint64_t chainId{0};    //!< EIP-155 chain id (20026 on Shitcoin NEVM mainnet)
 };
 
 //! Derive the NEVM (Ethereum-style) address for a private key:

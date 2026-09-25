@@ -950,6 +950,10 @@ syscoin_bin_ldadd = \
 syscoin_bin_ldadd += $(BDB_LIBS) $(MINIUPNPC_LIBS) $(NATPMP_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(SQLITE_LIBS) $(GMP_LIBS)
 # -lssl -lcrypto for the TLS client in wallet/rpc/vault.cpp (BTC co-hold check)
 syscoin_bin_ldadd += -lssl -lcrypto
+if TARGET_WINDOWS
+# OpenSSL's CAPI engine needs Windows CryptoAPI
+syscoin_bin_ldadd += -lcrypt32
+endif
 
 syscoind_SOURCES = $(syscoin_daemon_sources) init/syscoind.cpp
 syscoind_CPPFLAGS = $(syscoin_bin_cppflags)

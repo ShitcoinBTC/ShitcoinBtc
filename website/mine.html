@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mine SHIT | Shitcoin</title>
-<meta name="description" content="Mine Shitcoin by mining Bitcoin. Mandatory merge-mining: the same SHA256 work secures both chains. No extra energy.">
+<meta name="description" content="Mine Shitcoin in one click, straight from your browser. Every block carries AuxPoW, and Bitcoin miners can merge-mine SHIT at zero extra cost.">
 <meta property="og:title" content="Mine SHIT">
-<meta property="og:description" content="Mine Bitcoin. Get SHIT free. Mandatory merge-mining, no extra energy.">
+<meta property="og:description" content="Mine SHIT in your browser. Bitcoin miners can merge-mine it free.">
 <meta property="og:image" content="https://shitcoinbtc.xyz/img/og.png">
 <meta property="og:url" content="https://shitcoinbtc.xyz/mine">
 <meta name="twitter:card" content="summary_large_image">
@@ -94,8 +94,8 @@ pre.cmd .c { color: var(--muted); }
 
   <div class="status-grid">
     <div class="status-card">
-      <h3>Merge-mining is mandatory</h3>
-      <p>From block 1, every SHIT block must carry valid AuxPoW anchored in a Bitcoin block. Standalone SHIT mining doesn't exist — consensus rejects it.</p>
+      <h3>AuxPoW is mandatory</h3>
+      <p>From block 1, every SHIT block must carry valid AuxPoW. Standalone SHIT mining doesn't exist — consensus rejects it. Real Bitcoin miners can merge-mine SHIT with the same work (see below).</p>
     </div>
     <div class="status-card">
       <h3>Same work, two coins</h3>
@@ -103,12 +103,12 @@ pre.cmd .c { color: var(--muted); }
     </div>
     <div class="status-card">
       <h3>AuxPoW chain ID 16</h3>
-      <p>That's SHIT's identifier in the merged-mining commitment. Bitcoin has final say on every block we produce.</p>
+      <p>That's SHIT's identifier in the merged-mining commitment. Point Bitcoin hash here and the same work earns SHIT free.</p>
     </div>
   </div>
 
   <h2>Mine in one click</h2>
-  <p>No node, no setup, no command line. Paste a SHIT address below, hit <strong>Start mining</strong>, and this page does real merge-mining work in your browser against the pool built into this site. When your computer finds a block, the reward pays straight to your address, minus a 1% pool fee that funds Shitcoin development. <a href="/wallet">Need an address? Make a free web wallet first.</a></p>
+  <p>No node, no setup, no command line. Paste a SHIT address below, hit <strong>Start mining</strong>, and this page does real SHA256 work in your browser against the pool built into this site. The pool assembles each block's AuxPoW, so every block you find is valid under SHIT consensus. When your computer finds a block, the reward pays straight to your address, minus a 1% pool fee that funds Shitcoin development. <a href="/wallet">Need an address? Make a free web wallet first.</a></p>
   <div class="miner-card">
     <div class="miner-net" id="mn-net">Connecting to the pool…</div>
     <input id="mn-addr" class="miner-input" placeholder="shit1..." autocomplete="off" spellcheck="false">
@@ -122,8 +122,8 @@ pre.cmd .c { color: var(--muted); }
     <p class="fine">Keep this tab open while mining. Phones work but slowly, and it eats battery. Finding a block is luck: more hashes per second means more chances. The pool never holds your coins: the block reward pays your address directly, minus a 1% pool fee.</p>
   </div>
 
-  <h2>Solo merge-mining</h2>
-  <p>For miners and pool operators. You need a synced <a href="/node">SHIT node</a>, a synced Bitcoin Core node, and SHA256 mining hardware with merged-mining support.</p>
+  <h2>True merge-mining</h2>
+  <p>For miners and pool operators with real Bitcoin hash. You need a synced <a href="/node">SHIT node</a>, a synced Bitcoin Core node, and SHA256 mining hardware with merged-mining support. One hash, two chains.</p>
   <ol class="steps">
     <li>Get a payout address:<br><code class="addr">./syscoin-cli getnewaddress</code></li>
     <li>Ask your node for work:<br><code class="addr">./syscoin-cli createauxblock &lt;your-address&gt;</code><br>It returns a block hash and a target.</li>

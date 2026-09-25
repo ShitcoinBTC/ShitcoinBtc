@@ -298,7 +298,17 @@ window.process = window.process || {
     $('my-addr').textContent = shortAddr(myAddress);
     $('my-addr').title = myAddress;
     show('s-main');
+    switchTab('shit');
     refreshBalance();
+    // pre-derive BTC address so the BTC tab is instant
+    if (btcReady() && !btcAddress) {
+      try {
+        btcAddress = BTCWallet.btcAddressFromMnemonic(mnemonic);
+        $('btc-addr').textContent = shortAddr(btcAddress);
+        $('btc-addr').title = btcAddress;
+        $('btc-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(btcAddress);
+      } catch (e) {}
+    }
   }
 
   function refreshBalance() {
@@ -327,6 +337,208 @@ window.process = window.process || {
     try { document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(ta);
     done();
+  }
+
+  // ---------- BTC tab ----------
+  var btcAddress = null;
+  var btcBalanceSats = 0;
+  var pendingBtc = null;
+  var pinMode = 'verify';
+  var PIN_KEY = 'shitcoin_btc_pin_hash';
+  var PIN_FAIL_KEY = 'shitcoin_btc_pin_fails';
+  var PIN_LOCK_KEY = 'shitcoin_btc_pin_lock';
+
+  function btcReady() { return typeof BTCWallet !== 'undefined'; }
+
+  function satsToBtc(sats) {
+    return (sats / 1e8).toFixed(8).replace(/\.?0+$/, '') || '0';
+  }
+
+  function switchTab(which) {
+    $('tabbtn-shit').classList.toggle('on', which === 'shit');
+    $('tabbtn-btc').classList.toggle('on', which === 'btc');
+    $('tab-shit').style.display = which === 'shit' ? 'block' : 'none';
+    $('tab-btc').style.display = which === 'btc' ? 'block' : 'none';
+    if (which === 'btc') initBtcTab();
+  }
+
+  function initBtcTab() {
+    if (!mnemonic) return;
+    if (!btcReady()) {
+      $('btc-balance').textContent = 'still loading...';
+      return;
+    }
+    if (!btcAddress) {
+      try {
+        btcAddress = BTCWallet.btcAddressFromMnemonic(mnemonic);
+      } catch (e) {
+        $('btc-balance').textContent = 'error';
+        return;
+      }
+      $('btc-addr').textContent = shortAddr(btcAddress);
+      $('btc-addr').title = btcAddress;
+      $('btc-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(btcAddress);
+    }
+    refreshBtc();
+  }
+
+  function refreshBtc() {
+    if (!btcReady() || !btcAddress) return;
+    $('btc-balance').textContent = '...';
+    BTCWallet.getBtcBalance(btcAddress)
+      .then(function (sats) {
+        btcBalanceSats = sats;
+        $('btc-balance').textContent = satsToBtc(sats);
+      })
+      .catch(function () { $('btc-balance').textContent = 'error'; });
+  }
+
+  function copyBtcAddr() {
+    var done = function () { $('btn-btc-copy').textContent = 'Copied!'; setTimeout(function () { $('btn-btc-copy').textContent = 'Copy'; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(btcAddress).then(done, function () {
+        var ta = document.createElement('textarea');
+        ta.value = btcAddress;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        done();
+      });
+    }
+  }
+
+  function sha256hex(str) {
+    if (window.crypto && crypto.subtle && window.TextEncoder) {
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
+        return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+          return ('0' + b.toString(16)).slice(-2);
+        }).join('');
+      });
+    }
+    var h = 0;
+    for (var i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; }
+    return Promise.resolve('fb' + (h >>> 0).toString(16));
+  }
+
+  function pinLockedMs() {
+    var until = parseInt(localStorage.getItem(PIN_LOCK_KEY) || '0', 10);
+    return Math.max(0, until - Date.now());
+  }
+
+  function startBtcSend() {
+    errBox('btc-confirm-err', null);
+    if (!btcReady()) { alert('Bitcoin support is still loading. Wait a moment and try again.'); return; }
+    if (!btcAddress) { alert('Bitcoin address is not ready yet.'); return; }
+    var to = ($('btc-send-to').value || '').trim();
+    var amt = parseFloat($('btc-send-amt').value);
+    if (!BTCWallet.isValidBtcAddress(to)) { alert('That Bitcoin address does not look right.'); return; }
+    if (!amt || amt <= 0) { alert('Enter an amount greater than 0.'); return; }
+    var sats = Math.round(amt * 1e8);
+    if (sats < 546) { alert('Amount is below the dust limit.'); return; }
+    show('s-busy');
+    $('busy-msg').textContent = 'Building your Bitcoin transaction...';
+    BTCWallet.getFeeRate()
+      .then(function (rate) { return BTCWallet.buildBtcSend(mnemonic, to, sats, rate); })
+      .then(function (built) {
+        pendingBtc = { hex: built.hex, sats: sats, to: to, minerFee: built.minerFee };
+        $('bc-amt').textContent = satsToBtc(sats);
+        $('bc-to').textContent = to;
+        $('bc-minerfee').textContent = built.minerFee + ' sats (' + satsToBtc(built.minerFee) + ' BTC)';
+        $('bc-ourfee').textContent = '600 sats (' + satsToBtc(600) + ' BTC)';
+        $('bc-total').textContent = satsToBtc(sats + built.minerFee + 600) + ' BTC';
+        show('s-btc-confirm');
+      })
+      .catch(function (e) {
+        show('s-main');
+        switchTab('btc');
+        alert('Could not build the transaction: ' + (e && e.message ? e.message : e));
+      });
+  }
+
+  function openPinScreen() {
+    var locked = pinLockedMs();
+    if (locked > 0) {
+      alert('Too many wrong PIN tries. Try again in ' + Math.ceil(locked / 60000) + ' minute(s).');
+      return;
+    }
+    var hasPin = !!localStorage.getItem(PIN_KEY);
+    pinMode = hasPin ? 'verify' : 'setup';
+    $('pin-title').textContent = hasPin ? 'ENTER SPENDING PIN' : 'SET YOUR SPENDING PIN';
+    $('pin-setup-note').style.display = hasPin ? 'none' : 'block';
+    $('pin-input2').style.display = hasPin ? 'none' : 'block';
+    $('pin-input').value = '';
+    $('pin-input2').value = '';
+    errBox('pin-err', null);
+    show('s-pin');
+  }
+
+  function submitPin() {
+    var p1 = ($('pin-input').value || '').trim();
+    if (!/^\d{6}$/.test(p1)) { errBox('pin-err', 'PIN must be exactly 6 digits.'); return; }
+    if (pinMode === 'setup') {
+      var p2 = ($('pin-input2').value || '').trim();
+      if (p1 !== p2) { errBox('pin-err', 'PINs do not match. Try again.'); return; }
+      sha256hex('shitcoin-btc-pin:' + p1).then(function (h) {
+        try {
+          localStorage.setItem(PIN_KEY, h);
+          localStorage.removeItem(PIN_FAIL_KEY);
+        } catch (e) {}
+        doBtcBroadcast();
+      });
+    } else {
+      sha256hex('shitcoin-btc-pin:' + p1).then(function (h) {
+        var ok = false;
+        try { ok = (h === localStorage.getItem(PIN_KEY)); } catch (e) {}
+        if (ok) {
+          try { localStorage.removeItem(PIN_FAIL_KEY); } catch (e) {}
+          doBtcBroadcast();
+        } else {
+          var fails = 0;
+          try {
+            fails = parseInt(localStorage.getItem(PIN_FAIL_KEY) || '0', 10) + 1;
+            localStorage.setItem(PIN_FAIL_KEY, String(fails));
+          } catch (e) {}
+          if (fails >= 5) {
+            try {
+              localStorage.setItem(PIN_LOCK_KEY, String(Date.now() + 5 * 60 * 1000));
+              localStorage.removeItem(PIN_FAIL_KEY);
+            } catch (e) {}
+            errBox('pin-err', 'Too many wrong tries. Locked for 5 minutes.');
+          } else {
+            errBox('pin-err', 'Wrong PIN. ' + (5 - fails) + ' tries left.');
+          }
+        }
+      });
+    }
+  }
+
+  function doBtcBroadcast() {
+    if (!pendingBtc) { show('s-main'); return; }
+    show('s-busy');
+    $('busy-msg').textContent = 'Broadcasting to the Bitcoin network...';
+    BTCWallet.broadcastBtc(pendingBtc.hex)
+      .then(function (txid) {
+        var body = $('result-body');
+        body.innerHTML = '';
+        var div = document.createElement('div');
+        div.className = 'ok';
+        div.textContent = 'Sent! ' + satsToBtc(pendingBtc.sats) + ' BTC is on its way. Bitcoin confirmations take about 10 minutes each.';
+        var link = document.createElement('div');
+        link.className = 'muted';
+        link.style.marginTop = '10px';
+        link.style.wordBreak = 'break-all';
+        link.textContent = 'TX: ' + txid;
+        body.appendChild(div);
+        body.appendChild(link);
+        pendingBtc = null;
+        show('s-result');
+      })
+      .catch(function (e) {
+        $('result-body').innerHTML = '<div class="err" style="display:block">Send failed: ' + (e && e.message ? e.message : e) + '</div>';
+        pendingBtc = null;
+        show('s-result');
+      });
   }
 
   function startSend(to, amtStr) {
@@ -417,14 +629,36 @@ window.process = window.process || {
   $('btn-game').onclick = function () { startSend(GAME_ADDR, '2'); };
   $('btn-confirm').onclick = doBroadcast;
   $('btn-confirm-back').onclick = function () { show('s-main'); };
-  $('btn-result-done').onclick = function () { $('send-to').value = ''; $('send-amt').value = ''; openMain(); };
+  $('btn-result-done').onclick = function () {
+    $('send-to').value = ''; $('send-amt').value = '';
+    $('btc-send-to').value = ''; $('btc-send-amt').value = '';
+    switchTab('shit');
+    openMain();
+  };
   $('btn-forget').onclick = function () {
     if (confirm('Forget this wallet on this phone? Make sure you wrote down your 12 secret words first!')) {
-      try { localStorage.removeItem(LS_KEY); } catch (e) {}
+      try {
+        localStorage.removeItem(LS_KEY);
+        localStorage.removeItem(PIN_KEY);
+        localStorage.removeItem(PIN_FAIL_KEY);
+        localStorage.removeItem(PIN_LOCK_KEY);
+      } catch (e) {}
       mnemonic = null; myAddress = null; utxosCache = [];
+      btcAddress = null; btcBalanceSats = 0; pendingBtc = null;
       show('s-start');
     }
   };
+
+  // BTC tab wiring
+  $('tabbtn-shit').onclick = function () { switchTab('shit'); };
+  $('tabbtn-btc').onclick = function () { switchTab('btc'); };
+  $('btn-btc-copy').onclick = copyBtcAddr;
+  $('btn-btc-refresh').onclick = refreshBtc;
+  $('btn-btc-send').onclick = startBtcSend;
+  $('btn-btc-confirm').onclick = openPinScreen;
+  $('btn-btc-confirm-back').onclick = function () { show('s-main'); switchTab('btc'); };
+  $('btn-pin-ok').onclick = submitPin;
+  $('btn-pin-back').onclick = function () { show('s-btc-confirm'); };
 
   // auto-open if wallet saved
   try {

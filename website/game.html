@@ -12,7 +12,7 @@ canvas { display: block; margin: 0 auto; }
 #level { position: fixed; top: 10px; right: 10px; color: #f2a900; font-size: 16px; z-index: 10; }
 #gameover, #levelup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #f2a900; font-size: 28px; display: none; text-align: center; background: rgba(0,0,0,0.9); padding: 30px; border-radius: 12px; z-index: 20; }
 button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; font-weight: bold; }
-</style>
+.pe{height:1.15em;width:1.15em;vertical-align:-0.18em;}</style>
 </head>
 <body>
 <div id="ui">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
@@ -23,7 +23,7 @@ button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none;
 <div style="font-size: 16px; margin-bottom: 10px;">Pool: <strong id="poolamt">0</strong> SHIT</div>
 <div style="margin-bottom: 15px; font-size: 16px;">Pay one:</div>
 <div style="text-align: left; margin-bottom: 15px; font-size: 15px; line-height: 2;">
-<div>💩 <strong>2 SHIT</strong> <button onclick="copyAddr('shit1qdnqywhj3ws7lj7ev9u66tfushkfwufprrn0d59')" style="font-size: 12px; padding: 4px 8px;">Copy SHIT addr</button></div>
+<div><img src="/img/poop-icon.png" class="pe" alt=""> <strong>2 SHIT</strong> <button onclick="copyAddr('shit1qdnqywhj3ws7lj7ev9u66tfushkfwufprrn0d59')" style="font-size: 12px; padding: 4px 8px;">Copy SHIT addr</button></div>
 <div>◎ <strong>0.001 SOL</strong> <button onclick="copyAddr('3riHbnaAnERLB5khbfHtQpiDBVVvKikwX7Ee6AaE7Ls4')" style="font-size: 12px; padding: 4px 8px;">Copy SOL addr</button></div>
 <div>Ξ <strong>0.0000436 ETH</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy ETH addr</button></div>
 <div>🔵 <strong>0.0000436 ETH on Base</strong> <button onclick="copyAddr('0x67de87a2419522265f7d7b9f50f3810b3a2111d3')" style="font-size: 12px; padding: 4px 8px;">Copy Base addr</button></div>
@@ -37,12 +37,19 @@ button { font-size: 18px; padding: 12px 24px; background: #f2a900; border: none;
 </div>
 <button onclick="startGame()" style="font-size: 20px; padding: 15px 30px;">I Paid - Start Game</button>
 </div>
-<div id="gameover"><div>💩 GAME OVER 💩</div><div>Score: <span id="finalscore">0</span></div><div>Level: <span id="finallvl">1</span></div><button onclick="restart()">Play Again</button></div>
+<div id="gameover"><div><img src="/img/poop-icon.png" class="pe" alt=""> GAME OVER <img src="/img/poop-icon.png" class="pe" alt=""></div><div>Score: <span id="finalscore">0</span></div><div>Level: <span id="finallvl">1</span></div><button onclick="restart()">Play Again</button></div>
 <div id="levelup"><div>LEVEL <span id="newlvl">2</span>!</div><button onclick="nextLevel()">Continue</button></div>
 <canvas id="game"></canvas>
 <script>
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+const poopImg = new Image();
+poopImg.src = '/img/poop-icon.png';
+function drawPoop(x, y, s) {
+  // Bitcoin-orange poop bullet (replaces fillText poop emoji)
+  if (poopImg.complete && poopImg.naturalWidth) ctx.drawImage(poopImg, x - s/2, y - s, s, s);
+  else ctx.fillText('\U0001F4A9', x, y);
+}
 canvas.width = Math.min(window.innerWidth, 700);
 canvas.height = Math.min(window.innerHeight, 900);
 
@@ -683,35 +690,35 @@ function draw() {
     ctx.font = `${b.size || 16}px serif`;
     ctx.textAlign = 'center';
     if (tier === 1) {
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
     } else if (tier === 2) {
       ctx.shadowColor = '#F7931A';
       ctx.shadowBlur = 8;
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
       ctx.shadowBlur = 0;
     } else if (tier === 3) {
       ctx.fillText('🔥', b.x, b.y - 8);
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
     } else if (tier === 4) {
       ctx.fillText('⚡', b.x, b.y - 8);
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
     } else if (tier === 5) {
       ctx.fillText('💥', b.x, b.y - 8);
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
     } else if (tier === 6) {
       ctx.shadowColor = '#ff0';
       ctx.shadowBlur = 12;
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
       ctx.shadowBlur = 0;
     } else if (tier === 7) {
       ctx.fillText('☄️', b.x, b.y - 8);
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
     } else {
       // Tier 8: Ultimate rainbow shit
       ctx.fillText('🌈', b.x, b.y - 10);
       ctx.shadowColor = '#f0f';
       ctx.shadowBlur = 15;
-      ctx.fillText('💩', b.x, b.y);
+      drawPoop(b.x, b.y, b.size || 16);
       ctx.shadowBlur = 0;
     }
   }

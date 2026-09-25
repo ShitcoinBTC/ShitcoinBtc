@@ -381,6 +381,11 @@ bool CZMQPublishNEVMBlockConnectNotifier::NotifyNEVMBlockConnect(const CNEVMHead
     LogPrint(BCLog::ZMQ, "zmq: Publish nevm block connect %s to %s, subscriber %s\n", hash.GetHex(), this->address, this->addresssub);
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << evmBlock << block.vchNEVMBlockData << nSYSBlockHash << NEVMDataVecOut << diff;
+    // SHITCOIN: geth's NEVMBlockWire expects a trailing 32-byte BTCPrevHash
+    // (chainlock-selected auxpow parent prev hash). No chainlocks on Shitcoin,
+    // so send zeros -- geth skips the BTC checkpoint when it is zero.
+    const uint256 btcPrevHash;
+    ss << btcPrevHash;
     if(!SendZmqMessageNEVM(MSG_NEVMBLOCKCONNECT, &(*ss.begin()), ss.size())) {
         state = "nevm-connect-not-sent";
         return false;

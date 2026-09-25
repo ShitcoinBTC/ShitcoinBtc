@@ -823,6 +823,7 @@ RPCHelpMan walletdisplayaddress();
 RPCHelpMan dumpprivkey();
 RPCHelpMan importprivkey();
 RPCHelpMan importaddress();
+RPCHelpMan getnewseedphrase();
 RPCHelpMan importpubkey();
 RPCHelpMan dumpwallet();
 RPCHelpMan importwallet();
@@ -895,6 +896,7 @@ Span<const CRPCCommand> GetWalletRPCCommands()
         {"wallet", &restorewallet},
         {"wallet", &dumpprivkey},
         {"wallet", &dumpwallet},
+        {"wallet", &getnewseedphrase},
         {"wallet", &encryptwallet},
         {"wallet", &getaddressesbylabel},
         {"wallet", &getaddressinfo},

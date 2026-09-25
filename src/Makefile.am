@@ -808,6 +808,7 @@ libsyscoin_common_a_SOURCES = \
   services/assetconsensus.cpp \
   auxpow.cpp \
   base58.cpp \
+  bip39.cpp \
   bech32.cpp \
   chainparams.cpp \
   coins.cpp \

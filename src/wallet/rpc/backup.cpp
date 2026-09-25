@@ -18,6 +18,9 @@
 #include <util/bip32.h>
 #include <util/fs.h>
 #include <util/time.h>
+#include <bip39.h>
+#include <random.h>
+#include <support/cleanse.h>
 #include <util/translation.h>
 #include <wallet/rpc/util.h>
 #include <wallet/wallet.h>
@@ -1946,6 +1949,30 @@ RPCHelpMan restorewallet()
 
     return obj;
 
+},
+    };
+}
+
+RPCHelpMan getnewseedphrase()
+{
+    return RPCHelpMan{"getnewseedphrase",
+        "\nGenerates a new 24-word BIP39 seed phrase.\n"
+        "Write it down and store it securely. It can be used to recover a wallet.\n",
+        {},
+        RPCResult{
+            RPCResult::Type::STR, "seedphrase", "The 24-word seed phrase"
+        },
+        RPCExamples{
+            HelpExampleCli("getnewseedphrase", "")
+            + HelpExampleRpc("getnewseedphrase", "")
+        },
+        [&](const RPCHelpMan& self, const node::JSONRPCRequest& request) -> UniValue
+{
+    std::vector<unsigned char> entropy(32);
+    GetRandBytes(entropy);
+    std::string mnemonic = bip39::EntropyToMnemonic(entropy);
+    memory_cleanse(entropy.data(), entropy.size());
+    return UniValue(mnemonic);
 },
     };
 }

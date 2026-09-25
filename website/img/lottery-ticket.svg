@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 120">
+  <rect x="4" y="4" width="212" height="112" rx="12" fill="#F7931A"/>
+  <rect x="4" y="4" width="212" height="112" rx="12" fill="none" stroke="#7a4a08" stroke-width="3"/>
+  <line x1="162" y1="10" x2="162" y2="110" stroke="#7a4a08" stroke-width="3" stroke-dasharray="7 6"/>
+  <circle cx="162" cy="4" r="9" fill="#16161a"/>
+  <circle cx="162" cy="116" r="9" fill="#16161a"/>
+  <text x="80" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" font-weight="bold" fill="#1a1206">SHITY</text>
+  <text x="80" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="#1a1206">LOTTERY</text>
+  <text x="80" y="98" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#1a1206">TICKET</text>
+  <text x="189" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1a1206">10</text>
+  <text x="189" y="76" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1a1206">SHIT</text>
+</svg>

@@ -79,7 +79,7 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 (function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
 </script>
 <div class="wrap">
-  <h1>&#x1F3AB; Shity Lottery</h1>
+  <h1><img src="/img/lottery-ticket.svg" alt="lottery ticket" style="width:90px;height:auto;vertical-align:middle;"> Shity Lottery</h1>
   <div class="sub">10 SHIT per ticket. Winner takes 80% of the pot. Drawing every 1440 blocks (~12 hours).</div>
   <div class="stats">
     <div class="stat"><div class="k">ROUND</div><div class="v" id="st-round">...</div></div>

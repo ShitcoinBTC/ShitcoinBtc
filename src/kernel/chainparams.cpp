@@ -247,7 +247,7 @@ public:
 
         fDefaultConsistencyChecks = false;
         fRequireRoutableExternalIP = true;
-        vSporkAddresses = {"sys1qx0zzzjag402apkw4kn8unr0qa0k3pv3258v4sr", "sys1qk2kq7hhp58ycaevzzu5hugh7flxs7qcg8rjjlh", "sys1qm4ka204x3mn46sk6ussrex8um87qkj0r5xakyg"};
+        vSporkAddresses = {"shit1qx0zzzjag402apkw4kn8unr0qa0k3pv32sep60e", "shit1qk2kq7hhp58ycaevzzu5hugh7flxs7qcgralaqd", "shit1qm4ka204x3mn46sk6ussrex8um87qkj0rscsemj"};
         nMinSporkKeys = 2;
         // long living quorum params
         consensus.llmqTypeChainLocks = llmq400_60;

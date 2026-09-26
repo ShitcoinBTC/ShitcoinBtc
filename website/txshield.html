@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shity Shield — Check Before You Sign | Shitcoin</title>
+<meta name="description" content="Shity Transaction Shield: paste any transaction, pay a flat $1 fee, and get it decoded, screened, and explained in plain words before you sign.">
+<meta property="og:title" content="Shity Shield">
+<meta property="og:description" content="Paste any transaction. We decode it, screen it, and explain it in plain words before you sign.">
+<meta property="og:image" content="https://shitcoinbtc.xyz/img/og.png">
+<meta property="og:url" content="https://shitcoinbtc.xyz/txshield">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@ShitcoinBTC">
+<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+<link rel="shortcut icon" href="/img/favicon.ico">
+<meta name="theme-color" content="#0d0d0f">
+<link rel="stylesheet" href="/style.css">
+<style>
+.tabs { display: flex; gap: 10px; justify-content: center; margin: 26px 0 8px; flex-wrap: wrap; }
+.tab-btn {
+  background: var(--card); border: 1px solid var(--line); color: var(--muted);
+  padding: 12px 34px; border-radius: 30px; font-weight: 700; font-size: 16px; cursor: pointer;
+}
+.tab-btn.active { background: var(--orange); border-color: var(--orange); color: #14100a; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 26px 0; }
+.status-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+.status-card h3 { font-size: 17px; margin-bottom: 8px; }
+.pill { display: inline-block; padding: 4px 14px; border-radius: 16px; font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+.pill.live { background: rgba(245,130,11,.14); border: 1px solid var(--orange); color: var(--orange); }
+.pill.soon { background: rgba(168,164,156,.12); border: 1px solid var(--muted); color: var(--muted); }
+.status-card p { color: var(--muted); font-size: 14px; margin-top: 10px; }
+.flow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch; margin: 26px 0; }
+.flow-step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+.flow-step h3 { color: var(--orange); font-size: 16px; margin-bottom: 8px; }
+.flow-step p { color: var(--muted); font-size: 14px; }
+.flow-arrow { display: flex; align-items: center; color: var(--orange); font-size: 28px; font-weight: 800; }
+.warn {
+  border: 1px solid var(--orange); border-radius: 14px; padding: 20px 22px;
+  background: rgba(245,130,11,.07); color: var(--text); margin: 26px 0; font-size: 15px;
+}
+.warn strong { color: var(--orange); }
+.soon-hero { text-align: center; padding: 40px 20px; }
+.soon-hero .big-emoji { font-size: 56px; }
+.form-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin: 16px 0; }
+.form-card h3 { font-size: 17px; margin-bottom: 6px; }
+.form-card p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+.form-card label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+.form-card input, .form-card select {
+  width: 100%; box-sizing: border-box; background: #000; border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px;
+}
+.form-card input:disabled, .form-card select:disabled { opacity: .45; cursor: not-allowed; }
+.form-card .btn { margin-top: 14px; }
+.form-result { margin-top: 12px; font-size: 14px; display: none; }
+.form-result.ok { color: #7fd67f; display: block; }
+.form-result.err { color: #e07f7f; display: block; }
+.steps { counter-reset: step; margin: 14px 0; padding: 0; list-style: none; }
+.steps li { counter-increment: step; color: var(--muted); font-size: 14px; margin: 8px 0; padding-left: 34px; position: relative; }
+.steps li::before { content: counter(step); position: absolute; left: 0; top: 0;
+  width: 24px; height: 24px; border-radius: 50%; background: rgba(245,130,11,.14);
+  border: 1px solid var(--orange); color: var(--orange); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; }
+code.addr { background: #000; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 13px; color: var(--orange); word-break: break-all; }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr; } .flow-arrow { justify-content: center; transform: rotate(90deg); } }
+</style>
+</head>
+<body>
+
+<style>
+</style>
+<style>
+</style>
+<style>
+/* ---- site nav v4: single dropdown ---- */
+nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative;z-index:60;}
+.sitenav-inner{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;max-width:1200px;margin:0 auto;}
+.sitenav .brand{display:flex;align-items:center;gap:10px;color:#f2f0eb;font-weight:800;letter-spacing:2px;flex-shrink:0;text-decoration:none;}
+.sitenav .brand img{border-radius:8px;}
+.nav-menu{position:relative;}
+.menu-btn{display:flex;align-items:center;gap:9px;border:1px solid #F5820B;color:#F5820B;background:transparent;padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit;}
+.menu-btn:hover{background:rgba(245,130,11,.12);}
+.menu-btn{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.menu-drop a{cursor:pointer;}
+.menu-btn .bars{display:flex;flex-direction:column;gap:4px;}
+.menu-btn .bars span{display:block;width:18px;height:2px;background:#F5820B;border-radius:2px;}
+.menu-drop{display:none;position:absolute;right:0;top:calc(100% + 10px);min-width:250px;background:#1a1a1e;border:1px solid #2a2a30;border-radius:14px;padding:8px;box-shadow:0 18px 50px rgba(0,0,0,.55);}
+.menu-check{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.menu-check:checked ~ .menu-drop{display:block;}
+.menu-check:checked ~ .menu-btn{background:rgba(245,130,11,.14);}
+.menu-drop a{display:block;padding:11px 14px;border-radius:10px;color:#f2f0eb;text-decoration:none;font-size:15px;}
+.menu-drop a:hover{background:rgba(245,130,11,.12);}
+.menu-drop a.active{background:#F5820B;color:#14100a;font-weight:700;}
+.menu-drop hr{border:none;border-top:1px solid #2a2a30;margin:6px 4px;}
+.nav-tab{display:inline-flex;align-items:center;gap:8px;color:#F5820B;border:1px solid #F5820B;background:rgba(245,130,11,.08);padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;text-decoration:none;margin-left:auto;margin-right:12px;white-space:nowrap;}
+.nav-tab:hover{background:rgba(245,130,11,.18);}
+.nav-tab.active{background:#F5820B;color:#14100a;}
+@media (max-width:560px){.nav-tab{padding:8px 12px;font-size:13px;margin-right:8px;}}
+</style>
+<nav class="sitenav"><div class="sitenav-inner">
+  <a class="brand" href="/">
+    <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
+    <span>SHITCOIN</span>
+  </a>
+  <!-- TAB-REMOVED-UGLY <a class="nav-tab" href="/dex">Shity DEX</a> -->
+  <div class="nav-menu">
+    <input type="checkbox" id="navmenu-toggle" class="menu-check" tabindex="-1" aria-hidden="true">
+    <label for="navmenu-toggle" class="menu-btn" aria-haspopup="true" aria-expanded="false">
+      <span class="bars"><span></span><span></span><span></span></span>
+      Menu
+    </label>
+    <div class="menu-drop">
+    <a class="" href="/game">Shity Games</a>
+    <a class="" href="/lottery">Shity Lottery</a>
+    <a class="" href="/mine">Shity Mining</a>
+    <a class="" href="/presale">Shity Presale</a>
+    <a class="" href="/webwallet">Shity Web Wallet</a>
+    <a class="" href="/whitepaper">Shity Whitepaper</a>
+    <a class="" href="/bridge">Shity Bridge</a>
+    <a class="" href="/launchpad">Shity Launchpad</a>
+    <a class="" href="/lending">Shity Lending</a>
+    <a class="" href="/dex">Shity DEX</a>
+    <a class="active" href="/txshield">Shity Shield</a>
+    <a class="" href="/auction">Shity Auction</a>
+    <a class="" href="/node">Shity Node</a>
+    <a class="" href="/#wallets">Shity Wallets</a>
+    <hr>
+    <a href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
+    <a href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
+    <a href="https://github.com/ShitcoinBTC/ShitcoinBtc" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://bitcointalk.org/index.php?topic=5595195.new#new" target="_blank" rel="noopener">BitcoinTalk</a>
+    <a href="https://explorer.shitcoinbtc.xyz" target="_blank" rel="noopener">Explorer</a>
+    </div>
+  </div>
+</div></nav>
+<script>
+(function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
+</script>
+
+
+
+<header class="hero" style="padding-bottom:20px">
+  <h1>Shity <em>Shield</em></h1>
+  <p class="tagline">Deep check any transaction before you sign it, or run a free quick scan on a token, link, or wallet. Deep checks cost a flat $1.</p>
+</header>
+
+<section style="padding-top:20px">
+
+<div class="warn"><strong>Honest framing:</strong> the Shield checks known scam patterns and decodes what your transaction does. A clean scan is not a guarantee. New drainers appear every day. Never sign anything you do not understand.</div>
+
+<h2>How it works</h2>
+<ol class="steps">
+  <li>Connect your wallet and pick a chain.</li>
+  <li>Paste the transaction you are about to sign: the to address, the value, and the data.</li>
+  <li>Pay the flat $1 fee. That is how the Shield stays alive.</li>
+  <li>Get the verdict: what the transaction does, in plain words, plus every scam flag found.</li>
+</ol>
+
+<div class="form-card">
+  <h3>Step 1 — Connect</h3>
+  <p>Connect the wallet you would sign with. The fee is paid from this wallet.</p>
+  <label>Chain</label>
+  <select id="ts-chain">
+    <option value="ethereum">Ethereum</option>
+    <option value="base">Base</option>
+    <option value="bsc">BNB Chain</option>
+    <option value="arbitrum">Arbitrum One</option>
+    <option value="avalanche">Avalanche</option>
+    <option value="polygon">Polygon</option>
+  </select>
+  <button class="btn" id="ts-connect">Connect wallet</button>
+  <div class="form-result" id="ts-conn-status"></div>
+</div>
+
+<div class="form-card">
+  <h3>Step 2 — Paste the transaction</h3>
+  <p>Copy these from the transaction you are about to sign, on any dapp or in your wallet.</p>
+  <label>To address (the contract or wallet receiving this transaction)</label>
+  <input id="ts-to" placeholder="0x..." autocomplete="off" spellcheck="false">
+  <label>Value (native coin amount, e.g. 0.5 — use 0 if none)</label>
+  <input id="ts-value" placeholder="0" autocomplete="off" spellcheck="false">
+  <label>Data (the hex calldata — starts with 0x)</label>
+  <textarea id="ts-data" rows="4" placeholder="0x..." autocomplete="off" spellcheck="false"
+    style="width:100%;box-sizing:border-box;background:#000;border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:monospace"></textarea>
+  <button class="btn" id="ts-pay">Pay $1 and check transaction</button>
+  <div class="shield-result" id="ts-result"></div>
+</div>
+
+
+<h2>Free quick checks</h2>
+<p style="color:var(--muted);font-size:14px">No wallet needed. No fee. Quick scans for the chains we live on.</p>
+
+<div class="form-card">
+  <h3>Check a token</h3>
+  <p>Paste a token contract address. Shield reads its code flags: honeypot traps, buy and sell taxes, mint controls, hidden owners.</p>
+  <label>Token contract address</label>
+  <input id="tok-addr" placeholder="0x..." autocomplete="off" spellcheck="false">
+  <label>Chain</label>
+  <select id="tok-chain">
+    <option value="1">Ethereum</option>
+    <option value="56">BSC</option>
+    <option value="8453">Base</option>
+    <option value="42161">Arbitrum</option>
+    <option value="43114">Avalanche</option>
+    <option value="137">Polygon</option>
+  </select>
+  <button class="btn" id="tok-go">Scan token</button>
+  <div class="shield-result" id="tok-result"></div>
+</div>
+
+<div class="form-card">
+  <h3>Check a link</h3>
+  <p>Paste the dapp or site link. Shield checks it against the known phishing list before you connect your wallet anywhere near it.</p>
+  <label>Website URL</label>
+  <input id="url-addr" placeholder="https://..." autocomplete="off" spellcheck="false">
+  <button class="btn" id="url-go">Scan link</button>
+  <div class="shield-result" id="url-result"></div>
+</div>
+
+<div class="form-card">
+  <h3>Check a wallet</h3>
+  <p>Paste the address you are about to pay. Shield checks it for drainer, phishing, and crime flags before your coins move.</p>
+  <label>Wallet address</label>
+  <input id="wal-addr" placeholder="0x..." autocomplete="off" spellcheck="false">
+  <label>Chain</label>
+  <select id="wal-chain">
+    <option value="1">Ethereum</option>
+    <option value="56">BSC</option>
+    <option value="8453">Base</option>
+    <option value="42161">Arbitrum</option>
+    <option value="43114">Avalanche</option>
+    <option value="137">Polygon</option>
+  </select>
+  <button class="btn" id="wal-go">Scan wallet</button>
+  <div class="shield-result" id="wal-result"></div>
+</div>
+
+<details style="margin:18px 0;color:var(--muted);font-size:14px">
+  <summary style="cursor:pointer;color:var(--text)">Where do I find the transaction data?</summary>
+  <p style="margin-top:8px">In Rabby, open the signing popup and click the data tab. In MetaMask, click the transaction details dropdown on the confirmation screen. On most dapps you can also find it on the block explorer by looking up the contract you are interacting with. Copy the full hex starting with 0x.</p>
+</details>
+
+</section>
+
+<style>
+.shield-result { margin-top: 14px; display: none; }
+.shield-result.show { display: block; }
+.verdict { border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; }
+.verdict h4 { margin: 0 0 4px; font-size: 18px; letter-spacing: 1px; }
+.verdict.safe { background: rgba(80,200,120,.08); border: 1px solid #50c878; }
+.verdict.safe h4 { color: #50c878; }
+.verdict.caution { background: rgba(245,200,11,.08); border: 1px solid #f5c80b; }
+.verdict.caution h4 { color: #f5c80b; }
+.verdict.danger { background: rgba(230,70,70,.10); border: 1px solid #e64646; }
+.verdict.danger h4 { color: #e64646; }
+.verdict ul { margin: 8px 0 0; padding-left: 20px; color: var(--text); font-size: 14px; }
+.verdict ul li { margin: 4px 0; }
+.verdict .meta { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.shield-err { color: #e07f7f; font-size: 14px; margin-top: 12px; }
+code.addr { background: #000; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 13px; color: var(--orange); word-break: break-all; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="/assets/shity.js?v=1"></script>
+<script>
+var S = window.SHITY;
+var API = "https://api.gopluslabs.io/api/v1";
+var FEE_TO = "0x67de87A2419522265f7d7b9F50F3810b3a2111d3";
+var FEE_NATIVE = { "1": "0.0004", "56": "0.0015", "8453": "0.0004", "42161": "0.0004", "43114": "0.04", "137": "1.5" };
+var NATIVE_SYM = { "1": "ETH", "56": "BNB", "8453": "ETH", "42161": "ETH", "43114": "AVAX", "137": "POL" };
+var GP_OK = { "1": 1, "56": 1, "8453": 1, "42161": 1, "43114": 1, "137": 1 };
+var RPCS = { "1": "https://cloudflare-eth.com", "56": "https://bsc-dataseed.binance.org",
+             "8453": "https://mainnet.base.org", "42161": "https://arb1.arbitrum.io/rpc",
+             "43114": "https://api.avax.network/ext/bc/C/rpc", "137": "https://polygon-bor-rpc.publicnode.com" };
+var ADDR_RE = /^0x[0-9a-fA-F]{40}$/;
+var HEX_RE = /^(0x)?[0-9a-fA-F]*$/;
+var ZERO = "0x0000000000000000000000000000000000000000";
+var DEAD = "0x000000000000000000000000000000000000dead";
+var MAXU = ethers.constants.MaxUint256;
+
+var ABI = [
+  "function approve(address spender, uint256 amount)",
+  "function transfer(address to, uint256 amount)",
+  "function transferFrom(address from, address to, uint256 amount)",
+  "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)",
+  "function swapExactETHForTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline)",
+  "function swapExactTokensForETH(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)",
+  "function addLiquidity(address tokenA, address tokenB, uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline)",
+  "function setApprovalForAll(address operator, bool approved)",
+  "function multicall(bytes[] data)"
+];
+var iface = new ethers.utils.Interface(ABI);
+
+var state = { wallet: null, chainKey: 'ethereum', chainId: '1' };
+
+function el(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function short(a){ return a.slice(0, 6) + "..." + a.slice(-4); }
+
+function verdictHTML(level, title, points, meta){
+  var h = '<div class="verdict ' + level + '"><h4>' + esc(title) + '</h4>';
+  if (points && points.length){
+    h += '<ul>';
+    points.forEach(function(p){ h += '<li>' + p + '</li>'; });
+    h += '</ul>';
+  }
+  if (meta) h += '<div class="meta">' + esc(meta) + '</div>';
+  return h + '</div>';
+}
+function showErr(id, msg){
+  var r = el(id);
+  r.className = "shield-result show";
+  r.innerHTML = '<div class="shield-err">' + esc(msg) + '</div>';
+}
+function showWork(id, msg){
+  var r = el(id);
+  r.className = "shield-result show";
+  r.innerHTML = '<div style="color:var(--muted);font-size:14px">' + esc(msg) + '</div>';
+}
+function setBtn(id, label, disabled){
+  var b = el(id);
+  b.textContent = label;
+  b.disabled = !!disabled;
+}
+
+/* ---------- wallet ---------- */
+el('ts-chain').addEventListener('change', function(){
+  state.chainKey = el('ts-chain').value;
+  state.wallet = null;
+  el('ts-conn-status').className = 'form-result';
+  el('ts-conn-status').textContent = '';
+});
+el('ts-connect').addEventListener('click', async function(){
+  try {
+    setBtn('ts-connect', 'Connecting...', true);
+    var w = await S.connectEvmWallet(state.chainKey);
+    var cid = String(await w.signer.getChainId());
+    state.wallet = w; state.chainId = cid;
+    var st = el('ts-conn-status');
+    st.className = 'form-result ok';
+    st.textContent = 'Connected as ' + w.address + ' on chain ' + cid + ' via ' + w.walletName + '.';
+  } catch (e) {
+    var st2 = el('ts-conn-status');
+    st2.className = 'form-result err';
+    st2.textContent = 'Could not connect: ' + (e.message || e);
+  }
+  setBtn('ts-connect', 'Connect wallet', false);
+});
+
+/* ---------- helpers ---------- */
+async function rpcCall(chainId, method, params){
+  var r = await fetch(RPCS[chainId], { method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: method, params: params }) });
+  var j = await r.json();
+  if (j.error) throw new Error('rpc');
+  return j.result;
+}
+function hexToStr(hex){
+  var s = '';
+  for (var i = 0; i < hex.length; i += 2){
+    var c = parseInt(hex.substr(i, 2), 16);
+    if (c === 0) break;
+    s += String.fromCharCode(c);
+  }
+  return s.replace(/[^\x20-\x7e]/g, '');
+}
+async function tokenMeta(tokenAddr, chainId){
+  try {
+    var dec = await rpcCall(chainId, 'eth_call', [{ to: tokenAddr, data: '0x313ce567' }, 'latest']);
+    var sym = await rpcCall(chainId, 'eth_call', [{ to: tokenAddr, data: '0x95d89b41' }, 'latest']);
+    var decimals = parseInt(dec, 16);
+    if (isNaN(decimals) || decimals > 36) decimals = 18;
+    var symbol = 'tokens';
+    if (sym && sym.length >= 130){
+      var len = parseInt(sym.slice(66, 130), 16);
+      if (len > 0 && len < 32) symbol = hexToStr(sym.slice(130, 130 + len * 2)) || 'tokens';
+    }
+    return { decimals: decimals, symbol: symbol };
+  } catch (e){ return { decimals: 18, symbol: 'tokens' }; }
+}
+function fmtAmt(bn, decimals, symbol){
+  try { return ethers.utils.formatUnits(bn, decimals) + ' ' + symbol; }
+  catch (e){ return bn.toString(); }
+}
+async function gp(path){
+  try {
+    var r = await fetch(API + path);
+    var j = await r.json();
+    return (j.code === 1) ? j.result : null;
+  } catch (e){ return null; }
+}
+function knownAddrs(){
+  try { return JSON.parse(localStorage.getItem('txshield_known') || '[]'); }
+  catch (e){ return []; }
+}
+function rememberAddr(a){
+  var k = knownAddrs();
+  a = a.toLowerCase();
+  if (k.indexOf(a) === -1){ k.push(a); try { localStorage.setItem('txshield_known', JSON.stringify(k.slice(-200))); } catch (e){} }
+}
+function lookalike(a, b){
+  a = a.toLowerCase(); b = b.toLowerCase();
+  return a !== b && a.slice(2, 8) === b.slice(2, 8) && a.slice(-4) === b.slice(-4);
+}
+
+var WAL_FLAGS = [
+  ["stealing_attack", "Known wallet drainer."],
+  ["phishing_activities", "Linked to phishing."],
+  ["cybercrime", "Linked to cybercrime."],
+  ["money_laundering", "Linked to money laundering."],
+  ["blackmail_activities", "Linked to blackmail scams."],
+  ["financial_crime", "Linked to financial crime."],
+  ["sanctioned", "Sanctioned address."],
+  ["fake_kyc", "Fake KYC history."]
+];
+function addrFindings(a, res, label){
+  var danger = [], caution = [];
+  WAL_FLAGS.forEach(function(f){
+    if (res[f[0]] === "1") danger.push(label + ' <code class="addr">' + esc(short(a)) + '</code> — ' + esc(f[1]));
+  });
+  if (res.blacklist_doubt === "1") caution.push(label + ' <code class="addr">' + esc(short(a)) + '</code> is on a watchlist.');
+  if (res.number_of_malicious_contracts_created && res.number_of_malicious_contracts_created !== "0")
+    danger.push(label + ' <code class="addr">' + esc(short(a)) + '</code> created ' + esc(res.number_of_malicious_contracts_created) + ' malicious contracts.');
+  return { danger: danger, caution: caution };
+}
+function tokenFindings(t, label){
+  var danger = [], caution = [], ok = [];
+  if (t.is_honeypot === "1") danger.push(label + ' is a honeypot: you can buy but never sell.');
+  var sellTax = parseFloat(t.sell_tax || "0") * 100, buyTax = parseFloat(t.buy_tax || "0") * 100;
+  if (sellTax > 50) danger.push(label + ' has a ' + sellTax.toFixed(1) + '% sell tax.');
+  else if (sellTax > 0) caution.push(label + ' has a ' + sellTax.toFixed(1) + '% sell tax.');
+  if (buyTax > 10) caution.push(label + ' has a ' + buyTax.toFixed(1) + '% buy tax.');
+  if (t.hidden_owner === "1") danger.push(label + ' has a hidden owner.');
+  if (t.is_mintable === "1") caution.push(label + ' — the owner can mint new tokens.');
+  if (t.can_take_back_ownership === "1") caution.push(label + ' — the owner can take back ownership.');
+  if (t.is_proxy === "1") caution.push(label + ' is upgradeable: the rules can change later.');
+  if (t.is_honeypot === "0") ok.push(label + ' is not flagged as a honeypot.');
+  return { danger: danger, caution: caution, ok: ok };
+}
+
+/* ---------- decode + describe ---------- */
+async function describe(parsed, to, valueWei, chainId, metaCache){
+  var lines = [], tokenAddrs = [], screenAddrs = [];
+  var n = parsed.name, a = parsed.args;
+  async function meta(addr){
+    addr = addr.toLowerCase();
+    if (!metaCache[addr]) metaCache[addr] = await tokenMeta(addr, chainId);
+    return metaCache[addr];
+  }
+  if (n === 'approve'){
+    var m = await meta(to);
+    var unl = a.amount.eq(MAXU);
+    lines.push('This is an <b>approval</b> on the ' + esc(m.symbol) + ' contract.');
+    lines.push(unl
+      ? 'It lets <code class="addr">' + esc(short(a.spender)) + '</code> spend <b>UNLIMITED</b> ' + esc(m.symbol) + ' from your wallet.'
+      : 'It lets <code class="addr">' + esc(short(a.spender)) + '</code> spend up to <b>' + esc(fmtAmt(a.amount, m.decimals, m.symbol)) + '</b> from your wallet.');
+    if (unl) lines.push('Unlimited approvals are the number one way drainers empty wallets. Only approve what you need.');
+    tokenAddrs.push(to); screenAddrs.push(a.spender);
+  } else if (n === 'transfer'){
+    var m2 = await meta(to);
+    lines.push('This <b>sends ' + esc(fmtAmt(a.amount, m2.decimals, m2.symbol)) + '</b> to <code class="addr">' + esc(a.to) + '</code>.');
+    tokenAddrs.push(to); screenAddrs.push(a.to);
+  } else if (n === 'transferFrom'){
+    var m3 = await meta(to);
+    lines.push('This moves <b>' + esc(fmtAmt(a.amount, m3.decimals, m3.symbol)) + '</b> from <code class="addr">' + esc(short(a.from)) + '</code> to <code class="addr">' + esc(short(a.to)) + '</code>.');
+    tokenAddrs.push(to); screenAddrs.push(a.to);
+  } else if (n === 'swapExactTokensForTokens' || n === 'swapExactTokensForETH'){
+    var tkIn = await meta(a.path[0]), tkOut = await meta(a.path[a.path.length - 1]);
+    var outS = n === 'swapExactTokensForETH' ? NATIVE_SYM[chainId] : tkOut.symbol;
+    lines.push('This <b>swaps ' + esc(fmtAmt(a.amountIn, tkIn.decimals, tkIn.symbol)) + '</b> for at least <b>' +
+      esc(fmtAmt(a.amountOutMin, n === 'swapExactTokensForETH' ? 18 : tkOut.decimals, outS)) + '</b>.');
+    lines.push('Through: ' + a.path.map(function(p){ return '<code class="addr">' + esc(short(p)) + '</code>'; }).join(' → '));
+    a.path.forEach(function(p){ tokenAddrs.push(p); });
+    screenAddrs.push(to);
+  } else if (n === 'swapExactETHForTokens'){
+    var tkO = await meta(a.path[a.path.length - 1]);
+    var v = ethers.utils.formatEther(valueWei);
+    lines.push('This <b>swaps ' + esc(v) + ' ' + esc(NATIVE_SYM[chainId]) + '</b> for at least <b>' + esc(fmtAmt(a.amountOutMin, tkO.decimals, tkO.symbol)) + '</b>.');
+    a.path.forEach(function(p){ tokenAddrs.push(p); });
+    screenAddrs.push(to);
+  } else if (n === 'addLiquidity'){
+    var mA = await meta(a.tokenA), mB = await meta(a.tokenB);
+    lines.push('This <b>adds liquidity</b>: ' + esc(fmtAmt(a.amountADesired, mA.decimals, mA.symbol)) + ' + ' + esc(fmtAmt(a.amountBDesired, mB.decimals, mB.symbol)) + ' into a pool.');
+    tokenAddrs.push(a.tokenA); tokenAddrs.push(a.tokenB); screenAddrs.push(to);
+  } else if (n === 'setApprovalForAll'){
+    lines.push(a.approved
+      ? 'This lets <code class="addr">' + esc(short(a.operator)) + '</code> move <b>ALL your NFTs</b> from this collection.'
+      : 'This <b>removes</b> <code class="addr">' + esc(short(a.operator)) + '</code> as an operator for your NFTs. Safe cleanup.');
+    if (a.approved) lines.push('Full NFT approvals are a classic drainer move. Only approve marketplaces you trust.');
+    tokenAddrs.push(to); screenAddrs.push(a.operator);
+  } else if (n === 'multicall'){
+    lines.push('This <b>bundles ' + a.data.length + ' actions into one transaction.</b> Each one runs with your signature.');
+    lines.push('Bundled calls can hide a malicious step among innocent ones. Review carefully.');
+    screenAddrs.push(to);
+  } else {
+    lines.push('Unrecognized function <b>' + esc(n) + '</b>. Review the raw data before signing.');
+    screenAddrs.push(to);
+  }
+  return { lines: lines, tokenAddrs: tokenAddrs, screenAddrs: screenAddrs };
+}
+
+/* ---------- main check ---------- */
+function readInputs(){
+  var to = el('ts-to').value.trim();
+  var vraw = el('ts-value').value.trim() || '0';
+  var draw = el('ts-data').value.trim();
+  if (!ADDR_RE.test(to)) throw new Error('The to address does not look right. It should start with 0x and be 42 characters.');
+  if (!HEX_RE.test(draw)) throw new Error('The data does not look like hex.');
+  var data = draw.slice(0, 2) === '0x' ? draw : '0x' + draw;
+  var valueWei;
+  try { valueWei = ethers.utils.parseEther(vraw); }
+  catch (e){ throw new Error('The value is not a valid number.'); }
+  return { to: to, valueWei: valueWei, data: data };
+}
+async function runCheck(){
+  var inp = readInputs();
+  var to = inp.to, valueWei = inp.valueWei, data = inp.data;
+
+  showWork('ts-result', 'Decoding transaction...');
+  var chainId = state.chainId;
+  var danger = [], caution = [], info = [];
+
+  /* local address checks */
+  var lc = to.toLowerCase();
+  if (lc === ZERO) danger.push('The to address is the <b>zero address</b>. Anything sent here is gone forever.');
+  if (lc === DEAD) danger.push('The to address is a <b>burn address</b>. Anything sent here is gone forever.');
+  var known = knownAddrs();
+  var isKnown = known.indexOf(lc) !== -1;
+  var similar = known.filter(function(k){ return lookalike(to, k); });
+  if (similar.length) danger.push('This address <b>looks like one you have used before</b> (<code class="addr">' + esc(short(similar[0])) + '</code>) but it is <b>not the same</b>. Classic poisoning attack — do not send.');
+  else if (!isKnown) caution.push('You have never used this address from this site. Double check it before signing.');
+
+  /* decode */
+  var metaCache = {};
+  var tokenAddrs = [], screenAddrs = [];
+  try {
+    var parsed = iface.parseTransaction({ data: data });
+    var d = await describe(parsed, to, valueWei, chainId, metaCache);
+    info = info.concat(d.lines);
+    tokenAddrs = d.tokenAddrs; screenAddrs = d.screenAddrs;
+  } catch (e){
+    var sel = data.length >= 10 ? data.slice(0, 10) : '(no data)';
+    if (data === '0x' || data.length <= 2){
+      info.push('This is a <b>plain transfer</b> of <b>' + esc(ethers.utils.formatEther(valueWei)) + ' ' + esc(NATIVE_SYM[chainId] || '') + '</b> to <code class="addr">' + esc(to) + '</code>. No contract call.');
+      screenAddrs.push(to);
+    } else {
+      caution.push('Unknown function <b>' + esc(sel) + '</b> — the Shield cannot decode what this does. Be extra careful.');
+      screenAddrs.push(to);
+    }
+  }
+
+  /* screens */
+  if (GP_OK[chainId]){
+    showWork('ts-result', 'Screening addresses and tokens...');
+    var uniq = {}, i;
+    tokenAddrs.forEach(function(a){ uniq['t' + a.toLowerCase()] = a; });
+    screenAddrs.forEach(function(a){ if (ADDR_RE.test(a)) uniq['a' + a.toLowerCase()] = a; });
+    var jobs = Object.keys(uniq).map(function(k){
+      var a = uniq[k];
+      if (k[0] === 't') return gp('/token_security/' + chainId + '?contract_addresses=' + a).then(function(r){
+        var t = r && r[Object.keys(r)[0].toLowerCase()] || r && r[Object.keys(r)[0]];
+        if (!t) return;
+        var f = tokenFindings(t, 'Token <code class="addr">' + esc(short(a)) + '</code>');
+        danger = danger.concat(f.danger); caution = caution.concat(f.caution); info = info.concat(f.ok);
+      });
+      return gp('/address_security/' + a + '?chain_id=' + chainId).then(function(r){
+        if (!r) return;
+        var f = addrFindings(a, r, 'Address');
+        danger = danger.concat(f.danger); caution = caution.concat(f.caution);
+      });
+    });
+    await Promise.all(jobs);
+  } else {
+    caution.push('The scam database does not cover this chain yet, so only local checks ran.');
+  }
+
+  rememberAddr(to);
+
+  var level = danger.length ? 'danger' : (caution.length ? 'caution' : 'safe');
+  var title = danger.length ? 'DO NOT SIGN' : (caution.length ? 'REVIEW CAREFULLY' : 'LOOKS CLEAN');
+  var pts = info.concat(danger).concat(caution);
+  el('ts-result').innerHTML = verdictHTML(level, title, pts,
+    'Checked on chain ' + chainId + '. A clean scan is not a guarantee.');
+  el('ts-result').className = 'shield-result show';
+}
+
+el('ts-pay').addEventListener('click', async function(){
+  try {
+    readInputs(); // validate everything BEFORE any money moves
+    if (!state.wallet){
+      showWork('ts-result', 'Connect your wallet first (Step 1).');
+      return;
+    }
+    var chainId = String(await state.wallet.signer.getChainId());
+    state.chainId = chainId;
+    var fee = FEE_NATIVE[chainId];
+    if (!fee){ showErr('ts-result', 'The fee is not configured for this chain yet.'); return; }
+    setBtn('ts-pay', 'Paying $1 fee — confirm in your wallet...', true);
+    var tx = await state.wallet.signer.sendTransaction({ to: FEE_TO, value: ethers.utils.parseEther(fee) });
+    setBtn('ts-pay', 'Fee sent — waiting for confirmation...', true);
+    await tx.wait();
+    setBtn('ts-pay', 'Fee confirmed — running deep check...', true);
+    await runCheck();
+  } catch (e){
+    showErr('ts-result', 'Stopped: ' + (e.message || e));
+  }
+  setBtn('ts-pay', 'Pay $1 and check transaction', false);
+});
+
+/* ---------- free quick checks (no wallet, no fee) ---------- */
+function scanToken(){
+  var addr = el("tok-addr").value.trim(), chain = el("tok-chain").value;
+  if (!ADDR_RE.test(addr)) { showErr("tok-result", "That does not look like a contract address. It should start with 0x and be 42 characters."); return; }
+  showWork("tok-result", "Scanning...");
+  fetch(API + "/token_security/" + chain + "?contract_addresses=" + addr)
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.code !== 1 || !j.result) { showErr("tok-result", "Scan failed. Try again in a minute."); return; }
+      var t = j.result[Object.keys(j.result)[0]] || {};
+      var danger = [], caution = [], safe = [];
+      if (t.is_honeypot === "1") danger.push("Honeypot: you can buy this token but you can never sell it.");
+      var buyTax = parseFloat(t.buy_tax || "0") * 100, sellTax = parseFloat(t.sell_tax || "0") * 100;
+      if (sellTax > 50) danger.push("Sell tax is " + sellTax.toFixed(1) + " percent. Almost everything you put in stays in.");
+      else if (sellTax > 0) caution.push("Sell tax is " + sellTax.toFixed(1) + " percent.");
+      if (buyTax > 10) caution.push("Buy tax is " + buyTax.toFixed(1) + " percent.");
+      if (t.hidden_owner === "1") danger.push("Hidden owner: control of this token is disguised.");
+      if (t.is_mintable === "1") caution.push("Owner can mint new tokens out of thin air.");
+      if (t.can_take_back_ownership === "1") caution.push("Owner can take back ownership after renouncing it.");
+      if (t.is_proxy === "1") caution.push("Upgradeable contract: the rules can be changed later.");
+      if ((t.owner_address || "").toLowerCase() === "0x0000000000000000000000000000000000000000")
+        safe.push("Ownership is renounced. Nobody holds the keys.");
+      if (t.is_honeypot === "0") safe.push("Not flagged as a honeypot.");
+      var level = danger.length ? "danger" : (caution.length ? "caution" : "safe");
+      var title = danger.length ? "DANGER" : (caution.length ? "CAUTION" : "LOOKS CLEAN");
+      el("tok-result").innerHTML = verdictHTML(level, title,
+        danger.concat(caution).concat(safe).map(esc), "Holders: " + (t.holder_count || "?"));
+    })
+    .catch(function(){ showErr("tok-result", "Scan failed. Try again in a minute."); });
+}
+function scanURL(){
+  var u = el("url-addr").value.trim();
+  if (!/^https?:\/\//i.test(u)) { showErr("url-result", "Paste a full link starting with https://"); return; }
+  showWork("url-result", "Scanning...");
+  fetch(API + "/phishing_site?url=" + encodeURIComponent(u))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.code !== 1 || !j.result) { showErr("url-result", "Scan failed. Try again in a minute."); return; }
+      var res = j.result, danger = [], safe = [];
+      if (res.phishing_site === 1 || res.phishing_site === "1")
+        danger.push("This is a known phishing site. Do not connect your wallet. Close the tab.");
+      else
+        safe.push("Not on the known phishing list.");
+      (res.website_contract_security || []).forEach(function(c){
+        if (c.is_honeypot === "1") danger.push("A contract tied to this site is a honeypot.");
+      });
+      var level = danger.length ? "danger" : "safe";
+      var pts = danger.concat(safe);
+      pts.push("New scam sites appear daily, so a clean scan is not a guarantee.");
+      el("url-result").innerHTML = verdictHTML(level, danger.length ? "DANGER" : "LOOKS CLEAN", pts.map(esc), null);
+    })
+    .catch(function(){ showErr("url-result", "Scan failed. Try again in a minute."); });
+}
+var WAL_FLAGS2 = [
+  ["stealing_attack", "Known wallet drainer."],
+  ["phishing_activities", "Linked to phishing."],
+  ["cybercrime", "Linked to cybercrime."],
+  ["money_laundering", "Linked to money laundering."],
+  ["blackmail_activities", "Linked to blackmail scams."],
+  ["financial_crime", "Linked to financial crime."],
+  ["sanctioned", "Sanctioned address."],
+  ["fake_kyc", "Fake KYC history."]
+];
+function scanWallet(){
+  var addr = el("wal-addr").value.trim(), chain = el("wal-chain").value;
+  if (!ADDR_RE.test(addr)) { showErr("wal-result", "That does not look like a wallet address. It should start with 0x and be 42 characters."); return; }
+  showWork("wal-result", "Scanning...");
+  fetch(API + "/address_security/" + addr + "?chain_id=" + chain)
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j.code !== 1 || !j.result) { showErr("wal-result", "Scan failed. Try again in a minute."); return; }
+      var a = j.result, danger = [], caution = [], safe = [];
+      WAL_FLAGS2.forEach(function(f){ if (a[f[0]] === "1") danger.push(f[1]); });
+      if (a.blacklist_doubt === "1") caution.push("On a watchlist. Proceed carefully.");
+      if (a.number_of_malicious_contracts_created && a.number_of_malicious_contracts_created !== "0")
+        danger.push("This address created " + a.number_of_malicious_contracts_created + " malicious contracts.");
+      if (!danger.length && !caution.length) safe.push("No scam flags on this address.");
+      var level = danger.length ? "danger" : (caution.length ? "caution" : "safe");
+      var pts = danger.concat(caution).concat(safe);
+      if (level !== "safe") pts.push("Do not send coins here until you know exactly who runs it.");
+      el("wal-result").innerHTML = verdictHTML(level,
+        danger.length ? "DANGER" : (caution.length ? "CAUTION" : "LOOKS CLEAN"), pts.map(esc), null);
+    })
+    .catch(function(){ showErr("wal-result", "Scan failed. Try again in a minute."); });
+}
+el("tok-go").addEventListener("click", scanToken);
+el("url-go").addEventListener("click", scanURL);
+el("wal-go").addEventListener("click", scanWallet);
+
+</script>
+
+</body>
+</html>

@@ -53,6 +53,10 @@ h3 .step-num{vertical-align:middle;}
 .order-state.st2{background:#12241a;color:#7dffb0;}
 .order-state.st3{background:#2a1414;color:#ff9d9d;}
 .order-state.st4{background:#1a1a1e;color:#9a968c;}
+.live-tag{display:inline-block;background:#e02424;color:#fff;font-size:11px;font-weight:800;letter-spacing:1px;padding:2px 8px;border-radius:6px;vertical-align:middle;}
+.stream-wrap{margin:0 0 14px;border-radius:12px;overflow:hidden;background:#000;}
+.stream-wrap iframe{width:100%;aspect-ratio:16/9;border:0;display:block;}
+.watch-row{display:flex;gap:10px;align-items:center;margin:0 0 14px;}
 </style>
 </head>
 <body>
@@ -162,6 +166,8 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
       <textarea id="sellDesc" class="txt" placeholder="Condition, what is included, anything the buyer should know" maxlength="1000"></textarea>
       <label class="fld-label">Image URL (optional)</label>
       <input id="sellImage" class="txt" placeholder="https://…" autocomplete="off" spellcheck="false">
+      <label class="fld-label">Livestream URL (optional)</label>
+      <input id="sellStream" class="txt" placeholder="YouTube, Twitch, X, or TikTok live link" autocomplete="off" spellcheck="false">
       <label class="fld-label">Price (USDC)</label>
       <input id="sellPrice" class="txt" inputmode="decimal" placeholder="e.g. 250" autocomplete="off">
       <div class="cta-row left tight">
@@ -181,6 +187,11 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
         <button class="btn btn-ghost" id="buyLoadBtn">Load</button>
       </div>
       <div id="buyDetail" style="display:none">
+        <div id="streamBox" style="display:none"></div>
+        <div id="liveToggleRow" style="display:none;margin:0 0 14px">
+          <button class="btn btn-ghost" id="liveToggleBtn">Go live</button>
+          <span class="note">Stream on YouTube, Twitch, X, or TikTok, then hit Go live so buyers see it here.</span>
+        </div>
         <div class="listing-card">
           <img id="buyImg" alt="" style="display:none">
           <div class="lc-body">
@@ -378,7 +389,10 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     try {
       var r = await fetch('/api/auction/listings/' + listingId);
       if (!r.ok) return null;
-      return await r.json();
+      var j = await r.json();
+      var m = j.meta || j;
+      return { title: m.title, desc: m.description || m.desc,
+        image: m.image, stream_url: m.stream_url, is_live: m.is_live };
     } catch (e) { return null; }
   }
   async function loadBoard() {
@@ -386,7 +400,7 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     var items = null;
     try {
       var r = await fetch('/api/auction/listings');
-      if (r.ok) items = await r.json();
+      if (r.ok) { var j = await r.json(); items = j.listings || j; }
     } catch (e) {}
     if (!items || !items.length) {
       box.innerHTML = '<span class="note">No listings yet. Be the first to sell something.</span>';
@@ -397,8 +411,9 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
       h += '<div class="listing-card">';
       if (it.image && /^https:\/\//i.test(it.image))
         h += '<img src="' + esc(it.image) + '" alt="">';
-      h += '<div class="lc-body"><div class="lc-title">' + esc(it.title || ('Listing #' + it.id)) + '</div>' +
-        '<div class="lc-price">' + esc(it.priceUsdc || '') + ' USDC</div>' +
+      h += '<div class="lc-body"><div class="lc-title">' + esc(it.title || ('Listing #' + it.id)) +
+        (it.is_live ? ' <span class="live-tag">LIVE</span>' : '') + '</div>' +
+        '<div class="lc-price">' + esc(fmtUSDC(it.priceUsdc || '0')) + ' USDC</div>' +
         '<div class="lc-id">ID ' + esc(String(it.id)) + '</div></div>' +
         '<button class="btn btn-ghost" data-board-id="' + esc(String(it.id)) + '">Open</button></div>';
     });
@@ -423,10 +438,13 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
       var title = S.el('sellTitle').value.trim();
       var desc = S.el('sellDesc').value.trim();
       var image = S.el('sellImage').value.trim();
+      var stream = S.el('sellStream').value.trim();
       var price = parseUSDC(S.el('sellPrice').value);
       if (!title) throw new Error('Give your item a title.');
       if (!price) throw new Error('Enter a valid USDC price above zero.');
       if (image && !/^https:\/\//i.test(image)) throw new Error('Image must be a full https:// link.');
+      if (stream && !/^https:\/\/(www\.)?(youtube\.com\/watch|youtu\.be\/|twitch\.tv\/|x\.com\/|twitter\.com\/|tiktok\.com\/)/i.test(stream))
+        throw new Error('Stream must be a YouTube, Twitch, X, or TikTok link.');
       setBtn(S.el('sellBtn'), 'Creating…', true);
       S.status('statusBox', 'Creating your listing. Confirm in your wallet…', 'info');
       var tx = await escrow.createListing(price);
@@ -442,20 +460,34 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
         try { listingId = (await escrow.nextListingId()).sub(1).toString(); }
         catch (e) { listingId = '?'; }
       }
-      postMetadata({ id: listingId, title: title, desc: desc, image: image,
-        priceUsdc: fmtUSDC(price), seller: state.address });
+      postMetadata({ listing_id: listingId, title: title, description: desc, image: image,
+        stream_url: stream, priceUsdc: fmtUSDC(price), seller: state.address });
       S.status('statusBox', 'Listing created! Your listing ID is <strong>' + esc(listingId) +
-        '</strong>.' + txLink(tx.hash), 'success');
+        '</strong>.' + (stream ? ' Paste your stream link again and hit Go live when you start broadcasting.' : '') + txLink(tx.hash), 'success');
       S.el('sellTitle').value = '';
       S.el('sellDesc').value = '';
       S.el('sellImage').value = '';
+      S.el('sellStream').value = '';
       S.el('sellPrice').value = '';
       loadBoard();
     } catch (e) { if (e.message !== 'wallet not connected') S.status('statusBox', S.fmtErr(e), 'error'); }
     finally { setBtn(S.el('sellBtn'), 'Create listing', false); }
   });
 
-  /* ---------- buy ---------- */
+  /* ---------- livestream ---------- */
+  function streamEmbed(url) {
+    var m;
+    if ((m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{6,})/i)))
+      return '<div class="stream-wrap"><iframe src="https://www.youtube.com/embed/' +
+        esc(m[1]) + '?rel=0" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>';
+    if ((m = url.match(/twitch\.tv\/([A-Za-z0-9_]{3,})/i)))
+      return '<div class="stream-wrap"><iframe src="https://player.twitch.tv/?channel=' +
+        esc(m[1]) + '&parent=shitcoinbtc.xyz" allowfullscreen></iframe></div>';
+    var label = /tiktok\.com/i.test(url) ? 'Watch live on TikTok' : 'Watch live on X';
+    return '<div class="watch-row"><a class="btn btn-ghost" href="' + esc(url) +
+      '" target="_blank" rel="noopener">' + label + '</a>' +
+      '<span class="note">The seller is live. The stream opens in a new tab.</span></div>';
+  }
   async function loadListing() {
     var idRaw = S.el('buyListingId').value.trim();
     if (!/^\d+$/.test(idRaw)) {
@@ -476,7 +508,8 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
       var meta = await getMetadata(idRaw);
       curListing = { id: idRaw, seller: l.seller, priceUsdc: l.priceUsdc,
         title: (meta && meta.title) || ('Listing #' + idRaw),
-        desc: (meta && meta.desc) || '', image: (meta && meta.image) || '' };
+        desc: (meta && meta.desc) || '', image: (meta && meta.image) || '',
+        stream_url: (meta && meta.stream_url) || '', is_live: !!(meta && meta.is_live) };
       S.el('buyTitle').textContent = curListing.title;
       S.el('buyDesc').textContent = curListing.desc;
       S.el('buyPrice').textContent = fmtUSDC(l.priceUsdc) + ' USDC';
@@ -485,12 +518,46 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
       if (curListing.image && /^https:\/\//i.test(curListing.image)) {
         img.src = curListing.image; img.style.display = 'block';
       } else { img.style.display = 'none'; }
+      var sbox = S.el('streamBox');
+      if (curListing.is_live && curListing.stream_url) {
+        sbox.innerHTML = streamEmbed(curListing.stream_url);
+        sbox.style.display = 'block';
+      } else { sbox.innerHTML = ''; sbox.style.display = 'none'; }
+      var mine = state.address && state.address.toLowerCase() === l.seller.toLowerCase();
+      S.el('liveToggleRow').style.display = mine ? 'block' : 'none';
+      if (mine) S.el('liveToggleBtn').textContent = curListing.is_live ? 'End stream' : 'Go live';
       S.el('buyDetail').style.display = 'block';
       S.hideStatus('statusBox');
       refreshQuote();
     } catch (e) { S.status('statusBox', S.fmtErr(e), 'error'); }
   }
   S.el('buyLoadBtn').addEventListener('click', loadListing);
+  S.el('liveToggleBtn').addEventListener('click', async function () {
+    if (!curListing) return;
+    var btn = S.el('liveToggleBtn');
+    try {
+      if (!curListing.stream_url) throw new Error('Add a livestream URL to your listing first (recreate it with the stream link filled in).');
+      setBtn(btn, 'Updating…', true);
+      var ok = await postMetadata({ listing_id: curListing.id, title: curListing.title,
+        description: curListing.desc, image: curListing.image,
+        stream_url: curListing.stream_url, is_live: !curListing.is_live });
+      if (!ok) throw new Error('Could not reach the listing server.');
+      curListing.is_live = !curListing.is_live;
+      var sbox = S.el('streamBox');
+      if (curListing.is_live) {
+        sbox.innerHTML = streamEmbed(curListing.stream_url);
+        sbox.style.display = 'block';
+        btn.textContent = 'End stream';
+        S.status('statusBox', 'You are live. Buyers opening this listing now see your stream next to the buy button.', 'success');
+      } else {
+        sbox.innerHTML = ''; sbox.style.display = 'none';
+        btn.textContent = 'Go live';
+        S.status('statusBox', 'Stream ended.', 'info');
+      }
+      loadBoard();
+    } catch (e) { S.status('statusBox', S.fmtErr(e), 'error'); }
+    finally { setBtn(btn, curListing && curListing.is_live ? 'End stream' : 'Go live', false); }
+  });
 
   S.el('payTokenSel').addEventListener('change', function () {
     S.el('payCustom').style.display = S.el('payTokenSel').value === 'custom' ? 'block' : 'none';

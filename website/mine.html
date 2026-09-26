@@ -89,12 +89,17 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 .menu-drop a:hover{background:rgba(245,130,11,.12);}
 .menu-drop a.active{background:#F5820B;color:#14100a;font-weight:700;}
 .menu-drop hr{border:none;border-top:1px solid #2a2a30;margin:6px 4px;}
+.nav-tab{display:inline-flex;align-items:center;gap:8px;color:#F5820B;border:1px solid #F5820B;background:rgba(245,130,11,.08);padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;text-decoration:none;margin-left:auto;margin-right:12px;white-space:nowrap;}
+.nav-tab:hover{background:rgba(245,130,11,.18);}
+.nav-tab.active{background:#F5820B;color:#14100a;}
+@media (max-width:560px){.nav-tab{padding:8px 12px;font-size:13px;margin-right:8px;}}
 </style>
 <nav class="sitenav"><div class="sitenav-inner">
   <a class="brand" href="/">
     <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
     <span>SHITCOIN</span>
   </a>
+  <!-- TAB-REMOVED-UGLY <a class="nav-tab" href="/dex">Shity DEX</a> -->
   <div class="nav-menu">
     <input type="checkbox" id="navmenu-toggle" class="menu-check" tabindex="-1" aria-hidden="true">
     <label for="navmenu-toggle" class="menu-btn" aria-haspopup="true" aria-expanded="false">
@@ -110,12 +115,17 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     <a class="" href="/whitepaper">Shity Whitepaper</a>
     <a class="" href="/bridge">Shity Bridge</a>
     <a class="" href="/launchpad">Shity Launchpad</a>
+    <a class="" href="/lending">Shity Lending</a>
+    <a class="" href="/dex">Shity DEX</a>
+    <a class="" href="/txshield">Shity Shield</a>
+    <a class="" href="/auction">Shity Auction</a>
     <a class="" href="/node">Shity Node</a>
     <a class="" href="/#wallets">Shity Wallets</a>
     <hr>
     <a href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
     <a href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
     <a href="https://github.com/ShitcoinBTC/ShitcoinBtc" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://bitcointalk.org/index.php?topic=5595195.new#new" target="_blank" rel="noopener">BitcoinTalk</a>
     <a href="https://explorer.shitcoinbtc.xyz" target="_blank" rel="noopener">Explorer</a>
     </div>
   </div>

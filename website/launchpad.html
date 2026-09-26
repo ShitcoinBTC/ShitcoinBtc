@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shity Launchpad — Deploy tokens on Shitcoin</title>
-<meta name="description" content="The Shity Launchpad: deploy your own SHIT-20 token on Shitcoin's NEVM and launch a fixed-price sale. Permissionless. No tiers, no bonding curves.">
-<meta property="og:title" content="Shity Launchpad — Deploy tokens on Shitcoin">
-<meta property="og:description" content="Deploy your own SHIT-20 token and launch a fixed-price sale. Launching with the NEVM upgrade.">
+<title>Shity Launchpad — Launch tokens on 11 chains</title>
+<meta name="description" content="The Shity Launchpad: create your token and launch a fixed-price sale on 11 chains. Permissionless. Connect your wallet, you pay the gas.">
+<meta property="og:title" content="Shity Launchpad — Launch tokens on 11 chains">
+<meta property="og:description" content="Create your token and launch a fixed-price sale. Connect your wallet, you pay gas. Flat creation fee, no percent of the raise.">
 <meta property="og:image" content="https://shitcoinbtc.xyz/img/og.png">
 <meta property="og:url" content="https://shitcoinbtc.xyz/launchpad">
 <meta name="twitter:card" content="summary_large_image">
@@ -16,15 +16,37 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
 <link rel="shortcut icon" href="/img/favicon.ico">
 <meta name="theme-color" content="#0d0d0f">
-<link rel="stylesheet" href="/style.css?v=20260924c">
-
+<link rel="stylesheet" href="/style.css?v=20260926a">
+<style>
+/* ---- Shity platform pages ---- */
+.chain-picker{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0;}
+.chain-picker label{font-weight:700;color:#f2f0eb;}
+.chain-picker select{background:#1a1a1e;color:#f2f0eb;border:1px solid #3a3a42;border-radius:10px;padding:10px 14px;font-size:15px;max-width:100%;}
+.fee-line{background:#141418;border:1px solid #2a2a30;border-radius:12px;padding:14px 18px;margin:14px 0;color:#d8d4c9;font-size:15px;}
+.fee-line strong{color:#F5820B;}
+.deploy-status{display:none;border-radius:12px;padding:14px 18px;margin:14px 0;font-size:15px;line-height:1.5;}
+.deploy-status.info{background:#141a24;border:1px solid #2c4a6f;color:#cfe3ff;}
+.deploy-status.success{background:#12241a;border:1px solid #2c6f4a;color:#d2f5dd;}
+.deploy-status.error{background:#2a1414;border:1px solid #6f2c2c;color:#ffd3d3;}
+.deploy-status code{word-break:break-all;}
+.result-box{background:#101014;border:1px dashed #3a3a42;border-radius:12px;padding:14px 18px;margin:14px 0;display:none;}
+.result-box.show{display:block;}
+.result-box .lbl{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8a8a94;}
+.result-box code{font-size:16px;color:#7dffb0;word-break:break-all;}
+.cmd{background:#0a0a0c;border:1px solid #2a2a30;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:13px;color:#d8d4c9;overflow-x:auto;white-space:pre-wrap;word-break:break-all;margin:10px 0;}
+.step-num{display:inline-block;background:#F5820B;color:#14100a;font-weight:800;border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;margin-right:8px;font-size:15px;}
+.dl-link{display:inline-block;margin:6px 10px 6px 0;padding:10px 18px;border:1px solid #F5820B;color:#F5820B;border-radius:22px;text-decoration:none;font-weight:700;font-size:14px;}
+.dl-link:hover{background:rgba(245,130,11,.12);}
+.addr-pill{font-family:monospace;background:#1a1a1e;border:1px solid #3a3a42;border-radius:8px;padding:2px 8px;font-size:13px;word-break:break-all;}
+h3 .step-num{vertical-align:middle;}
+.note{color:#9a968c;font-size:14px;}
+.mt{margin-top:22px;}
+#ton-connect-btn{margin:10px 0;}
+select:disabled,input:disabled{opacity:.55;}
+</style>
 </head>
 <body>
 
-<style>
-</style>
-<style>
-</style>
 <style>
 /* ---- site nav v4: single dropdown ---- */
 nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative;z-index:60;}
@@ -46,12 +68,17 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 .menu-drop a:hover{background:rgba(245,130,11,.12);}
 .menu-drop a.active{background:#F5820B;color:#14100a;font-weight:700;}
 .menu-drop hr{border:none;border-top:1px solid #2a2a30;margin:6px 4px;}
+.nav-tab{display:inline-flex;align-items:center;gap:8px;color:#F5820B;border:1px solid #F5820B;background:rgba(245,130,11,.08);padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;text-decoration:none;margin-left:auto;margin-right:12px;white-space:nowrap;}
+.nav-tab:hover{background:rgba(245,130,11,.18);}
+.nav-tab.active{background:#F5820B;color:#14100a;}
+@media (max-width:560px){.nav-tab{padding:8px 12px;font-size:13px;margin-right:8px;}}
 </style>
 <nav class="sitenav"><div class="sitenav-inner">
   <a class="brand" href="/">
     <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
     <span>SHITCOIN</span>
   </a>
+  <!-- TAB-REMOVED-UGLY <a class="nav-tab" href="/dex">Shity DEX</a> -->
   <div class="nav-menu">
     <input type="checkbox" id="navmenu-toggle" class="menu-check" tabindex="-1" aria-hidden="true">
     <label for="navmenu-toggle" class="menu-btn" aria-haspopup="true" aria-expanded="false">
@@ -67,12 +94,17 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     <a class="" href="/whitepaper">Shity Whitepaper</a>
     <a class="" href="/bridge">Shity Bridge</a>
     <a class="active" href="/launchpad">Shity Launchpad</a>
+    <a class="" href="/lending">Shity Lending</a>
+    <a class="" href="/dex">Shity DEX</a>
+    <a class="" href="/txshield">Shity Shield</a>
+    <a class="" href="/auction">Shity Auction</a>
     <a class="" href="/node">Shity Node</a>
     <a class="" href="/#wallets">Shity Wallets</a>
     <hr>
     <a href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
     <a href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
     <a href="https://github.com/ShitcoinBTC/ShitcoinBtc" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://bitcointalk.org/index.php?topic=5595195.new#new" target="_blank" rel="noopener">BitcoinTalk</a>
     <a href="https://explorer.shitcoinbtc.xyz" target="_blank" rel="noopener">Explorer</a>
     </div>
   </div>
@@ -81,107 +113,165 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 (function(){var m=document.querySelector('nav.sitenav .nav-menu'),t=document.getElementById('navmenu-toggle');if(!m||!t)return;function sync(){var l=m.querySelector('.menu-btn');if(l)l.setAttribute('aria-expanded',t.checked?'true':'false');}function close(){t.checked=false;sync();}t.addEventListener('change',sync);m.addEventListener('click',function(e){if(e.target.closest('a'))close();});document.addEventListener('click',function(e){if(!m.contains(e.target))close();});document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});})();
 </script>
 
-
-
 <header class="hero compact">
-  <div class="live-badge"><span class="dot"></span> LAUNCHING WITH THE NEVM UPGRADE</div>
+  <div class="live-badge"><span class="dot"></span> LIVE · 11 CHAINS</div>
   <h1>The Shity <em>Launchpad</em></h1>
-  <p class="tagline">Deploy your own SHIT-20 token on Shitcoin's contract layer and launch a fixed-price sale for it. Permissionless — no applications, no gatekeepers. One fixed price, no tiers, no bonding curves.</p>
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="create">Create a token</button>
-    <button class="tab-btn" data-tab="sale">Launch a sale</button>
-  </div>
+  <p class="tagline">Deploy your own token and launch a fixed-price sale. Permissionless — no applications, no gatekeepers. One flat creation fee, no percent of your raise. You deploy from your own wallet and pay your own gas; we run nothing.</p>
 </header>
 
 <section class="flush-top">
 
-<div class="tab-panel active" id="panel-create">
-  <div class="warn"><strong>Not live yet:</strong> the NEVM contract layer is still activating. The forms below are the real interface — every button stays disabled until the launchpad contracts are deployed. Nobody can take your funds here because there is nothing to send them to.</div>
+  <noscript><p style="color:#ff9d9d;font-weight:700;max-width:640px">This page needs JavaScript enabled to connect wallets and deploy. On iPhone: Settings &gt; Apps &gt; Safari &gt; Advanced &gt; JavaScript.</p></noscript>
+  <div class="chain-picker">
+    <label for="chainSelect">Chain</label>
+    <select id="chainSelect">
+  <optgroup label="EVM chains">
+    <option value="base">Base (ETH gas)</option>
+    <option value="ethereum">Ethereum (ETH gas)</option>
+    <option value="bsc">BNB Chain (BNB gas)</option>
+    <option value="arbitrum">Arbitrum One (ETH gas)</option>
+    <option value="polygon">Polygon (POL gas)</option>
+    <option value="robinhood">Robinhood Chain (ETH gas)</option>
+    <option value="ink">Ink (ETH gas)</option>
+    <option value="monad">Monad (MON gas)</option>
+    <option value="hyperevm">HyperEVM (HYPE gas)</option>
+    <option value="avalanche">Avalanche (AVAX gas)</option>
+  </optgroup>
+  <optgroup label="Other chains">
+    <option value="solana">Solana (SOL gas)</option>
+    <option value="ton">TON (TON gas)</option>
+  </optgroup>
+</select>
+    <button class="btn btn-ghost" id="connectBtn">Connect wallet</button>
+    <span class="note" id="walletAddr"></span>
+  </div>
 
-  <div class="flow">
-    <div class="flow-step">
-      <h3>1 · Name it</h3>
-      <p>Pick a name, a symbol, and a fixed total supply. Your token is a standard SHIT-20 — every Ethereum wallet and tool already speaks it.</p>
+  <div class="fee-line" id="feeLine"></div>
+  <div class="deploy-status" id="statusBox"></div>
+
+  <!-- ============ EVM PANEL ============ -->
+  <div id="evmPanel">
+    <div id="padNotLive" style="display:none">
+      <div class="form-card">
+        <h3>🚫 Offline for now</h3>
+        <p class="hint">The Shity Launchpad isn't on <span id="notLiveChain"></span> yet — the shared factories haven't been deployed there. Pick a live chain above.</p>
+      </div>
     </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <h3>2 · Deploy it</h3>
-      <p>One call to the TokenFactory deploys your token. You become the owner and receive the entire supply. Fixed supply — no mint button exists, ever.</p>
+    <div id="padLive">
+      <p class="note">Shared factories on this chain — you never deploy your own: TokenFactory <span class="addr-pill" id="pillTokenFactory"></span> · LaunchpadFactory <span class="addr-pill" id="pillSaleFactory"></span></p>
+
+      <div class="form-card">
+        <h3><span class="step-num">1</span>Create your token</h3>
+        <p class="hint">Deploys a fixed-supply SHIT-20 token through the shared TokenFactory. The whole supply goes to your wallet.</p>
+        <div class="field"><label>Token name</label><input id="tokName" type="text" placeholder="e.g. Shitcoin" autocomplete="off"></div>
+        <div class="field-row">
+          <div class="field"><label>Symbol</label><input id="tokSymbol" type="text" placeholder="e.g. SHIT" autocomplete="off" spellcheck="false"></div>
+          <div class="field"><label>Total supply (whole tokens, 18 decimals)</label><input id="tokSupply" type="number" step="any" min="0" placeholder="e.g. 1000000"></div>
+        </div>
+        <div class="cta-row left tight">
+          <button class="btn btn-primary" id="createTokenBtn">Create token</button>
+        </div>
+        <div class="result-box" id="tokenResult">
+          <div class="lbl">Token deployed</div>
+          <code id="tokenAddr"></code>
+          <div class="note" id="tokenTx"></div>
+        </div>
+      </div>
+
+      <div class="form-card mt">
+        <h3><span class="step-num">2</span>Launch a sale</h3>
+        <p class="hint">The flat creation fee (<span id="saleFeeInline"></span>) is forwarded automatically to the protocol address inside the launch transaction — no separate payment, no trust needed. Your sale inventory is pulled automatically: approve the LaunchpadFactory, then launch in one transaction.</p>
+        <div class="field"><label>Token contract address</label><input id="saleToken" type="text" placeholder="0x…" autocomplete="off" spellcheck="false"></div>
+        <div class="field-row">
+          <div class="field"><label>Price (native per token)</label><input id="salePrice" type="number" step="any" min="0" placeholder="e.g. 0.01"></div>
+          <div class="field"><label>Hard cap (native)</label><input id="saleCap" type="number" step="any" min="0" placeholder="e.g. 100"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Start (UTC, must be in the future)</label><input id="saleStart" type="datetime-local"></div>
+          <div class="field"><label>End (UTC)</label><input id="saleEnd" type="datetime-local"></div>
+        </div>
+        <div class="field"><label>Tokens for sale (whole tokens, 18 decimals)</label><input id="saleSupply" type="number" step="any" min="0" placeholder="e.g. 500000"></div>
+        <div class="cta-row left tight">
+          <button class="btn btn-primary" id="launchSaleBtn">Launch sale</button>
+        </div>
+        <div class="result-box" id="saleResult">
+          <div class="lbl">Sale live — inventory pulled automatically</div>
+          <code id="saleAddr"></code>
+          <div class="note" id="saleTx"></div>
+        </div>
+        <p class="note">Purchases are final by design — no refunds. The creator can cancel before the start; after end, cap, or sellout anyone can finalize and the raised funds plus unsold tokens go to the creator.</p>
+      </div>
+
+      <div class="form-card mt">
+        <h3><span class="step-num">3</span>Buy from a sale</h3>
+        <p class="hint">Paste a sale address to see it live, then buy.</p>
+        <div class="field"><label>Sale contract address</label><input id="buySaleAddr" type="text" placeholder="0x…" autocomplete="off" spellcheck="false"></div>
+        <div class="cta-row left tight">
+          <button class="btn btn-ghost" id="loadSaleBtn">Load sale</button>
+        </div>
+        <div id="saleInfo" style="display:none">
+          <div class="cmd" id="saleInfoText"></div>
+          <div class="field"><label>Amount of native to spend</label><input id="buyAmount" type="number" step="any" min="0" placeholder="e.g. 0.5"></div>
+          <p class="note" id="buyPreview"></p>
+          <div class="cta-row left tight">
+            <button class="btn btn-primary" id="buyBtn">Buy</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="gated">
-    <div class="gate-veil">NEVM ACTIVATING<br><span class="sub">token deployment opens at the upgrade</span></div>
-    <div class="form-card" aria-disabled="true">
-      <h3>Deploy your token</h3>
-      <p class="hint">Connect a wallet on the Shitcoin NEVM, fill in the details, deploy.</p>
-      <div class="cta-row left flush">
-        <button class="btn btn-ghost" id="connectBtn" disabled>Connect wallet</button>
-      </div>
-      <div class="field"><label>Token name</label><input id="tokName" type="text" placeholder="e.g. ShitDoge" disabled></div>
-      <div class="field-row">
-        <div class="field"><label>Symbol</label><input id="tokSymbol" type="text" placeholder="e.g. SDOGE" disabled></div>
-        <div class="field"><label>Total supply (whole tokens)</label><input id="tokSupply" type="number" placeholder="e.g. 1000000" disabled></div>
-      </div>
+  <!-- ============ SOLANA PANEL ============ -->
+  <div id="solanaPanel" style="display:none">
+    <div class="form-card">
+      <h3>Shity Launchpad on Solana</h3>
+      <p class="hint">The Solana program is a single on-chain program (Anchor). It is deployed once — by whoever runs the deploy command below — and then every sale on Solana uses it. Deploying the program costs rent; creating each sale costs the flat <strong>0.10 SOL</strong> fee to the protocol address.</p>
       <div class="cta-row left tight">
-        <button class="btn btn-primary" id="deployTokenBtn" disabled>Deploy token</button>
+        <button class="btn btn-ghost" id="phantomBtn">Connect Phantom</button>
+        <span class="note" id="phantomAddr"></span>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="tab-panel" id="panel-sale">
-  <div class="warn"><strong>Not live yet:</strong> sales open together with the NEVM upgrade. The sale contract is fixed-price and auditable: buyers pay native SHIT, funds go to the creator on finalize, unsold tokens return to the creator. Purchases are final — no refunds by design.</div>
-
-  <div class="flow">
-    <div class="flow-step">
-      <h3>1 · Approve &amp; launch</h3>
-      <p>Approve the launchpad to pull the tokens you're selling, then launch: set your price (native SHIT per token), hard cap, and start/end times.</p>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step">
-      <h3>2 · Sell &amp; finalize</h3>
-      <p>Buyers buy at your fixed price until the cap, the clock, or the inventory runs out. Then anyone can finalize: you get the raised SHIT plus every unsold token back.</p>
+      <p>Program ID: <span class="addr-pill" id="solProgramId"></span></p>
+      <p id="solStatus" class="note">Checking on-chain status…</p>
+      <h4 class="mt">Deploy it yourself</h4>
+      <div class="cmd" id="solCmd"></div>
+      <a class="dl-link" id="solSoDl" href="#">Download program binary (.so)</a>
+      <p class="note">You need the <a href="https://docs.solana.com/cli/install-solana-cli-tools" target="_blank" rel="noopener">Solana CLI</a> with a funded keypair. The program's upgrade authority stays with the keypair you deploy from — keep it safe.</p>
     </div>
   </div>
 
-  <div class="gated">
-    <div class="gate-veil">NEVM ACTIVATING<br><span class="sub">sales open at the upgrade</span></div>
-    <div class="form-card" aria-disabled="true">
-      <h3>Launch a sale</h3>
-      <p class="hint">Fixed price. No tiers, no whitelist, no bonding curve.</p>
-      <div class="field"><label>Token contract address (SHIT-20)</label><input id="saleToken" type="text" placeholder="0x…" disabled></div>
-      <div class="field-row">
-        <div class="field"><label>Price (native SHIT per token)</label><input id="salePrice" type="number" step="any" placeholder="e.g. 0.01" disabled></div>
-        <div class="field"><label>Hard cap (native SHIT)</label><input id="saleCap" type="number" step="any" placeholder="e.g. 100" disabled></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Start (UTC)</label><input id="saleStart" type="datetime-local" disabled></div>
-        <div class="field"><label>End (UTC)</label><input id="saleEnd" type="datetime-local" disabled></div>
-      </div>
-      <div class="field"><label>Tokens for sale (whole tokens)</label><input id="saleSupply" type="number" placeholder="e.g. 500000" disabled></div>
-      <div class="cta-row left tight">
-        <button class="btn btn-primary" id="launchSaleBtn" disabled>Approve &amp; launch sale</button>
-      </div>
+  <!-- ============ TON PANEL ============ -->
+  <div id="tonPanel" style="display:none">
+    <div class="form-card">
+      <h3>Shity Launchpad on TON</h3>
+      <p class="hint">The TON launchpad is two Tact contracts: <code>Sale</code> and <code>LaunchpadFactory</code>. Creating a sale costs a flat <strong>15 TON</strong>, sent automatically to the protocol wallet on every sale deployment — a quarter of the 60 TON the big pads charge. Deploying from your own wallet is next; the compiled contracts and instructions are below.</p>
+      <div id="ton-connect-btn"></div>
+      <p class="note" id="tonAddr"></p>
+      <h4 class="mt">Sale contract</h4>
+      <p>Send <code>deploy_sale</code> (text message) with <strong>15.05 TON</strong> to the sale's computed address along with its state init: exactly 15 TON goes to the fee wallet immediately, 0.05 TON stays as the sale's operating reserve, anything above is refunded. <strong>Pay the fee before funding</strong> — an unpaid sale is an inert brick until the 15 TON lands.</p>
+      <a class="dl-link" id="tonSaleDl" href="#">Download Sale bytecode (.boc)</a>
+      <h4 class="mt">LaunchpadFactory (optional wrapper)</h4>
+      <p>Send <code>LaunchSale</code> with 15.35 TON and the factory deploys a sale for you (you become the creator) and refunds your change.</p>
+      <a class="dl-link" id="tonFactoryDl" href="#">Download Factory bytecode (.boc)</a>
+      <p class="note mt">Fee wallet: <span class="addr-pill">UQBhJAV0TcB7lYCLb7nvbwmFis0VLqBYX04t6FdVw5T853rE</span></p>
     </div>
   </div>
-</div>
 
-<h2 class="mt-lg">Contracts</h2>
-<table class="addr-table">
-  <tr><th>Contract</th><th>Address</th><th>Status</th></tr>
-  <tr><td>TokenFactory</td><td><code class="addr">TBD</code></td><td><span class="pill soon">DEPLOYS AT UPGRADE</span></td></tr>
-  <tr><td>LaunchpadFactory</td><td><code class="addr">TBD</code></td><td><span class="pill soon">DEPLOYS AT UPGRADE</span></td></tr>
-  <tr><td>Shit20Token (reference)</td><td><code class="addr">deployed per token</code></td><td><span class="pill soon">VIA FACTORY</span></td></tr>
-</table>
-<p class="note">Contracts are written, compiled with Solidity 0.8.24, and covered by 14 unit tests (all passing) — deployment happens on the NEVM the moment it activates. Network: Shitcoin NEVM, chain ID <code class="addr">20026</code>. Source will be published with the deployment.</p>
+  <h2 class="mt-lg">Fees</h2>
+  <table class="addr-table">
+    <tr><th>Chain</th><th>Sale creation fee</th><th>Fee goes to</th></tr>
+    <tbody id="feeTable"></tbody>
+  </table>
+  <p class="note">No percent of the raise, ever. The fee is a hardcoded constant in each contract — changing it requires deploying a new contract version; there is no admin key. Gas for every transaction is paid by your own wallet.</p>
+
+  <h2 class="mt-lg">Source</h2>
+  <p class="note">All contracts are open source: <a href="https://github.com/ShitcoinBTC/shitcoin-launchpad" target="_blank" rel="noopener">github.com/ShitcoinBTC/shitcoin-launchpad</a> — compiled with Solidity 0.8.24, unit-tested per chain. Solana program: Anchor. TON contracts: Tact.</p>
 
 </section>
 
 <section class="links-band">
   <a href="https://explorer.shitcoinbtc.xyz"><strong>Explorer</strong><span>blocks, txs, addresses</span></a>
   <a href="https://x.com/ShitcoinBTC"><strong>X</strong><span>@ShitcoinBTC</span></a>
-  <a href="https://t.me/ShityArmy"><strong>Telegram</strong><span>t.me/ShityArmy</span></a>
+  <a href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
   <a href="https://github.com/ShitcoinBTC/ShitcoinBtc"><strong>GitHub</strong><span>source code</span></a>
 </section>
 
@@ -193,74 +283,401 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
   <p class="fine">© 2026 Shitcoin. Nothing here is financial advice.</p>
 </footer>
 
-<script>
-/* ============================================================
- * SHITY LAUNCHPAD — frontend config
- * ------------------------------------------------------------
- * Chain ID comes from the NEVM activation project (fresh chain,
- * NOT 57 — 57 is Syscoin mainnet). Contract addresses are filled
- * in at deployment time when the NEVM goes live. While nevmLive
- * is false the UI stays hard-gated: every action button disabled.
- * ============================================================ */
-const LAUNCHPAD_CONFIG = {
-  chainId: 20026,          // Shitcoin NEVM (set by NEVM activation project)
-  rpcUrl: null,            // NEVM RPC endpoint — set at activation
-  tokenFactory: null,      // TokenFactory address — set at deployment
-  saleFactory: null,       // LaunchpadFactory address — set at deployment
-  nevmLive: false          // flip to true at NEVM activation
-};
-
-document.querySelectorAll('.tab-btn').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
-    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-  });
-});
-
-// Gate: if NEVM is not live, keep everything disabled and say so.
-function gateCheck(actionName) {
-  if (!LAUNCHPAD_CONFIG.nevmLive) {
-    alert(actionName + ' opens with the NEVM upgrade. Nothing is live yet — no funds can move.');
-    return false;
-  }
-  return true;
-}
-['connectBtn', 'deployTokenBtn', 'launchSaleBtn'].forEach(function(id){
-  var el = document.getElementById(id);
-  if (el) el.addEventListener('click', function(e){
-    e.preventDefault();
-    gateCheck(el.textContent.trim());
-  });
-});
-
-// Flip the UI live: called when NEVM activates and config is filled.
-// (Kept as a function so activation is a one-line config change.)
-function activateLaunchpad(cfg) {
-  Object.assign(LAUNCHPAD_CONFIG, cfg, { nevmLive: true });
-  document.querySelectorAll('.gate-veil').forEach(function(v){ v.style.display = 'none'; });
-  document.querySelectorAll('.form-card input, .form-card button').forEach(function(el){ el.disabled = false; });
-}
-</script>
-
-
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+<script src="/assets/shity.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.1.0/dist/tonconnect-ui.min.js"></script>
 <script>
 (function () {
-  var btn = document.querySelector('.nav-toggle');
-  var links = document.querySelector('.nav-links');
-  if (!btn || !links) return;
-  function close() { links.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
-  btn.addEventListener('click', function (e) {
-    e.stopPropagation();
-    var open = links.classList.toggle('open');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  'use strict';
+  window.addEventListener('error', function (e) {
+    var box = document.getElementById('statusBox');
+    if (box) {
+      box.className = 'deploy-status error';
+      box.style.display = 'block';
+      box.textContent = 'Page error: ' + (e.message || 'unknown error') + ' — try reloading.';
+    }
   });
-  links.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
-  document.addEventListener('click', function (e) {
-    if (!links.classList.contains('open')) return;
-    if (!e.target.closest('nav')) close();
+  var S = window.SHITY;
+  if (!S) {
+    var fl = document.getElementById('feeLine');
+    if (fl) fl.innerHTML = 'Could not load the page scripts. Check your connection and reload.';
+    return;
+  }
+  var PRODUCT = 'launchpad';
+  var P = S.PRODUCTS[PRODUCT];
+  var state = { chain: 'base', signer: null, address: null, rawProvider: null, solAddr: null, ton: null };
+
+  /* chain options are hardcoded in the HTML select above */
+  var sel = S.el('chainSelect');
+  /* mark chains without a deployment as offline in the picker */
+  for (var _oi = 0; _oi < sel.options.length; _oi++) {
+    var _ok = sel.options[_oi].value;
+    if (_ok !== 'solana' && _ok !== 'ton' && !S.launchpadDeployment(_ok)) sel.options[_oi].text = '🚫 ' + sel.options[_oi].text;
+  }
+
+  /* restore a Phantom mobile session (deep-link connect from iOS Safari) */
+  (function () {
+    try {
+      var sessAddr = S.phantomSessionAddress ? S.phantomSessionAddress() : null;
+      if (sessAddr) {
+        state.solAddr = sessAddr;
+        S.el('phantomAddr').textContent = S.shortAddr(sessAddr);
+        if (sessionStorage.getItem('shity_phantom_return') === '1') {
+          sessionStorage.removeItem('shity_phantom_return');
+          sel.value = 'solana';
+          state.chain = 'solana';
+        }
+      }
+      var phErr = sessionStorage.getItem('shity_phantom_error');
+      if (phErr) {
+        sessionStorage.removeItem('shity_phantom_error');
+        // render() hides the status box, so surface this after it runs.
+        setTimeout(function () {
+          S.status('statusBox', 'Phantom connection declined' +
+            (phErr === 'declined' ? '' : ': ' + phErr) + '.', 'error');
+        }, 0);
+      }
+    } catch (e) {}
+  })();
+
+  function isEvm() { return P.evmChains.indexOf(state.chain) !== -1; }
+
+  function render() {
+    S.el('evmPanel').style.display = isEvm() ? 'block' : 'none';
+    S.el('solanaPanel').style.display = state.chain === 'solana' ? 'block' : 'none';
+    S.el('tonPanel').style.display = state.chain === 'ton' ? 'block' : 'none';
+    if (isEvm()) {
+      var c = S.CHAINS[state.chain];
+      var d = S.launchpadDeployment(state.chain);
+      S.el('feeLine').innerHTML = 'On <strong>' + c.label + '</strong>: create your token, launch a sale for a flat <strong>' +
+        P.fee[state.chain] + '</strong> (forwarded to <span class="addr-pill">' + S.FEE_EVM + '</span> inside the launch transaction), then buy. ' +
+        'One shared TokenFactory + LaunchpadFactory per chain — you never deploy your own.';
+      S.el('padLive').style.display = d ? 'block' : 'none';
+      S.el('padNotLive').style.display = d ? 'none' : 'block';
+      if (d) {
+        S.el('pillTokenFactory').textContent = d.tokenFactory;
+        S.el('pillSaleFactory').textContent = d.saleFactory;
+        S.el('saleFeeInline').textContent = P.fee[state.chain];
+      } else {
+        S.el('notLiveChain').textContent = c.label;
+      }
+      S.el('connectBtn').textContent = state.address
+        ? 'Connected: ' + S.shortAddr(state.address) : 'Connect wallet';
+      loadedSale = null;
+      S.el('saleInfo').style.display = 'none';
+    } else if (state.chain === 'solana') {
+      S.el('feeLine').innerHTML = 'Sale creation fee on <strong>Solana</strong>: <strong>' + P.solana.fee +
+        '</strong> — to <span class="addr-pill">' + S.FEE_SOL + '</span>.';
+      S.el('connectBtn').textContent = state.solAddr ? 'Phantom: ' + S.shortAddr(state.solAddr) : 'Connect Phantom';
+      initSolana();
+    } else {
+      S.el('feeLine').innerHTML = 'Sale creation fee on <strong>TON</strong>: <strong>' + P.ton.fee +
+        '</strong> — to <span class="addr-pill">' + S.FEE_TON + '</span>.';
+      S.el('connectBtn').textContent = 'Connect TON wallet';
+      initTon();
+    }
+    S.hideStatus('statusBox');
+  }
+  sel.addEventListener('change', function () { state.chain = sel.value; render(); });
+
+  /* ---------- fee table ---------- */
+  var ft = S.el('feeTable');
+  P.evmChains.forEach(function (k) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + (S.launchpadDeployment(k) ? '' : '🚫 ') + S.CHAINS[k].label + '</td><td>' + P.fee[k] +
+      '</td><td><span class="addr-pill">' + S.shortAddr(S.FEE_EVM) + '</span></td>';
+    ft.appendChild(tr);
   });
+  [['Solana', P.solana.fee, S.FEE_SOL], ['TON', P.ton.fee, S.FEE_TON]].forEach(function (r) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + r[0] + '</td><td>' + r[1] +
+      '</td><td><span class="addr-pill">' + S.shortAddr(r[2]) + '</span></td>';
+    ft.appendChild(tr);
+  });
+
+  /* ---------- EVM wallet ---------- */
+  async function connectPhantom() {
+    try {
+      var pk = await S.phantomConnect();
+      state.solAddr = pk;
+      S.el('phantomAddr').textContent = S.shortAddr(pk);
+      S.el('connectBtn').textContent = 'Phantom: ' + S.shortAddr(pk);
+      S.status('statusBox', 'Connected as <code>' + pk + '</code> on Solana.', 'success');
+    } catch (e) { S.status('statusBox', S.fmtErr(e), 'error'); }
+  }
+
+  S.el('connectBtn').addEventListener('click', async function () {
+    if (state.chain === 'solana') { connectPhantom(); return; }
+    if (state.chain === 'ton') {
+      if (tonUi) { tonUi.openModal(); }
+      else { S.status('statusBox', 'TON wallet tool still loading — use the Connect button in the TON section below.', 'info'); }
+      return;
+    }
+    if (!isEvm()) {
+      S.status('statusBox', 'Pick your chain above, then use the connect button in its section.', 'info');
+      return;
+    }
+    try {
+      S.status('statusBox', 'Waiting for your wallet…', 'info');
+      var w = await S.connectEvmWallet(state.chain);
+      state.signer = w.signer;
+      state.rawProvider = w.rawProvider;
+      state.address = w.address;
+      state.walletName = w.walletName;
+      S.el('walletAddr').textContent = S.shortAddr(state.address);
+      S.status('statusBox', 'Connected as <code>' + state.address + '</code> via ' + w.walletName +
+        ' on ' + S.CHAINS[state.chain].label + '. Every transaction below is signed and paid by you.', 'success');
+      render();
+    } catch (e) { S.status('statusBox', S.fmtErr(e), 'error'); }
+  });
+
+  async function needSigner() {
+    if (state.signer) {
+      await S.ensureChain(state.chain, state.rawProvider); // re-check the wallet is on the right chain
+      return state.signer;
+    }
+    S.status('statusBox', 'Connect your wallet first (button above).', 'error');
+    throw new Error('wallet not connected');
+  }
+
+  function showResult(boxId, addrId, txId, r, chainKey) {
+    S.el(addrId).textContent = r.address;
+    var link = S.explorerAddr(chainKey, r.address);
+    S.el(txId).innerHTML = 'tx <code>' + S.shortAddr(r.txHash) + '</code>' +
+      (link ? ' · <a href="' + link + '" target="_blank" rel="noopener">view</a>' : '');
+    S.el(boxId).classList.add('show');
+  }
+
+  function txLink(hash) {
+    var c = S.CHAINS[state.chain];
+    return c.explorer ? ' <a href="' + c.explorer + '/tx/' + hash + '" target="_blank" rel="noopener">view tx</a>' : '';
+  }
+
+  function readProvider() {
+    return new ethers.providers.JsonRpcProvider(S.CHAINS[state.chain].rpc);
+  }
+
+  /* ---------- shared factories ---------- */
+  var art = null, artChain = null;
+  async function padContracts(signer) {
+    var d = S.launchpadDeployment(state.chain);
+    if (!d) throw new Error('Shity Launchpad is not live on this chain yet.');
+    if (artChain !== state.chain) { art = await S.loadArtifact(PRODUCT, state.chain); artChain = state.chain; }
+    var prov = signer || readProvider();
+    return {
+      tokenFactory: new ethers.Contract(d.tokenFactory, art.contracts.TokenFactory.abi, prov),
+      saleFactory: new ethers.Contract(d.saleFactory, art.contracts.LaunchpadFactory.abi, prov),
+      addrs: d
+    };
+  }
+
+  function parseEvent(contract, receipt, name) {
+    var logs = receipt.logs || [];
+    for (var i = 0; i < logs.length; i++) {
+      try {
+        var p = contract.interface.parseLog(logs[i]);
+        if (p.name === name) return p.args;
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  /* ---------- step 1: create token ---------- */
+  S.el('createTokenBtn').addEventListener('click', async function () {
+    try {
+      var signer = await needSigner();
+      var name = S.el('tokName').value.trim();
+      var symbol = S.el('tokSymbol').value.trim();
+      var supply = S.el('tokSupply').value.trim();
+      if (!name) { S.status('statusBox', 'Give your token a name.', 'error'); return; }
+      if (!symbol) { S.status('statusBox', 'Give your token a symbol.', 'error'); return; }
+      var supplyWei;
+      try { supplyWei = ethers.utils.parseUnits(supply, 18); }
+      catch (e) { supplyWei = null; }
+      if (!supplyWei || supplyWei.lte(0)) { S.status('statusBox', 'Enter a total supply above zero.', 'error'); return; }
+      var pc = await padContracts(signer);
+      var preview = await pc.tokenFactory.callStatic.createToken(name, symbol, supplyWei);
+      S.status('statusBox', 'Deploying your token — confirm in your wallet (you pay gas)…', 'info');
+      var tx = await pc.tokenFactory.createToken(name, symbol, supplyWei);
+      S.status('statusBox', 'Token submitted — waiting for confirmation…', 'info');
+      var receipt = await tx.wait();
+      var ev = parseEvent(pc.tokenFactory, receipt, 'TokenCreated');
+      var tokenAddr = (ev && ev.token) || preview;
+      showResult('tokenResult', 'tokenAddr', 'tokenTx', { address: tokenAddr, txHash: tx.hash }, state.chain);
+      S.status('statusBox', 'Token live at <code>' + tokenAddr + '</code>. The whole supply is in your wallet — paste the address into step 2 to launch a sale.', 'success');
+    } catch (e) { if (e.message !== 'wallet not connected') S.status('statusBox', S.fmtErr(e), 'error'); }
+  });
+
+  /* ---------- step 2: launch sale ---------- */
+  S.el('launchSaleBtn').addEventListener('click', async function () {
+    try {
+      var signer = await needSigner();
+      var token = S.el('saleToken').value.trim();
+      var price = S.el('salePrice').value.trim();
+      var cap = S.el('saleCap').value.trim();
+      var startS = S.el('saleStart').value, endS = S.el('saleEnd').value;
+      var supply = S.el('saleSupply').value.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(token)) { S.status('statusBox', 'Enter a valid token contract address (0x…).', 'error'); return; }
+      if (!(+price > 0) || !(+cap > 0) || !(+supply > 0)) { S.status('statusBox', 'Price, hard cap, and token supply must all be above zero.', 'error'); return; }
+      var start = Math.floor(new Date(startS).getTime() / 1000);
+      var end = Math.floor(new Date(endS).getTime() / 1000);
+      if (!(start > Date.now() / 1000)) { S.status('statusBox', 'Start time must be in the future.', 'error'); return; }
+      if (!(end > start)) { S.status('statusBox', 'End time must be after the start time.', 'error'); return; }
+      var supplyWei = ethers.utils.parseUnits(supply, 18);
+      var pc = await padContracts(signer);
+      // The factory pulls the sale inventory — approve it first (skip when already allowed).
+      var tok = new ethers.Contract(token, S.ERC20_ABI, signer);
+      var al = ethers.constants.Zero;
+      try { al = await tok.allowance(state.address, pc.addrs.saleFactory); } catch (e) {}
+      if (al.lt(supplyWei)) {
+        S.status('statusBox', 'Approving the LaunchpadFactory to pull your sale inventory — confirm in your wallet…', 'info');
+        var atx = await tok.approve(pc.addrs.saleFactory, ethers.constants.MaxUint256);
+        await atx.wait();
+      }
+      var feeWei = ethers.utils.parseEther(P.feeWei[state.chain]);
+      S.status('statusBox', 'Launching your sale — confirm in your wallet. This sends the ' +
+        P.fee[state.chain] + ' creation fee automatically, plus gas.', 'info');
+      var tx = await pc.saleFactory.launchSale(
+        token, ethers.utils.parseEther(price), ethers.utils.parseEther(cap),
+        start, end, supplyWei, { value: feeWei });
+      S.status('statusBox', 'Sale submitted — waiting for confirmation…', 'info');
+      var receipt = await tx.wait();
+      var ev = parseEvent(pc.saleFactory, receipt, 'SaleLaunched');
+      var saleAddr = ev && ev.sale;
+      if (!saleAddr) throw new Error('Sale launched but the address could not be read from the transaction — check the explorer.');
+      showResult('saleResult', 'saleAddr', 'saleTx', { address: saleAddr, txHash: tx.hash }, state.chain);
+      S.status('statusBox', 'Sale live at <code>' + saleAddr + '</code>. Your ' + supply +
+        ' tokens were pulled automatically — buyers can buy once the start time hits.', 'success');
+    } catch (e) { if (e.message !== 'wallet not connected') S.status('statusBox', S.fmtErr(e), 'error'); }
+  });
+
+  /* ---------- step 3: buy from a sale ---------- */
+  var loadedSale = null;
+  var lastPriceWei = null;
+
+  function trimDec(s) {
+    if (s.indexOf('.') === -1) return s;
+    var p = s.split('.');
+    var d = p[1].replace(/0+$/, '').slice(0, 6);
+    return d ? p[0] + '.' + d : p[0];
+  }
+
+  function refreshBuyPreview(priceWei) {
+    if (priceWei) lastPriceWei = priceWei;
+    var amt = S.el('buyAmount').value.trim();
+    if (!lastPriceWei || !amt) { S.el('buyPreview').textContent = ''; return; }
+    try {
+      var amtWei = ethers.utils.parseEther(amt);
+      if (amtWei.isZero()) { S.el('buyPreview').textContent = ''; return; }
+      var out = amtWei.mul(ethers.constants.WeiPerEther).div(lastPriceWei);
+      S.el('buyPreview').textContent = '≈ ' + trimDec(ethers.utils.formatUnits(out, 18)) + ' tokens';
+    } catch (e) { S.el('buyPreview').textContent = ''; }
+  }
+  S.el('buyAmount').addEventListener('input', function () { refreshBuyPreview(); });
+
+  async function renderSale(sale) {
+    var c = S.CHAINS[state.chain];
+    var sym = c.currency.symbol;
+    var st = await sale.status();
+    var price = await sale.priceWeiPerToken();
+    var cap = await sale.hardCapWei();
+    var raised = await sale.raisedWei();
+    var sold = await sale.tokensSold();
+    var forSale = await sale.tokensForSale();
+    var startT = await sale.startTime();
+    var endT = await sale.endTime();
+    var token = await sale.token();
+    var soldPct = forSale.isZero() ? '0' : sold.mul(100).div(forSale).toString();
+    var lines = [
+      'Status: ' + st,
+      'Price: ' + ethers.utils.formatEther(price) + ' ' + sym + ' per token',
+      'Raised: ' + ethers.utils.formatEther(raised) + ' / ' + ethers.utils.formatEther(cap) + ' ' + sym,
+      'Sold: ' + ethers.utils.formatUnits(sold, 18) + ' / ' + ethers.utils.formatUnits(forSale, 18) + ' tokens (' + soldPct + '%)',
+      'Window: ' + new Date(startT.toNumber() * 1000).toUTCString() + ' → ' + new Date(endT.toNumber() * 1000).toUTCString(),
+      'Token: ' + token
+    ];
+    S.el('saleInfoText').textContent = lines.join('\n');
+    S.el('saleInfo').style.display = 'block';
+    S.el('buyPreview').textContent = '';
+    S.el('buyAmount').value = '';
+    lastPriceWei = null;
+    refreshBuyPreview(price);
+  }
+
+  S.el('loadSaleBtn').addEventListener('click', async function () {
+    try {
+      var addr = S.el('buySaleAddr').value.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) { S.status('statusBox', 'Enter a valid sale address (0x…).', 'error'); return; }
+      S.status('statusBox', 'Loading sale…', 'info');
+      var pc = await padContracts(); // read-only: works without a wallet
+      loadedSale = new ethers.Contract(addr, art.contracts.Sale.abi, readProvider());
+      await renderSale(loadedSale);
+      S.hideStatus('statusBox');
+    } catch (e) { S.status('statusBox', S.fmtErr(e), 'error'); }
+  });
+
+  S.el('buyBtn').addEventListener('click', async function () {
+    try {
+      var signer = await needSigner();
+      if (!loadedSale) { S.status('statusBox', 'Load a sale first (button above).', 'error'); return; }
+      var amt = S.el('buyAmount').value.trim();
+      var amtWei;
+      try { amtWei = ethers.utils.parseEther(amt); }
+      catch (e) { amtWei = null; }
+      if (!amtWei || amtWei.isZero()) { S.status('statusBox', 'Enter how much native to spend.', 'error'); return; }
+      var sale = loadedSale.connect(signer);
+      S.status('statusBox', 'Buying — confirm in your wallet…', 'info');
+      var tx = await sale.buy({ value: amtWei });
+      S.status('statusBox', 'Buy submitted — waiting for confirmation…', 'info');
+      await tx.wait();
+      S.status('statusBox', 'Bought!' + txLink(tx.hash), 'success');
+      await renderSale(sale);
+    } catch (e) { if (e.message !== 'wallet not connected') S.status('statusBox', S.fmtErr(e), 'error'); }
+  });
+
+  /* ---------- Solana ---------- */
+  var solInit = false;
+  function initSolana() {
+    S.el('solProgramId').textContent = P.solana.programId;
+    S.el('solSoDl').href = P.solana.soFile;
+    S.el('solCmd').textContent = 'solana program deploy ./shity_launchpad.so \\\n  --program-id ./shity_launchpad-keypair.json \\\n  --url https://api.mainnet-beta.solana.com';
+    if (solInit) return;
+    solInit = true;
+    S.el('solStatus').textContent = 'Checking on-chain status…';
+    S.solanaProgramLive(P.solana.programId).then(function (live) {
+      S.el('solStatus').innerHTML = live
+        ? '<strong style="color:#7dffb0">● LIVE</strong> — the program is deployed on Solana mainnet.'
+        : '<strong style="color:#F5820B">● NOT DEPLOYED YET</strong> — be the first: download the binary and run the command above.';
+    }).catch(function () {
+      S.el('solStatus').textContent = 'Could not reach Solana RPC right now — try again later.';
+    });
+    S.el('phantomBtn').addEventListener('click', function () { connectPhantom(); });
+  }
+
+  /* ---------- TON ---------- */
+  var tonInit = false;
+  var tonUi = null;
+  function initTon() {
+    S.el('tonSaleDl').href = P.ton.saleBoc;
+    S.el('tonFactoryDl').href = P.ton.factoryBoc;
+    if (tonInit) return;
+    tonInit = true;
+    try {
+      tonUi = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: 'https://shitcoinbtc.xyz/tonconnect-manifest.json',
+        buttonRootId: 'ton-connect-btn'
+      });
+      tonUi.onStatusChange(function (w) {
+        S.el('tonAddr').textContent = (w && w.account)
+          ? 'Connected: ' + S.shortAddr(w.account.address) : '';
+      });
+    } catch (e) {
+      S.el('tonAddr').textContent = 'TON Connect failed to load — check your connection and reload.';
+    }
+  }
+
+  render();
 })();
 </script>
 

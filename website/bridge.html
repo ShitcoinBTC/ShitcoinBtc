@@ -95,12 +95,17 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
 .menu-drop a:hover{background:rgba(245,130,11,.12);}
 .menu-drop a.active{background:#F5820B;color:#14100a;font-weight:700;}
 .menu-drop hr{border:none;border-top:1px solid #2a2a30;margin:6px 4px;}
+.nav-tab{display:inline-flex;align-items:center;gap:8px;color:#F5820B;border:1px solid #F5820B;background:rgba(245,130,11,.08);padding:9px 20px;border-radius:22px;font-weight:700;font-size:15px;text-decoration:none;margin-left:auto;margin-right:12px;white-space:nowrap;}
+.nav-tab:hover{background:rgba(245,130,11,.18);}
+.nav-tab.active{background:#F5820B;color:#14100a;}
+@media (max-width:560px){.nav-tab{padding:8px 12px;font-size:13px;margin-right:8px;}}
 </style>
 <nav class="sitenav"><div class="sitenav-inner">
   <a class="brand" href="/">
     <img src="/img/logo.png" alt="Shitcoin logo" width="36" height="36">
     <span>SHITCOIN</span>
   </a>
+  <!-- TAB-REMOVED-UGLY <a class="nav-tab" href="/dex">Shity DEX</a> -->
   <div class="nav-menu">
     <input type="checkbox" id="navmenu-toggle" class="menu-check" tabindex="-1" aria-hidden="true">
     <label for="navmenu-toggle" class="menu-btn" aria-haspopup="true" aria-expanded="false">
@@ -116,12 +121,17 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     <a class="" href="/whitepaper">Shity Whitepaper</a>
     <a class="active" href="/bridge">Shity Bridge</a>
     <a class="" href="/launchpad">Shity Launchpad</a>
+    <a class="" href="/lending">Shity Lending</a>
+    <a class="" href="/dex">Shity DEX</a>
+    <a class="" href="/txshield">Shity Shield</a>
+    <a class="" href="/auction">Shity Auction</a>
     <a class="" href="/node">Shity Node</a>
     <a class="" href="/#wallets">Shity Wallets</a>
     <hr>
     <a href="https://x.com/ShitcoinBTC" target="_blank" rel="noopener">X</a>
     <a href="https://t.me/ShityArmy" target="_blank" rel="noopener">Telegram</a>
     <a href="https://github.com/ShitcoinBTC/ShitcoinBtc" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://bitcointalk.org/index.php?topic=5595195.new#new" target="_blank" rel="noopener">BitcoinTalk</a>
     <a href="https://explorer.shitcoinbtc.xyz" target="_blank" rel="noopener">Explorer</a>
     </div>
   </div>
@@ -191,10 +201,12 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
     <h3>Wrap: SHIT &rarr; wSHIT</h3>
     <p>Deposit native SHIT to the wrap vault, then claim wSHIT 1:1 on Base or Solana. The vault holds part of the on-chain 6% wrapping reserve — every movement is verifiable on the explorers.</p>
     <ol class="steps">
-      <li>Send SHIT to the vault: <code class="addr" id="vault-addr">sys1q9h2mfp4u0aer6k3t6pnx332g4cmf399dmhwuha</code> (<a href="https://explorer.shitcoinbtc.xyz/address/sys1q9h2mfp4u0aer6k3t6pnx332g4cmf399dmhwuha">view on explorer</a>). Wait for 6 confirmations (~3 min).</li>
-      <li>Paste your deposit txid and your destination address below.</li>
-      <li>The watcher verifies the deposit and sends wSHIT 1:1 from team inventory. Minimum 100 SHIT.</li>
+      <li>Send at least 100 SHIT to the vault: <code class="addr" id="vault-addr">shit1q9h2mfp4u0aer6k3t6pnx332g4cmf399dlfrng8</code> (<a href="https://explorer.shitcoinbtc.xyz/address/shit1q9h2mfp4u0aer6k3t6pnx332g4cmf399dlfrng8">view on explorer</a>). <strong>The same transaction must include an OP_RETURN output carrying your destination address as plain text</strong> — your Base <code>0x...</code> address or your Solana wallet address, typed exactly as it appears. This locks the deposit to you so nobody else can claim it. If you skip this, your claim will be rejected. The SHIT is not lost, it sits in the vault, but only the team can send it back — reach out on <a href="https://t.me/ShityArmy">Telegram</a> and we will sort it out.</li>
+      <li>Wait for 6 confirmations (about 3 minutes).</li>
+      <li>Paste the deposit txid below and enter the <strong>same</strong> destination address you put in the OP_RETURN.</li>
+      <li>The watcher verifies the deposit on-chain and sends you wSHIT 1:1 from team inventory.</li>
     </ol>
+    <div class="warn"><strong>Heads up:</strong> the Shitcoin Web Wallet cannot add OP_RETURN data to a transaction yet. To make a wrap deposit, send from the Qt desktop wallet (it supports OP_RETURN outputs) or ask in <a href="https://t.me/ShityArmy">Telegram</a> and the team will walk you through it.</div>
     <form id="wrap-form">
       <label for="wrap-txid">Deposit txid (native SHIT)</label>
       <input id="wrap-txid" name="txid" placeholder="64-hex transaction id" disabled>
@@ -227,7 +239,7 @@ nav.sitenav{background:#0d0d0f;border-bottom:1px solid #2a2a30;position:relative
       <label for="unwrap-txhash">Return tx hash</label>
       <input id="unwrap-txhash" name="txhash" placeholder="wSHIT transfer to inventory" disabled>
       <label for="unwrap-shit">Your SHIT address</label>
-      <input id="unwrap-shit" name="shit_address" placeholder="sys1..." disabled>
+      <input id="unwrap-shit" name="shit_address" placeholder="shit1..." disabled>
       <button class="btn btn-primary" type="submit" id="unwrap-submit" disabled>Claim SHIT</button>
       <div class="form-result" id="unwrap-result"></div>
     </form>

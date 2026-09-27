@@ -15,6 +15,7 @@
              (gnu packages llvm)
              (gnu packages mingw)
              (gnu packages moreutils)
+             ((gnu packages perl) #:select (perl))
              (gnu packages pkg-config)
              ((gnu packages python) #:select (python-minimal))
              ((gnu packages python-build) #:select (python-tomli))
@@ -530,6 +531,7 @@ inspecting signatures in Mach-O binaries.")
         pkg-config
         ;; Scripting
         python-minimal ;; (3.10)
+        perl ;; OpenSSL's Configure is a perl script (depends/packages/openssl.mk)
         ;; Git
         git-minimal
         ;; Tests

@@ -255,11 +255,12 @@ public:
         nFulfilledRequestExpireTime = 60*60; // fulfilled requests expire in 1 hour
         m_is_mockable_chain = false;
 
-// Shitcoin: new chain — only the genesis block is checkpointed.
-        // The team adds further checkpoints after launch.
+// Shitcoin: checkpoints — genesis plus post-launch checkpoint at height 30709 (2026-09-27).
+        // Added to prevent deep reorgs / 51% attacks.
         checkpointData = {
             {
                 {0, consensus.hashGenesisBlock},
+                {30709, uint256S("0x69952a1c06dccde28a8af18ce801aa673f58a6afdd8991666525148d661e458b")},
             }
         };
 

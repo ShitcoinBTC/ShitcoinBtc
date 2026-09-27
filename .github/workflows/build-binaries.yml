@@ -159,7 +159,39 @@ jobs:
           EXE: ${{ matrix.os == 'windows' && '.exe' || '' }}
         run: |
           mkdir -p dist
+          if [ "${{ matrix.os }}" = "linux" ]; then
+            # Strip the 400MB+ unstripped binary down to shippable size.
+            strip src/qt/syscoin-qt
+          fi
           cp "src/qt/syscoin-qt$EXE" dist/
+          ls -la dist/
+
+      - name: Bundle macOS Qt app (macdeployqt)
+        if: matrix.os == 'macos'
+        run: |
+          QT_BIN="$(brew --prefix qt@5)/bin"
+          APP="dist/Shitcoin-Qt.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp src/qt/syscoin-qt "$APP/Contents/MacOS/Shitcoin-Qt"
+          cat > "$APP/Contents/Info.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key><string>Shitcoin-Qt</string>
+            <key>CFBundleIdentifier</key><string>xyz.shitcoinbtc.shitcoin-qt</string>
+            <key>CFBundleName</key><string>Shitcoin-Qt</string>
+            <key>CFBundleVersion</key><string>1.0.0</string>
+            <key>CFBundleShortVersionString</key><string>1.0.0</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          "$QT_BIN/macdeployqt" "$APP" -verbose=1
+          echo "=== bundled libs ==="
+          find "$APP/Contents/Frameworks" -name '*.dylib' | head -20
+          cd dist && rm -f syscoin-qt && zip -ry "shitcoin-qt-v1.0.0-macos.zip" "Shitcoin-Qt.app"
           ls -la dist/
 
       - name: Upload Qt wallet

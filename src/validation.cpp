@@ -4795,7 +4795,7 @@ arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader>& headers)
  *  in ConnectBlock().
  *  Note that -reindex-chainstate skips the validation that happens here!
  */
-static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, BlockManager& blockman, const ChainstateManager& chainman, const CBlockIndex* pindexPrev, NodeClock::time_point now) EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
+static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidationState& state, BlockManager& blockman, const ChainstateManager& chainman, const CBlockIndex* pindexPrev, NodeClock::time_point now, bool fCheckAuxPoW = true) EXCLUSIVE_LOCKS_REQUIRED(::cs_main)
 {
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
@@ -4812,8 +4812,13 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, BlockValidatio
        SHIT standalone (native proof of work, no Bitcoin parent) is not
        allowed — you mine Bitcoin, you get SHIT for free, no extra effort.
        Regtest (nAuxpowStartHeight == 0) is exempt so blocks can be generated
-       locally for tests.  */
-    if (consensusParams.nAuxpowStartHeight > 0
+       locally for tests.
+       NOTE: fCheckAuxPoW is false when generating block templates
+       (createauxblock/getblocktemplate) — the template inherently cannot
+       have AuxPoW yet; it is added by the miner after the Bitcoin work.
+       Real block acceptance (submitblock/submitauxblock) always checks.  */
+    if (fCheckAuxPoW
+        && consensusParams.nAuxpowStartHeight > 0
         && nHeight >= consensusParams.nAuxpowStartHeight
         && !block.auxpow) {
         LogPrintf("ERROR: %s: block without auxpow after auxpow start (height %d)\n",
@@ -5443,7 +5448,8 @@ bool TestBlockValidity(BlockValidationState& state,
                        CBlockIndex* pindexPrev,
                        const std::function<NodeClock::time_point()>& adjusted_time_callback,
                        bool fCheckPOW,
-                       bool fCheckMerkleRoot)
+                       bool fCheckMerkleRoot,
+                       bool fCheckAuxPoW)
 {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainstate.m_chain.Tip());
@@ -5460,7 +5466,7 @@ bool TestBlockValidity(BlockValidationState& state,
     indexDummy.phashBlock = &block_hash;
 
     // NOTE: CheckBlockHeader is called by CheckBlock
-    if (!ContextualCheckBlockHeader(block, state, chainstate.m_blockman, chainstate.m_chainman, pindexPrev, adjusted_time_callback()))
+    if (!ContextualCheckBlockHeader(block, state, chainstate.m_blockman, chainstate.m_chainman, pindexPrev, adjusted_time_callback(), fCheckAuxPoW))
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__, state.ToString());
     if (!CheckBlock(block, state, chainparams.GetConsensus(), fCheckPOW, fCheckMerkleRoot))
         return error("%s: Consensus::CheckBlock: %s", __func__, state.ToString());

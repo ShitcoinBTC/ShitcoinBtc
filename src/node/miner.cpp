@@ -240,8 +240,13 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     pblocktemplate->vTxSigOpsCost[0] = WITNESS_SCALE_FACTOR * GetLegacySigOpCount(*pblock->vtx[0]);
 
     // SYSCOIN BlockValidationState state;
+    // Skip the AuxPoW check here: block templates created by createauxblock/
+    // getblocktemplate inherently cannot carry AuxPoW yet — it is added by
+    // the miner after the Bitcoin merge-mining work.  Real block acceptance
+    // (submitblock/submitauxblock via ProcessNewBlock) still enforces AuxPoW.
     if (m_options.test_block_validity && !TestBlockValidity(state, chainparams, m_chainstate, *pblock, pindexPrev,
-                                                  GetAdjustedTime, /*fCheckPOW=*/false, /*fCheckMerkleRoot=*/false)) {
+                                                  GetAdjustedTime, /*fCheckPOW=*/false, /*fCheckMerkleRoot=*/false,
+                                                  /*fCheckAuxPoW=*/false)) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s", __func__, state.ToString()));
     }
     const auto time_2{SteadyClock::now()};

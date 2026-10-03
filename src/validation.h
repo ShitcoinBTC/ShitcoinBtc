@@ -366,7 +366,8 @@ bool TestBlockValidity(BlockValidationState& state,
                        CBlockIndex* pindexPrev,
                        const std::function<NodeClock::time_point()>& adjusted_time_callback,
                        bool fCheckPOW = true,
-                       bool fCheckMerkleRoot = true) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+                       bool fCheckMerkleRoot = true,
+                       bool fCheckAuxPoW = true) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 // SYSCOIN
 static std::vector<unsigned char> emptyVec;
 /** Check with the proof of work on each blockheader matches the value in nBits */
